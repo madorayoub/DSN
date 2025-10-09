@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80" aria-hidden="true">
+  <rect width="160" height="80" fill="none" />
+  <g fill="#1b2430" transform="translate(80 40)">
+    <circle r="26" fill="none" stroke="#1b2430" stroke-width="4" />
+    <text x="0" y="8" text-anchor="middle" font-family="Inter, 'Segoe UI', sans-serif" font-size="24" font-weight="700">
+      GE
+    </text>
+  </g>
+</svg>
