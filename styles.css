@@ -590,7 +590,7 @@ ul {
 .plan-services__list {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
 .plan-services__list li {
@@ -601,34 +601,36 @@ ul {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.5rem;
   width: 100%;
-  padding: 0.9rem 1.2rem;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(17, 24, 39, 0.05);
-  box-shadow: 0 12px 22px rgba(26, 40, 66, 0.07);
+  min-height: 3.5rem;
+  padding: 1rem 1.4rem;
+  border-radius: 1.25rem;
+  background: rgba(248, 249, 252, 0.95);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  box-shadow: 0 8px 20px rgba(26, 40, 66, 0.08);
   font-weight: 600;
   color: var(--color-text);
   position: relative;
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition: box-shadow var(--transition), border-color var(--transition), background-color var(--transition);
 }
 
 .plan-services__list a::after {
   content: "›";
-  font-size: 1.25rem;
-  color: rgba(27, 36, 48, 0.45);
+  font-size: 1.15rem;
+  color: rgba(27, 36, 48, 0.4);
   transition: color var(--transition);
 }
 
 .plan-services__list a:hover,
 .plan-services__list a:focus-visible {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 32px rgba(26, 40, 66, 0.12);
+  background-color: #ffffff;
+  border-color: rgba(17, 24, 39, 0.16);
+  box-shadow: 0 16px 30px rgba(26, 40, 66, 0.12);
 }
 
 .plan-services__list a:focus-visible {
-  outline: 2px solid rgba(27, 36, 48, 0.4);
+  outline: 2px solid rgba(27, 36, 48, 0.45);
   outline-offset: 3px;
 }
 
@@ -648,7 +650,8 @@ ul {
 
   .plan-services__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
+    column-gap: 1.25rem;
+    row-gap: 1.1rem;
   }
 }
 
