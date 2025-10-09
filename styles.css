@@ -603,37 +603,38 @@ ul {
   justify-content: space-between;
   gap: 1.25rem;
   width: 100%;
-  min-height: 4.1rem;
-  padding: 1rem 1.5rem;
-  border-radius: 0.9rem;
+  min-height: 3.85rem;
+  padding: 0.95rem 1.5rem;
+  border-radius: 0.75rem;
   background-color: #ffffff;
-  border: 1px solid rgba(17, 24, 39, 0.06);
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
   font-weight: 600;
   color: var(--color-text);
+  text-align: left;
+  line-height: 1.25;
   transition:
     background-color var(--transition),
     border-color var(--transition),
-    box-shadow var(--transition),
-    transform var(--transition);
+    box-shadow var(--transition);
 }
 
 .plan-services__list a::after {
   content: "›";
-  font-size: 1.05rem;
-  color: rgba(17, 24, 39, 0.38);
+  font-size: 0.95rem;
+  color: rgba(17, 24, 39, 0.35);
   transition: color var(--transition);
 }
 
 .plan-services__list a:hover,
 .plan-services__list a:focus-visible {
   background-color: #ffffff;
-  border-color: rgba(17, 24, 39, 0.12);
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  border-color: rgba(15, 23, 42, 0.14);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
 }
 
 .plan-services__list a:focus-visible {
-  outline: 2px solid rgba(17, 24, 39, 0.5);
+  outline: 2px solid rgba(17, 24, 39, 0.45);
   outline-offset: 3px;
 }
 
