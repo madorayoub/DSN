@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80" role="img" aria-labelledby="title">
+  <title>Mole Street logo</title>
+  <defs>
+    <linearGradient id="moleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c233f" />
+      <stop offset="100%" stop-color="#164c7d" />
+    </linearGradient>
+  </defs>
+  <rect width="160" height="80" rx="20" fill="url(#moleGradient)" />
+  <text x="50%" y="42" text-anchor="middle" dominant-baseline="middle"
+        font-family="'Manrope', 'Segoe UI', sans-serif" font-size="22" font-weight="700"
+        fill="#ffffff" letter-spacing="0.32em">MOLE</text>
+  <text x="50%" y="62" text-anchor="middle" dominant-baseline="middle"
+        font-family="'Manrope', 'Segoe UI', sans-serif" font-size="18" font-weight="600"
+        fill="#ffffff" letter-spacing="0.54em">STREET</text>
+</svg>

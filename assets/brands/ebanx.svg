@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80" role="img" aria-labelledby="title">
+  <title>EBANX logo</title>
+  <defs>
+    <linearGradient id="ebanxGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#006b7a" />
+      <stop offset="100%" stop-color="#00a9c5" />
+    </linearGradient>
+  </defs>
+  <rect width="160" height="80" rx="20" fill="url(#ebanxGradient)" />
+  <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle"
+        font-family="'Manrope', 'Segoe UI', sans-serif" font-size="28" font-weight="700"
+        fill="#ffffff" letter-spacing="0.28em">EBANX</text>
+</svg>

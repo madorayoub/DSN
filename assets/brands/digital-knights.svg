@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80" role="img" aria-labelledby="title">
+  <title>Digital Knights logo</title>
+  <defs>
+    <linearGradient id="digitalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#232743" />
+      <stop offset="100%" stop-color="#3b3f6d" />
+    </linearGradient>
+  </defs>
+  <rect width="160" height="80" rx="20" fill="#ffffff" />
+  <rect x="18" y="16" width="124" height="48" rx="18" fill="url(#digitalGradient)" />
+  <text x="80" y="44" text-anchor="middle" dominant-baseline="middle"
+        font-family="'Manrope', 'Segoe UI', sans-serif" font-size="18" font-weight="700"
+        fill="#ffffff" letter-spacing="0.34em">DIGITAL</text>
+  <text x="80" y="62" text-anchor="middle" dominant-baseline="middle"
+        font-family="'Manrope', 'Segoe UI', sans-serif" font-size="16" font-weight="600"
+        fill="#ffffff" letter-spacing="0.48em">KNIGHTS</text>
+</svg>

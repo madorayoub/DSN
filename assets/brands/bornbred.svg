@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80" role="img" aria-labelledby="title">
+  <title>Born &amp; Bred logo</title>
+  <defs>
+    <linearGradient id="bornGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#101725" />
+      <stop offset="100%" stop-color="#2b3a56" />
+    </linearGradient>
+  </defs>
+  <rect width="160" height="80" rx="20" fill="#ffffff" />
+  <rect x="20" y="18" width="120" height="44" rx="16" fill="url(#bornGradient)" />
+  <text x="80" y="46" text-anchor="middle" dominant-baseline="middle"
+        font-family="'Manrope', 'Segoe UI', sans-serif" font-size="18" font-weight="700"
+        fill="#ffffff" letter-spacing="0.28em">BORN&amp;BRED</text>
+</svg>

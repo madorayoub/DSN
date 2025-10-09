@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80" role="img" aria-labelledby="title">
+  <title>BOB logo</title>
+  <defs>
+    <linearGradient id="bobGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f1829" />
+      <stop offset="100%" stop-color="#1f2d46" />
+    </linearGradient>
+  </defs>
+  <rect width="160" height="80" rx="20" fill="url(#bobGradient)" />
+  <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle"
+        font-family="'Manrope', 'Segoe UI', sans-serif" font-size="34" font-weight="700"
+        fill="#ffffff" letter-spacing="0.12em">BOB</text>
+</svg>

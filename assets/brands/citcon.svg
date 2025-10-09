@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80" role="img" aria-labelledby="title">
+  <title>Citcon logo</title>
+  <defs>
+    <linearGradient id="citconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0087ff" />
+      <stop offset="100%" stop-color="#00c1ff" />
+    </linearGradient>
+  </defs>
+  <rect width="160" height="80" rx="20" fill="#ffffff" />
+  <rect x="20" y="20" width="38" height="38" rx="12" fill="url(#citconGradient)" />
+  <text x="80" y="50" font-family="'Manrope', 'Segoe UI', sans-serif" font-size="24"
+        font-weight="700" fill="#0087ff" letter-spacing="0.3em">CITCON</text>
+</svg>
