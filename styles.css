@@ -601,36 +601,39 @@ ul {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1.25rem;
   width: 100%;
-  min-height: 3.5rem;
-  padding: 1rem 1.4rem;
-  border-radius: 1.25rem;
-  background: rgba(248, 249, 252, 0.95);
-  border: 1px solid rgba(17, 24, 39, 0.08);
-  box-shadow: 0 8px 20px rgba(26, 40, 66, 0.08);
+  min-height: 4.1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 0.9rem;
+  background-color: #ffffff;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
   font-weight: 600;
   color: var(--color-text);
-  position: relative;
-  transition: box-shadow var(--transition), border-color var(--transition), background-color var(--transition);
+  transition:
+    background-color var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition),
+    transform var(--transition);
 }
 
 .plan-services__list a::after {
   content: "›";
-  font-size: 1.15rem;
-  color: rgba(27, 36, 48, 0.4);
+  font-size: 1.05rem;
+  color: rgba(17, 24, 39, 0.38);
   transition: color var(--transition);
 }
 
 .plan-services__list a:hover,
 .plan-services__list a:focus-visible {
   background-color: #ffffff;
-  border-color: rgba(17, 24, 39, 0.16);
-  box-shadow: 0 16px 30px rgba(26, 40, 66, 0.12);
+  border-color: rgba(17, 24, 39, 0.12);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
 }
 
 .plan-services__list a:focus-visible {
-  outline: 2px solid rgba(27, 36, 48, 0.45);
+  outline: 2px solid rgba(17, 24, 39, 0.5);
   outline-offset: 3px;
 }
 
