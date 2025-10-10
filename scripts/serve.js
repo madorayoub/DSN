@@ -21,12 +21,26 @@ const MIME_TYPES = {
 
 const server = http.createServer(async (req, res) => {
   try {
-    const requestedPath = (req.url || "/").split("?")[0];
-    const relativePath = requestedPath === "/" ? "index.html" : requestedPath.replace(/^\//, "");
-    const resolvedPath = path.resolve(ROOT, relativePath);
+    const requestedUrl = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+    let decodedPathname;
+    try {
+      decodedPathname = decodeURIComponent(requestedUrl.pathname);
+    } catch (decodeError) {
+      res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Bad Request");
+      return;
+    }
 
-    const rootWithSep = ROOT.endsWith(path.sep) ? ROOT : `${ROOT}${path.sep}`;
-    if (resolvedPath !== ROOT && !resolvedPath.startsWith(rootWithSep)) {
+    const normalizedPath = path.posix.normalize(decodedPathname);
+    const strippedPath = normalizedPath === "/" ? "index.html" : normalizedPath.replace(/^\/+/, "");
+    const resolvedPath = path.resolve(ROOT, strippedPath);
+    const relativeToRoot = path.relative(ROOT, resolvedPath);
+
+    if (
+      relativeToRoot.startsWith("..") ||
+      path.isAbsolute(relativeToRoot) ||
+      normalizedPath.includes("\0")
+    ) {
       res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
       res.end("Forbidden");
       return;
