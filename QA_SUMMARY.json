@@ -1,11 +1,14 @@
 {
   "a11y": [
-    "Challenges section keeps semantic landmarks, refreshed icons remain decorative, and motion respects reduced preferences."
+    "Pipeline section uses semantic landmarks with WAI-ARIA tabs, roving focus, and mirrored funnel buttons that expose aria-pressed states.",
+    "Panels toggle the hidden attribute for clear announcements while focus-visible outlines ensure keyboard discoverability."
   ],
   "perf": [
-    "Layout tightened to reduce scroll depth without impacting asset loading."
+    "Static HTML, CSS, and inline SVG keep the section lightweight with zero additional network requests.",
+    "Responsive grid and spacing rules avoid large viewport heights and minimize layout shifts across breakpoints."
   ],
   "known_gaps": [
-    "Visual parity with the reference layout still requires manual verification."
+    "Pixel-parity with the Belkins reference still needs manual visual QA across browsers.",
+    "Playwright coverage relies on local file:// navigation; CI environments must allow file protocol access."
   ]
 }

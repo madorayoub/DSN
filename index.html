@@ -155,6 +155,201 @@
           </div>
         </div>
       </section>
+
+      <section id="pipeline" class="pipeline" aria-labelledby="pipeline-heading">
+        <div class="container">
+          <div class="pipeline__card" role="group" aria-label="Pipeline overview">
+            <header class="pipeline__header">
+              <h2 id="pipeline-heading">How your pipeline will look with Belkins</h2>
+              <p class="pipeline__sub">Focus on scaling your business while we deliver you sales-ready B2B leads.</p>
+            </header>
+
+            <div class="pipeline__grid">
+              <aside class="pipeline__rail" aria-label="Pipeline steps">
+                <p class="pipeline__group-title">We take care of the entire user journey</p>
+
+                <div class="pipeline__tablist" role="tablist" aria-orientation="vertical">
+                  <button
+                    type="button"
+                    class="pipeline__tab"
+                    id="tab-omni"
+                    role="tab"
+                    aria-controls="panel-omni"
+                    aria-selected="true"
+                    tabindex="0"
+                    data-step-key="omnichannel-engagement"
+                  >
+                    Omnichannel engagement
+                  </button>
+                  <button
+                    type="button"
+                    class="pipeline__tab"
+                    id="tab-activation"
+                    role="tab"
+                    aria-controls="panel-activation"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-step-key="activation"
+                  >
+                    Activation
+                  </button>
+                  <button
+                    type="button"
+                    class="pipeline__tab"
+                    id="tab-conversion"
+                    role="tab"
+                    aria-controls="panel-conversion"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-step-key="conversion"
+                  >
+                    Conversion
+                  </button>
+                </div>
+
+                <p class="pipeline__group-title">Your part in the process</p>
+                <div class="pipeline__tablist pipeline__tablist--secondary" role="tablist" aria-orientation="vertical">
+                  <button
+                    type="button"
+                    class="pipeline__tab"
+                    id="tab-deal"
+                    role="tab"
+                    aria-controls="panel-deal"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-step-key="deal-closure"
+                  >
+                    Deal closure
+                  </button>
+                </div>
+
+                <div class="pipeline__panel" id="panel-omni" role="tabpanel" aria-labelledby="tab-omni" data-step-key="omnichannel-engagement">
+                  We develop a comprehensive plan that combines email, LinkedIn, and cold calling to reach your prospects at the
+                  right time and in the right place.
+                </div>
+                <div
+                  class="pipeline__panel"
+                  id="panel-activation"
+                  role="tabpanel"
+                  aria-labelledby="tab-activation"
+                  hidden
+                  data-step-key="activation"
+                >
+                  Prospects engage by replying to emails, subscribing to newsletters, clicking on ads, answering in WhatsApp,
+                  attending a webinar, etc.
+                </div>
+                <div
+                  class="pipeline__panel"
+                  id="panel-conversion"
+                  role="tabpanel"
+                  aria-labelledby="tab-conversion"
+                  hidden
+                  data-step-key="conversion"
+                >
+                  With personalized appointment setting and persistent follow-ups, we ensure your prospects attend demo calls
+                  and online or face-to-face meetings with your sales executives.
+                </div>
+                <div
+                  class="pipeline__panel"
+                  id="panel-deal"
+                  role="tabpanel"
+                  aria-labelledby="tab-deal"
+                  hidden
+                  data-step-key="deal-closure"
+                >
+                  All that’s left for you to do is attend booked appointments, run sales negotiations, and sign new deals.
+                </div>
+              </aside>
+
+              <div class="pipeline__funnel">
+                <p class="pipeline__caption">* Average yearly outcomes. The results depend on multiple factors.</p>
+
+                <div class="funnel" role="group" aria-label="Funnel outcomes">
+                  <button
+                    type="button"
+                    class="funnel__layer funnel__layer--active"
+                    data-step="0"
+                    data-step-key="omnichannel-engagement"
+                    aria-pressed="true"
+                    aria-label="Leads — Up to 18,000* prospects within your client profile"
+                  >
+                    <span class="funnel__marker" aria-hidden="true">
+                      <span class="funnel__marker-dot"></span>
+                      <span class="funnel__marker-text">Leads</span>
+                    </span>
+                    <svg class="funnel__svg" viewBox="0 0 464 124" aria-hidden="true" focusable="false">
+                      <path d="M32 6c-7.8 0-14.5 5.3-16 12.9L5.2 103.6C3.1 114.4 11.5 124 22.5 124h419c11 0 19.4-9.6 17.3-20.4L446 18.9C444.4 11.3 437.7 6 429.9 6Z" />
+                    </svg>
+                    <span class="funnel__text">
+                      <span class="funnel__value">Up to 18,000* prospects within your client profile</span>
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="funnel__layer"
+                    data-step="1"
+                    data-step-key="activation"
+                    aria-pressed="false"
+                    aria-label="MQLs — Up to 9,000* marketing-qualified leads"
+                  >
+                    <span class="funnel__marker" aria-hidden="true">
+                      <span class="funnel__marker-dot"></span>
+                      <span class="funnel__marker-text">MQLs</span>
+                    </span>
+                    <svg class="funnel__svg" viewBox="0 0 408 120" aria-hidden="true" focusable="false">
+                      <path d="M32 6c-7.1 0-13.2 4.8-14.6 11.7L8.3 100.3C6.4 110.4 13.6 120 23.9 120h360.2c10.3 0 17.5-9.6 15.6-19.7l-14.7-82.6C383.6 10.8 377.5 6 370.4 6Z" />
+                    </svg>
+                    <span class="funnel__text">
+                      <span class="funnel__value">Up to 9,000* marketing-qualified leads</span>
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="funnel__layer"
+                    data-step="2"
+                    data-step-key="conversion"
+                    aria-pressed="false"
+                    aria-label="SQLs — 200* sales-qualified meetings with decision-makers"
+                  >
+                    <span class="funnel__marker" aria-hidden="true">
+                      <span class="funnel__marker-dot"></span>
+                      <span class="funnel__marker-text">SQLs</span>
+                    </span>
+                    <svg class="funnel__svg" viewBox="0 0 348 116" aria-hidden="true" focusable="false">
+                      <path d="M32 6c-6.4 0-11.9 4.6-12.9 10.8l-13 78.1C4.1 105.7 10.5 116 21 116h306c10.5 0 16.9-10.3 14.9-21.1l-11.6-65.1C329.3 10.6 323.8 6 317.4 6Z" />
+                    </svg>
+                    <span class="funnel__text">
+                      <span class="funnel__value">200* sales-qualified meetings with decision-makers</span>
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="funnel__layer"
+                    data-step="3"
+                    data-step-key="deal-closure"
+                    aria-pressed="false"
+                    aria-label="Opportunities — 10–30* closed deals"
+                  >
+                    <span class="funnel__marker" aria-hidden="true">
+                      <span class="funnel__marker-dot"></span>
+                      <span class="funnel__marker-text">Opportunities</span>
+                    </span>
+                    <svg class="funnel__svg" viewBox="0 0 292 100" aria-hidden="true" focusable="false">
+                      <path d="M32 6c-5.6 0-10.3 4.4-11.1 9.9l-9.6 64.4C9.5 89.9 15 100 24.4 100h243.2c9.4 0 14.9-10.1 13.1-19.7l-8.4-45.8C270.9 10.4 266.2 6 260.6 6Z" />
+                    </svg>
+                    <span class="funnel__text">
+                      <span class="funnel__value">10–30* closed deals</span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <section class="client-plan" aria-labelledby="client-plan-heading">
         <div class="container">
           <div class="client-plan__intro">
