@@ -23,7 +23,16 @@ const server = http.createServer(async (req, res) => {
   try {
     const requestedPath = (req.url || "/").split("?")[0];
     const relativePath = requestedPath === "/" ? "index.html" : requestedPath.replace(/^\//, "");
-    const filePath = path.join(ROOT, relativePath);
+    const resolvedPath = path.resolve(ROOT, relativePath);
+
+    const rootWithSep = ROOT.endsWith(path.sep) ? ROOT : `${ROOT}${path.sep}`;
+    if (resolvedPath !== ROOT && !resolvedPath.startsWith(rootWithSep)) {
+      res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Forbidden");
+      return;
+    }
+
+    const filePath = resolvedPath;
     const data = await readFile(filePath);
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || "application/octet-stream";
