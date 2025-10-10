@@ -15,3 +15,177 @@ if (nav && navToggle) {
     }
   });
 }
+
+const pipelineSection = document.querySelector('#pipeline');
+
+if (pipelineSection) {
+  const tabs = Array.from(pipelineSection.querySelectorAll('.pipeline__tab'));
+  const panels = Array.from(pipelineSection.querySelectorAll('.pipeline__panel'));
+  const layers = Array.from(pipelineSection.querySelectorAll('.funnel__layer'));
+
+  const stepConfigs = tabs.map((tab, index) => {
+    const key = tab.getAttribute('data-step-key') || `step-${index}`;
+    const panel = panels.find((node) => node.getAttribute('data-step-key') === key);
+    const layer = layers.find((node) => node.getAttribute('data-step-key') === key);
+    return { key, tab, panel, layer };
+  });
+
+  let focusIndex = 0;
+  let activeIndex = -1;
+
+  const updateTabFocus = () => {
+    tabs.forEach((tab, index) => {
+      tab.setAttribute('tabindex', index === focusIndex ? '0' : '-1');
+    });
+  };
+
+  const updateHash = (key) => {
+    const url = new URL(window.location.href);
+    url.hash = `pipeline-step=${key}`;
+    window.history.replaceState(null, '', url);
+  };
+
+  const setActive = (index, options = {}) => {
+    const { setFocus = true, updateHash: shouldUpdateHash = true } = options;
+
+    if (index < 0 || index >= stepConfigs.length) {
+      return;
+    }
+
+    if (activeIndex === index) {
+      if (shouldUpdateHash) {
+        updateHash(stepConfigs[index].key);
+      }
+      return;
+    }
+
+    activeIndex = index;
+
+    stepConfigs.forEach((config, stepIndex) => {
+      const isActive = stepIndex === index;
+      config.tab.setAttribute('aria-selected', String(isActive));
+      config.tab.classList.toggle('pipeline__tab--active', isActive);
+
+      if (config.panel) {
+        config.panel.hidden = !isActive;
+        config.panel.classList.toggle('pipeline__panel--active', isActive);
+      }
+
+      if (config.layer) {
+        config.layer.classList.toggle('funnel__layer--active', isActive);
+        config.layer.setAttribute('aria-pressed', String(isActive));
+      }
+    });
+
+    if (setFocus) {
+      focusIndex = index;
+    }
+
+    updateTabFocus();
+
+    if (shouldUpdateHash) {
+      updateHash(stepConfigs[index].key);
+    }
+  };
+
+  const moveFocus = (nextIndex) => {
+    if (!tabs.length) {
+      return;
+    }
+
+    let target = nextIndex;
+
+    if (target < 0) {
+      target = stepConfigs.length - 1;
+    } else if (target >= stepConfigs.length) {
+      target = 0;
+    }
+
+    focusIndex = target;
+    updateTabFocus();
+    tabs[target].focus();
+    setActive(target, { setFocus: false });
+  };
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => {
+      setActive(index);
+      tabs[index].focus();
+    });
+
+    tab.addEventListener('focus', () => {
+      focusIndex = index;
+      updateTabFocus();
+    });
+
+    tab.addEventListener('keydown', (event) => {
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          moveFocus(index + 1);
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          moveFocus(index - 1);
+          break;
+        case 'Home':
+          event.preventDefault();
+          moveFocus(0);
+          break;
+        case 'End':
+          event.preventDefault();
+          moveFocus(stepConfigs.length - 1);
+          break;
+        case ' ':
+        case 'Enter':
+          event.preventDefault();
+          setActive(index);
+          break;
+        default:
+          break;
+      }
+    });
+  });
+
+  layers.forEach((layer) => {
+    const key = layer.getAttribute('data-step-key');
+    const index = stepConfigs.findIndex((config) => config.key === key);
+
+    if (index === -1) {
+      return;
+    }
+
+    layer.addEventListener('click', () => {
+      setActive(index);
+      tabs[index].focus();
+    });
+  });
+
+  const parseHash = () => {
+    const hash = window.location.hash;
+    const match = hash.match(/pipeline-step=([a-z-]+)/i);
+    if (!match) {
+      return undefined;
+    }
+    const key = match[1];
+    const foundIndex = stepConfigs.findIndex((config) => config.key === key);
+    return foundIndex >= 0 ? foundIndex : undefined;
+  };
+
+  updateTabFocus();
+
+  const initialIndex = parseHash();
+
+  if (typeof initialIndex === 'number') {
+    setActive(initialIndex, { setFocus: true, updateHash: false });
+  } else if (stepConfigs.length > 0) {
+    setActive(0, { setFocus: true, updateHash: true });
+  }
+
+  window.addEventListener('hashchange', () => {
+    const nextIndex = parseHash();
+    if (typeof nextIndex === 'number') {
+      setActive(nextIndex, { setFocus: true, updateHash: false });
+    }
+  });
+}
