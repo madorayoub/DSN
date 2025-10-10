@@ -445,6 +445,30 @@ ul {
   }
 }
 
+.results-banner {
+  background: #f1f2f4;
+  padding: clamp(3.5rem, 9vw, 6rem) 0;
+}
+
+.results-banner__content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  align-items: center;
+}
+
+.results-banner__headline {
+  font-size: clamp(2.25rem, 4vw + 1rem, 3.35rem);
+  line-height: 1.18;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.results-banner__headline span {
+  color: var(--color-accent);
+}
+
 .client-plan {
   padding: clamp(4rem, 10vw, 7rem) 0 clamp(5rem, 12vw, 8rem);
 }
