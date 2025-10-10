@@ -31,7 +31,9 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    const normalizedPath = path.posix.normalize(decodedPathname);
+    const normalizedPath = path
+      .normalize(decodedPathname.replace(/\\+/g, "/"))
+      .replace(/\\+/g, "/");
     const strippedPath = normalizedPath === "/" ? "index.html" : normalizedPath.replace(/^\/+/, "");
     const resolvedPath = path.resolve(ROOT, strippedPath);
     const relativeToRoot = path.relative(ROOT, resolvedPath);
