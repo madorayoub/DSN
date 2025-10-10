@@ -1,0 +1,11 @@
+{
+  "a11y": [
+    "Challenges section keeps semantic landmarks, refreshed icons remain decorative, and motion respects reduced preferences."
+  ],
+  "perf": [
+    "Layout tightened to reduce scroll depth without impacting asset loading."
+  ],
+  "known_gaps": [
+    "Visual parity with the reference layout still requires manual verification."
+  ]
+}
