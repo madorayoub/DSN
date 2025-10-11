@@ -2076,3 +2076,187 @@ ul {
     text-wrap: balance;
   }
 }
+
+.industries {
+  position: relative;
+  padding: clamp(4rem, 9vw, 6.5rem) 0 clamp(5rem, 11vw, 7.5rem);
+  background: radial-gradient(120% 120% at 85% 15%, rgba(255, 198, 165, 0.25) 0%, rgba(255, 198, 165, 0) 65%),
+    radial-gradient(100% 100% at 10% 20%, rgba(154, 192, 255, 0.18) 0%, rgba(154, 192, 255, 0) 65%),
+    linear-gradient(180deg, #fdfdfd 0%, #f3f5fb 100%);
+  overflow: hidden;
+}
+
+.industries::before,
+.industries::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(0);
+  pointer-events: none;
+}
+
+.industries::before {
+  width: clamp(12rem, 35vw, 18rem);
+  height: clamp(12rem, 35vw, 18rem);
+  background: radial-gradient(circle, rgba(255, 244, 235, 0.9) 0%, rgba(255, 244, 235, 0));
+  top: -12%;
+  right: clamp(-6rem, -12vw, -4rem);
+}
+
+.industries::after {
+  width: clamp(16rem, 45vw, 22rem);
+  height: clamp(16rem, 45vw, 22rem);
+  background: radial-gradient(circle, rgba(224, 235, 255, 0.9) 0%, rgba(224, 235, 255, 0));
+  bottom: -18%;
+  left: clamp(-8rem, -14vw, -4rem);
+}
+
+.industries .container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.75rem, 6vw, 4rem);
+}
+
+.industries__header {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 4vw, 2.5rem);
+  align-items: stretch;
+}
+
+.industries__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 640px;
+}
+
+.industries__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background: rgba(255, 90, 31, 0.08);
+  padding: 0.4rem 1.1rem;
+  border-radius: var(--radius-pill);
+}
+
+.industries__title {
+  font-size: clamp(2.25rem, 3.8vw + 1rem, 3.4rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.industries__description {
+  font-size: clamp(1rem, 0.7vw + 0.95rem, 1.15rem);
+  color: var(--color-muted);
+  max-width: 46ch;
+}
+
+.industries__ratings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.industries__rating {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.industries__rating-source {
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.industries__rating-score {
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.industries__rating-meta {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+
+.industries__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(1.5rem, 4vw, 2rem);
+}
+
+.industry-card {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 1.75rem;
+  padding: clamp(1.5rem, 3.5vw, 2rem);
+  box-shadow: 0 20px 38px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.industry-card__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.industry-card__description {
+  font-size: 0.98rem;
+  color: var(--color-muted);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .industry-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.12);
+  }
+}
+
+@media (min-width: 62em) {
+  .industries__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .industries__ratings {
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 40em) {
+  .industries__rating {
+    text-align: center;
+    align-items: center;
+  }
+
+  .industries__title {
+    font-size: clamp(2rem, 5vw + 1rem, 2.75rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .industry-card {
+    transition: none;
+  }
+}
