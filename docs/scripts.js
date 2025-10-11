@@ -233,11 +233,20 @@ if (pipelineSection) {
     }
   };
 
-  const loadFragment = async (slotId, partial) => {
-    const slot = document.getElementById(slotId) || document.querySelector(`[data-fragment="${partial}"]`);
+  const loadFragment = async (slotOrId, partial) => {
+    const slot =
+      typeof slotOrId === 'string'
+        ? document.getElementById(slotOrId) || document.querySelector(`[data-fragment="${partial}"]`)
+        : slotOrId;
+
     if (!slot) return;
 
-    const url = resolvePartialUrl(partial);
+    const fragmentName = partial || slot.getAttribute('data-fragment');
+    if (!fragmentName) {
+      return;
+    }
+
+    const url = resolvePartialUrl(fragmentName);
 
     try {
       const res = await fetch(url, { credentials: 'same-origin' });
@@ -262,7 +271,6 @@ if (pipelineSection) {
         return;
       }
 
-      const fragmentName = slot.getAttribute('data-fragment') || partial;
       const slotIdValue = slot.id;
 
       if (nodes.length === 1 && nodes[0].nodeType === elementNodeType) {
@@ -297,10 +305,14 @@ if (pipelineSection) {
     }
   };
 
-  await Promise.all([
-    loadFragment('site-header', 'header'),
-    loadFragment('site-footer', 'footer')
-  ]);
+  const placeholders = Array.from(document.querySelectorAll('[data-fragment]'));
+
+  await Promise.all(
+    placeholders.map((slot) => {
+      const name = slot.getAttribute('data-fragment');
+      return name ? loadFragment(slot, name) : undefined;
+    })
+  );
 
   // Sticky header state (adds .is-sticky after scrolling a bit)
   const header = document.querySelector('.site-header') || document.querySelector('header.site-header');
