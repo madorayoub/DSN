@@ -50,6 +50,127 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.top-rated {
+  padding: clamp(4rem, 7vw, 6.5rem) 0;
+  background: linear-gradient(135deg, #f8f9ff 0%, #eef2ff 100%);
+  color: #101828;
+}
+
+.top-rated__inner {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 4.5rem);
+  align-items: center;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+}
+
+@media (max-width: 62rem) {
+  .top-rated__inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.top-rated__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.top-rated__eyebrow {
+  font-size: 0.9rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #475467;
+}
+
+.top-rated__title {
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.top-rated__subtitle {
+  font-size: 1.05rem;
+  color: #4f5a68;
+  max-width: 32ch;
+}
+
+.top-rated__grid {
+  display: grid;
+  gap: 1.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.top-rated__card {
+  background: #ffffff;
+  border-radius: 1.5rem;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+  position: relative;
+  isolation: isolate;
+}
+
+.top-rated__card--rating {
+  padding-block: 1.5rem;
+}
+
+.top-rated__badge {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 1.25rem;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.top-rated__badge svg {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
+.top-rated__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.top-rated__card-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #1d2635;
+}
+
+.top-rated__card-caption {
+  font-size: 0.95rem;
+  color: #5f6b7a;
+}
+
+.top-rated__rating {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 1.05rem;
+  color: #1d2635;
+}
+
+.top-rated__divider {
+  font-weight: 600;
+  color: #98a2b3;
+}
+
+.top-rated__score {
+  font-weight: 700;
+  color: #1c7ed6;
+}
+
+.top-rated__reviews {
+  font-size: 0.92rem;
+  color: #5f6b7a;
+}
+
 a {
   color: inherit;
   text-decoration: none;
