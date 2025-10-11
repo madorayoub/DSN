@@ -233,7 +233,7 @@ if (pipelineSection) {
     }
   };
 
-  const loadFragment = async (slotId, partial, fallbackTplId) => {
+  const loadFragment = async (slotId, partial) => {
     const slot = document.getElementById(slotId) || document.querySelector(`[data-fragment="${partial}"]`);
     if (!slot) return;
 
@@ -242,17 +242,18 @@ if (pipelineSection) {
     try {
       const res = await fetch(url, { credentials: 'same-origin' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      slot.innerHTML = await res.text();
+      const html = await res.text();
+      if (html.trim()) {
+        slot.innerHTML = html;
+      }
     } catch (e) {
-      // Fallback if fetch blocked (e.g., file://)
-      const tpl = document.getElementById(`${fallbackTplId}`);
-      if (tpl && tpl.content) slot.replaceWith(tpl.content.cloneNode(true));
+      // Inline fallback content remains in place if fetch fails.
     }
   };
 
   await Promise.all([
-    loadFragment('site-header', 'header', 'header-fallback'),
-    loadFragment('site-footer', 'footer', 'footer-fallback')
+    loadFragment('site-header', 'header'),
+    loadFragment('site-footer', 'footer')
   ]);
 
   // Sticky header state (adds .is-sticky after scrolling a bit)
