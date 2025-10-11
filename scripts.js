@@ -27,7 +27,8 @@ if (pipelineSection) {
     const key = tab.getAttribute('data-step-key') || `step-${index}`;
     const panel = panels.find((node) => node.getAttribute('data-step-key') === key);
     const layer = layers.find((node) => node.getAttribute('data-step-key') === key);
-    return { key, tab, panel, layer };
+    const description = tab.querySelector('.pipeline__description');
+    return { key, tab, panel, layer, description };
   });
 
   let focusIndex = 0;
@@ -64,7 +65,13 @@ if (pipelineSection) {
     stepConfigs.forEach((config, stepIndex) => {
       const isActive = stepIndex === index;
       config.tab.setAttribute('aria-selected', String(isActive));
+      config.tab.setAttribute('aria-expanded', String(isActive));
       config.tab.classList.toggle('pipeline__tab--active', isActive);
+
+      if (config.description) {
+        config.description.classList.toggle('pipeline__description--active', isActive);
+        config.description.setAttribute('aria-hidden', String(!isActive));
+      }
 
       if (config.panel) {
         config.panel.hidden = !isActive;
@@ -179,7 +186,8 @@ if (pipelineSection) {
   if (typeof initialIndex === 'number') {
     setActive(initialIndex, { setFocus: true, updateHash: false });
   } else if (stepConfigs.length > 0) {
-    setActive(0, { setFocus: true, updateHash: true });
+    const defaultIndex = Math.min(1, stepConfigs.length - 1);
+    setActive(defaultIndex, { setFocus: true, updateHash: true });
   }
 
   window.addEventListener('hashchange', () => {

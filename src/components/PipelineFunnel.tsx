@@ -14,11 +14,11 @@ type StepConfig = {
   title: string;
   description: string;
   label: string;
-  metric: string;
+  stat: string;
+  support?: string;
   path: string;
   viewBox: string;
   tabGroup?: "primary" | "secondary";
-  funnelLabel: string;
   tabId: string;
   panelId: string;
 };
@@ -30,8 +30,8 @@ const STEPS: StepConfig[] = [
     description:
       "We develop a comprehensive plan that combines email, LinkedIn, and cold calling to reach your prospects at the right time and in the right place.",
     label: "Leads",
-    funnelLabel: "Leads",
-    metric: "Up to 18,000* prospects within your client profile",
+    stat: "Up to 18,000* prospects",
+    support: "within your client profile",
     path: "M20 0h420l-36 120H56L20 0Z",
     viewBox: "0 0 460 120",
     tabGroup: "primary",
@@ -44,8 +44,8 @@ const STEPS: StepConfig[] = [
     description:
       "Prospects engage by replying to emails, subscribing to newsletters, clicking on ads, answering in WhatsApp, attending a webinar, etc.",
     label: "MQLs",
-    funnelLabel: "MQLs",
-    metric: "Up to 9,000* marketing-qualified leads",
+    stat: "Up to 9,000*",
+    support: "marketing-qualified leads",
     path: "M18 0h366l-32 116H50L18 0Z",
     viewBox: "0 0 402 116",
     tabGroup: "primary",
@@ -58,8 +58,8 @@ const STEPS: StepConfig[] = [
     description:
       "With personalized appointment setting and persistent follow-ups, we ensure your prospects attend demo calls and online or face-to-face meetings with your sales executives.",
     label: "SQLs",
-    funnelLabel: "SQLs",
-    metric: "200* sales-qualified meetings with decision-makers",
+    stat: "200* sales-qualified meetings",
+    support: "with decision-makers",
     path: "M16 0h310l-28 112H44L16 0Z",
     viewBox: "0 0 342 112",
     tabGroup: "primary",
@@ -72,8 +72,7 @@ const STEPS: StepConfig[] = [
     description:
       "All that’s left for you to do is attend booked appointments, run sales negotiations, and sign new deals.",
     label: "Opportunities",
-    funnelLabel: "Opportunities",
-    metric: "10–30* closed deals",
+    stat: "10–30* closed deals",
     path: "M14 0h254l-26 96H40L14 0Z",
     viewBox: "0 0 282 96",
     tabGroup: "secondary",
@@ -83,6 +82,19 @@ const STEPS: StepConfig[] = [
 ];
 
 const HASH_KEY = "pipeline-step";
+
+const ChevronIcon = ({ isActive }: { isActive: boolean }) => {
+  return (
+    <svg
+      className={`pipeline__chevron${isActive ? " pipeline__chevron--active" : ""}`}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
 
 const getIndexFromHash = (): number | undefined => {
   if (typeof window === "undefined") {
@@ -99,7 +111,7 @@ const getIndexFromHash = (): number | undefined => {
 };
 
 const PipelineFunnel = () => {
-  const initialIndexRef = useRef<number>(getIndexFromHash() ?? 0);
+  const initialIndexRef = useRef<number>(getIndexFromHash() ?? 1);
 
   const [activeIndex, setActiveIndex] = useState<number>(initialIndexRef.current);
   const [focusedIndex, setFocusedIndex] = useState<number>(initialIndexRef.current);
@@ -200,15 +212,16 @@ const PipelineFunnel = () => {
         <div className="pipeline__card" role="group" aria-label="Pipeline overview">
           <div className="pipeline__grid">
             <aside className="pipeline__rail" aria-label="Pipeline steps">
-              <p className="pipeline__group-title">We take care of the entire user journey</p>
+              <div className="pipeline__group">
+                <p className="pipeline__group-title">We take care of the entire user journey</p>
 
-              <div className="pipeline__tablist" role="tablist" aria-orientation="vertical">
-                {groupedSteps.primary.map((step) => {
-                  const index = STEPS.findIndex((item) => item.key === step.key);
-                  const isActive = index === activeIndex;
-                  const isFocused = index === focusedIndex;
+                <div className="pipeline__tablist" role="tablist" aria-orientation="vertical">
+                  {groupedSteps.primary.map((step) => {
+                    const index = STEPS.findIndex((item) => item.key === step.key);
+                    const isActive = index === activeIndex;
+                    const isFocused = index === focusedIndex;
 
-                  return (
+                    return (
                     <button
                       key={step.key}
                       ref={(el) => {
@@ -220,26 +233,38 @@ const PipelineFunnel = () => {
                       role="tab"
                       aria-controls={step.panelId}
                       aria-selected={isActive}
+                      aria-expanded={isActive}
                       tabIndex={isFocused ? 0 : -1}
                       data-step-key={step.key}
                       onClick={() => handleSelect(index)}
                       onKeyDown={(event) => handleKeyDown(event, index)}
                       onFocus={() => setFocusedIndex(index)}
                     >
-                      {step.title}
+                      <span className="pipeline__tab-header">
+                        <span className="pipeline__tab-title">{step.title}</span>
+                        <ChevronIcon isActive={isActive} />
+                      </span>
+                      <span
+                        className={`pipeline__description${isActive ? " pipeline__description--active" : ""}`}
+                        aria-hidden={!isActive}
+                      >
+                        {step.description}
+                      </span>
                     </button>
                   );
                 })}
+                </div>
               </div>
 
-              <p className="pipeline__group-title">Your part in the process</p>
-              <div className="pipeline__tablist pipeline__tablist--secondary" role="tablist" aria-orientation="vertical">
-                {groupedSteps.secondary.map((step) => {
-                  const index = STEPS.findIndex((item) => item.key === step.key);
-                  const isActive = index === activeIndex;
-                  const isFocused = index === focusedIndex;
+              <div className="pipeline__group pipeline__group--secondary">
+                <p className="pipeline__group-title">Your part in the process</p>
+                <div className="pipeline__tablist pipeline__tablist--secondary" role="tablist" aria-orientation="vertical">
+                  {groupedSteps.secondary.map((step) => {
+                    const index = STEPS.findIndex((item) => item.key === step.key);
+                    const isActive = index === activeIndex;
+                    const isFocused = index === focusedIndex;
 
-                  return (
+                    return (
                     <button
                       key={step.key}
                       ref={(el) => {
@@ -251,16 +276,27 @@ const PipelineFunnel = () => {
                       role="tab"
                       aria-controls={step.panelId}
                       aria-selected={isActive}
+                      aria-expanded={isActive}
                       tabIndex={isFocused ? 0 : -1}
                       data-step-key={step.key}
                       onClick={() => handleSelect(index)}
                       onKeyDown={(event) => handleKeyDown(event, index)}
                       onFocus={() => setFocusedIndex(index)}
                     >
-                      {step.title}
+                      <span className="pipeline__tab-header">
+                        <span className="pipeline__tab-title">{step.title}</span>
+                        <ChevronIcon isActive={isActive} />
+                      </span>
+                      <span
+                        className={`pipeline__description${isActive ? " pipeline__description--active" : ""}`}
+                        aria-hidden={!isActive}
+                      >
+                        {step.description}
+                      </span>
                     </button>
                   );
                 })}
+                </div>
               </div>
 
               {STEPS.map((step) => {
@@ -269,7 +305,7 @@ const PipelineFunnel = () => {
                 return (
                   <div
                     key={step.key}
-                    className={`pipeline__panel${isActive ? " pipeline__panel--active" : ""}`}
+                    className={`pipeline__panel sr-only${isActive ? " pipeline__panel--active" : ""}`}
                     id={step.panelId}
                     role="tabpanel"
                     aria-labelledby={`tab-${step.tabId}`}
@@ -297,15 +333,21 @@ const PipelineFunnel = () => {
                       data-step={index}
                       data-step-key={step.key}
                       aria-pressed={isActive}
-                      aria-label={`${step.funnelLabel} — ${step.metric.replace(/\*\s*/g, "* ")}`}
+                      aria-label={`${step.label} — ${step.stat.replace(/\*\s*/g, "* ")}${step.support ? ` ${step.support}` : ""}`}
                       onClick={() => handleSelect(index)}
                     >
+                      <span className="funnel__arrow" aria-hidden="true">
+                        <svg viewBox="0 0 136 46" role="presentation" focusable="false">
+                          <path d="M70.6621 44.8168C69.006 45.7277 66.994 45.7277 65.3379 44.8168L3.33906 10.7157C-1.612 7.99248 0.323319 0.500011 6.00113 0.500011L129.999 0.5C135.677 0.499999 137.612 7.99247 132.661 10.7157L70.6621 44.8168Z" />
+                        </svg>
+                        <span>{step.label}</span>
+                      </span>
                       <svg className="funnel__svg" viewBox={step.viewBox} aria-hidden="true" focusable="false">
                         <path d={step.path} />
                       </svg>
                       <span className="funnel__text">
-                        <span className="funnel__label">{step.label}</span>
-                        <span className="funnel__value">{step.metric}</span>
+                        <span className="funnel__stat">{step.stat}</span>
+                        {step.support ? <span className="funnel__support">{step.support}</span> : null}
                       </span>
                     </button>
                   );
