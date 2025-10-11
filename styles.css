@@ -1045,7 +1045,7 @@ ul {
 .funnel {
   display: flex;
   flex-direction: column;
-  gap: clamp(1rem, 2.5vw, 1.5rem);
+  gap: clamp(0.75rem, 2vw, 1.25rem);
   width: 100%;
   align-items: center;
 }
@@ -1058,8 +1058,7 @@ ul {
   width: 100%;
   border: none;
   background: none;
-  padding: 0;
-  padding-top: 1.85rem;
+  padding: 1.1rem 0 0.4rem;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.78);
 }
@@ -1068,7 +1067,7 @@ ul {
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translate(-50%, -38%);
+  transform: translate(-50%, 18%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1086,6 +1085,9 @@ ul {
 
 .funnel__arrow span {
   position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font-size: clamp(0.7rem, 1.6vw, 0.74rem);
   font-weight: 600;
   text-transform: uppercase;
@@ -1103,6 +1105,7 @@ ul {
   fill: #272727;
   stroke: rgba(255, 255, 255, 0.16);
   stroke-width: 1.5;
+  stroke-linejoin: round;
   transition: fill 0.3s ease, stroke 0.3s ease, transform 0.3s ease;
 }
 
@@ -1115,7 +1118,7 @@ ul {
   justify-content: center;
   gap: 0.4rem;
   text-align: center;
-  padding: 0 2rem;
+  padding: clamp(2.15rem, 4.5vw, 2.75rem) clamp(1.75rem, 3vw, 3rem) clamp(2.4rem, 4.5vw, 3rem);
   pointer-events: none;
 }
 
@@ -1147,6 +1150,26 @@ ul {
 
 .funnel__layer--active .funnel__arrow span {
   color: rgba(255, 255, 255, 0.85);
+}
+
+.funnel__layer[data-step-key="conversion"] .funnel__stat {
+  font-size: clamp(1rem, 1.8vw, 1.32rem);
+}
+
+.funnel__layer[data-step-key="deal-closure"] .funnel__stat {
+  font-size: clamp(0.95rem, 1.6vw, 1.18rem);
+}
+
+.funnel__layer[data-step-key="deal-closure"] .funnel__arrow {
+  width: clamp(148px, 28vw, 182px);
+  height: 52px;
+  transform: translate(-50%, 24%);
+}
+
+.funnel__layer[data-step-key="deal-closure"] .funnel__arrow span {
+  font-size: clamp(0.62rem, 1.2vw, 0.68rem);
+  letter-spacing: 0.1em;
+  top: 40%;
 }
 
 @media (min-width: 64em) {
