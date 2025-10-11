@@ -852,7 +852,7 @@ ul {
 
 .pipeline {
   padding: clamp(2.75rem, 7vw, 4.25rem) 0;
-  background: #0f0f0f;
+  background: var(--color-background);
   color: #f5f5f5;
 }
 
@@ -868,7 +868,7 @@ ul {
   display: flex;
   flex-direction: column;
   gap: clamp(2rem, 4vw, 3rem);
-  width: min(1120px, 100%);
+  width: min(1008px, 100%);
   margin: 0 auto;
   box-shadow: 0 28px 60px rgba(10, 10, 10, 0.45);
 }
@@ -1058,7 +1058,7 @@ ul {
   width: 100%;
   border: none;
   background: none;
-  padding: 0.75rem 0 0.25rem;
+  padding: 0.6rem 0 0.2rem;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.78);
 }
@@ -1067,12 +1067,12 @@ ul {
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translate(-50%, -2%);
+  transform: translate(-50%, -4%);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(130px, 24vw, 156px);
-  height: 46px;
+  width: clamp(118px, 21vw, 140px);
+  height: 42px;
   pointer-events: none;
 }
 
@@ -1093,6 +1093,8 @@ ul {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.78);
+  width: 100%;
+  text-align: center;
 }
 
 .funnel__svg {
@@ -1118,7 +1120,7 @@ ul {
   justify-content: center;
   gap: 0.35rem;
   text-align: center;
-  padding: clamp(1.7rem, 3.8vw, 2.2rem) clamp(1.5rem, 2.6vw, 2.6rem) clamp(1.9rem, 3.6vw, 2.4rem);
+  padding: clamp(2.1rem, 4.4vw, 2.6rem) clamp(1.45rem, 2.4vw, 2.4rem) clamp(1.7rem, 3.2vw, 2.2rem);
   pointer-events: none;
 }
 
@@ -1161,15 +1163,14 @@ ul {
 }
 
 .funnel__layer[data-step-key="deal-closure"] .funnel__arrow {
-  width: clamp(148px, 28vw, 182px);
-  height: 52px;
-  transform: translate(-50%, 4%);
+  width: clamp(132px, 24vw, 160px);
+  height: 46px;
+  transform: translate(-50%, -2%);
 }
 
 .funnel__layer[data-step-key="deal-closure"] .funnel__arrow span {
-  font-size: clamp(0.62rem, 1.2vw, 0.68rem);
+  font-size: clamp(0.56rem, 1.05vw, 0.64rem);
   letter-spacing: 0.1em;
-  top: 40%;
 }
 
 @media (min-width: 64em) {
