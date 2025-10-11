@@ -1,6 +1,19 @@
-const nav = document.querySelector('.main-nav');
-const navToggle = document.querySelector('.nav-toggle');
-if (nav && navToggle) {
+let navigationInitialized = false;
+
+const initNavigation = () => {
+  if (navigationInitialized) {
+    return;
+  }
+
+  const nav = document.querySelector('.main-nav');
+  const navToggle = document.querySelector('.nav-toggle');
+
+  if (!nav || !navToggle) {
+    return;
+  }
+
+  navigationInitialized = true;
+
   const toggleNav = () => {
     const isOpen = nav.classList.toggle('open');
     navToggle.setAttribute('aria-expanded', String(isOpen));
@@ -8,12 +21,21 @@ if (nav && navToggle) {
 
   navToggle.addEventListener('click', toggleNav);
 
-  window.matchMedia('(min-width: 901px)').addEventListener('change', (event) => {
+  const desktopQuery = window.matchMedia('(min-width: 901px)');
+  const handleBreakpointChange = (event) => {
     if (event.matches) {
       nav.classList.remove('open');
       navToggle.setAttribute('aria-expanded', 'false');
     }
-  });
+  };
+
+  desktopQuery.addEventListener('change', handleBreakpointChange);
+};
+
+document.addEventListener('chrome:ready', initNavigation);
+document.addEventListener('DOMContentLoaded', initNavigation);
+if (document.readyState !== 'loading') {
+  initNavigation();
 }
 
 const pipelineSection = document.querySelector('#pipeline');
@@ -198,104 +220,213 @@ if (pipelineSection) {
   });
 }
 
-const footerYear = document.querySelector('#footer-year');
+// Inject header/footer fragments once, then fire a ready event for any modules.
+(async function injectChrome() {
+  const resolvePartialUrl = (partial) => {
+    const baseHref = document.querySelector('base')?.href || window.location.href;
 
-if (footerYear) {
-  footerYear.textContent = String(new Date().getFullYear());
-}
+    try {
+      return new URL(`partials/${partial}.html`, baseHref).href;
+    } catch (error) {
+      // As a final fallback (e.g., malformed base tag), fall back to a relative URL.
+      return `partials/${partial}.html`;
+    }
+  };
 
-const newsletterForm = document.querySelector('.footer-newsletter__form');
+  const loadFragment = async (slotId, partial) => {
+    const slot = document.getElementById(slotId) || document.querySelector(`[data-fragment="${partial}"]`);
+    if (!slot) return;
 
-if (newsletterForm) {
-  const emailInput = newsletterForm.querySelector('input[type="email"]');
-  const messageEl = newsletterForm.querySelector('.footer-newsletter__message');
-  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const url = resolvePartialUrl(partial);
 
-  if (emailInput) {
-    emailInput.setAttribute('aria-invalid', 'false');
+    try {
+      const res = await fetch(url, { credentials: 'same-origin' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const html = await res.text();
+      if (!html.trim()) {
+        return;
+      }
+
+      const template = document.createElement('template');
+      template.innerHTML = html;
+      const textNodeType = typeof Node !== 'undefined' ? Node.TEXT_NODE : 3;
+      const elementNodeType = typeof Node !== 'undefined' ? Node.ELEMENT_NODE : 1;
+      const nodes = Array.from(template.content.childNodes).filter((node) => {
+        if (node.nodeType === textNodeType) {
+          return Boolean(node.textContent && node.textContent.trim().length);
+        }
+        return true;
+      });
+
+      if (!nodes.length) {
+        return;
+      }
+
+      const fragmentName = slot.getAttribute('data-fragment') || partial;
+      const slotIdValue = slot.id;
+
+      if (nodes.length === 1 && nodes[0].nodeType === elementNodeType) {
+        const element = nodes[0];
+
+        if (slotIdValue && !element.id) {
+          element.id = slotIdValue;
+        }
+
+        if (fragmentName && !element.hasAttribute('data-fragment')) {
+          element.setAttribute('data-fragment', fragmentName);
+        }
+
+        const slotAttributes = typeof slot.getAttributeNames === 'function' ? slot.getAttributeNames() : [];
+
+        slotAttributes.forEach((name) => {
+          if (name === 'id' || name === 'data-fragment') {
+            return;
+          }
+
+          if (!element.hasAttribute(name)) {
+            element.setAttribute(name, slot.getAttribute(name));
+          }
+        });
+
+        slot.replaceWith(element);
+      } else {
+        slot.replaceChildren(...nodes);
+      }
+    } catch (e) {
+      // Inline fallback content remains in place if fetch fails.
+    }
+  };
+
+  await Promise.all([
+    loadFragment('site-header', 'header'),
+    loadFragment('site-footer', 'footer')
+  ]);
+
+  // Sticky header state (adds .is-sticky after scrolling a bit)
+  const header = document.querySelector('.site-header') || document.querySelector('header.site-header');
+  if (header) {
+    const onScroll = () => header.classList.toggle('is-sticky', window.scrollY > 4);
+    onScroll(); // set initial state
+    window.addEventListener('scroll', onScroll, { passive: true });
   }
 
-  const setMessage = (text, state) => {
-    if (!messageEl) {
-      return;
-    }
+  // Announce that chrome is ready so other scripts can init safely
+  document.dispatchEvent(new CustomEvent('chrome:ready'));
+})();
 
-    messageEl.textContent = text;
-    messageEl.classList.remove('is-success', 'is-error');
+let footerInitialized = false;
 
-    if (state === 'success') {
-      messageEl.classList.add('is-success');
-    } else if (state === 'error') {
-      messageEl.classList.add('is-error');
-    }
-  };
+const initFooterFeatures = () => {
+  if (footerInitialized) {
+    return;
+  }
 
-  const clearMessage = () => {
-    if (!messageEl) {
-      return;
-    }
+  const footerYear = document.querySelector('#footer-year');
+  const newsletterForm = document.querySelector('.footer-newsletter__form');
+  const languageSelect = document.querySelector('#footer-language-select');
 
-    messageEl.textContent = '';
-    messageEl.classList.remove('is-success', 'is-error');
-  };
+  if (!footerYear && !newsletterForm && !languageSelect) {
+    return;
+  }
 
-  if (emailInput) {
-    emailInput.addEventListener('input', () => {
+  footerInitialized = true;
+
+  if (footerYear) {
+    footerYear.textContent = String(new Date().getFullYear());
+  }
+
+  if (newsletterForm) {
+    const emailInput = newsletterForm.querySelector('input[type="email"]');
+    const messageEl = newsletterForm.querySelector('.footer-newsletter__message');
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const setMessage = (text, state) => {
+      if (!messageEl) {
+        return;
+      }
+
+      messageEl.textContent = text;
+      messageEl.classList.remove('is-success', 'is-error');
+
+      if (state === 'success') {
+        messageEl.classList.add('is-success');
+      } else if (state === 'error') {
+        messageEl.classList.add('is-error');
+      }
+    };
+
+    const clearMessage = () => {
+      if (!messageEl) {
+        return;
+      }
+
+      messageEl.textContent = '';
+      messageEl.classList.remove('is-success', 'is-error');
+    };
+
+    if (emailInput) {
       emailInput.setAttribute('aria-invalid', 'false');
-      clearMessage();
+      emailInput.addEventListener('input', () => {
+        emailInput.setAttribute('aria-invalid', 'false');
+        clearMessage();
+      });
+    }
+
+    newsletterForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      if (!emailInput || !messageEl) {
+        return;
+      }
+
+      const value = emailInput.value.trim();
+
+      if (!value) {
+        emailInput.setAttribute('aria-invalid', 'true');
+        setMessage('Please enter your email address.', 'error');
+        emailInput.focus();
+        return;
+      }
+
+      if (!pattern.test(value)) {
+        emailInput.setAttribute('aria-invalid', 'true');
+        setMessage('Please enter a valid email address.', 'error');
+        emailInput.focus();
+        return;
+      }
+
+      emailInput.setAttribute('aria-invalid', 'false');
+      setMessage('Thanks! You are subscribed.', 'success');
+      newsletterForm.reset();
     });
   }
 
-  newsletterForm.addEventListener('submit', (event) => {
-    event.preventDefault();
+  if (languageSelect) {
+    const storageKey = 'site-language-preference';
 
-    if (!emailInput || !messageEl) {
-      return;
-    }
-
-    const value = emailInput.value.trim();
-
-    if (!value) {
-      emailInput.setAttribute('aria-invalid', 'true');
-      setMessage('Please enter your email address.', 'error');
-      emailInput.focus();
-      return;
-    }
-
-    if (!pattern.test(value)) {
-      emailInput.setAttribute('aria-invalid', 'true');
-      setMessage('Please enter a valid email address.', 'error');
-      emailInput.focus();
-      return;
-    }
-
-    emailInput.setAttribute('aria-invalid', 'false');
-    setMessage('Thanks! You are subscribed.', 'success');
-    newsletterForm.reset();
-  });
-}
-
-const languageSelect = document.querySelector('#footer-language-select');
-
-if (languageSelect) {
-  const storageKey = 'site-language-preference';
-
-  try {
-    const storedValue = window.localStorage.getItem(storageKey);
-    if (storedValue) {
-      languageSelect.value = storedValue;
-    }
-  } catch (error) {
-    // localStorage may be unavailable; ignore errors silently.
-  }
-
-  languageSelect.addEventListener('change', () => {
     try {
-      window.localStorage.setItem(storageKey, languageSelect.value);
+      const storedValue = window.localStorage.getItem(storageKey);
+      if (storedValue) {
+        languageSelect.value = storedValue;
+      }
     } catch (error) {
       // localStorage may be unavailable; ignore errors silently.
     }
-  });
+
+    languageSelect.addEventListener('change', () => {
+      try {
+        window.localStorage.setItem(storageKey, languageSelect.value);
+      } catch (error) {
+        // localStorage may be unavailable; ignore errors silently.
+      }
+    });
+  }
+};
+
+document.addEventListener('chrome:ready', initFooterFeatures);
+document.addEventListener('DOMContentLoaded', initFooterFeatures);
+if (document.readyState !== 'loading') {
+  initFooterFeatures();
 }
 
 const testimonialsSection = document.querySelector('.testimonials');
