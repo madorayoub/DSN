@@ -198,6 +198,106 @@ if (pipelineSection) {
   });
 }
 
+const footerYear = document.querySelector('#footer-year');
+
+if (footerYear) {
+  footerYear.textContent = String(new Date().getFullYear());
+}
+
+const newsletterForm = document.querySelector('.footer-newsletter__form');
+
+if (newsletterForm) {
+  const emailInput = newsletterForm.querySelector('input[type="email"]');
+  const messageEl = newsletterForm.querySelector('.footer-newsletter__message');
+  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (emailInput) {
+    emailInput.setAttribute('aria-invalid', 'false');
+  }
+
+  const setMessage = (text, state) => {
+    if (!messageEl) {
+      return;
+    }
+
+    messageEl.textContent = text;
+    messageEl.classList.remove('is-success', 'is-error');
+
+    if (state === 'success') {
+      messageEl.classList.add('is-success');
+    } else if (state === 'error') {
+      messageEl.classList.add('is-error');
+    }
+  };
+
+  const clearMessage = () => {
+    if (!messageEl) {
+      return;
+    }
+
+    messageEl.textContent = '';
+    messageEl.classList.remove('is-success', 'is-error');
+  };
+
+  if (emailInput) {
+    emailInput.addEventListener('input', () => {
+      emailInput.setAttribute('aria-invalid', 'false');
+      clearMessage();
+    });
+  }
+
+  newsletterForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    if (!emailInput || !messageEl) {
+      return;
+    }
+
+    const value = emailInput.value.trim();
+
+    if (!value) {
+      emailInput.setAttribute('aria-invalid', 'true');
+      setMessage('Please enter your email address.', 'error');
+      emailInput.focus();
+      return;
+    }
+
+    if (!pattern.test(value)) {
+      emailInput.setAttribute('aria-invalid', 'true');
+      setMessage('Please enter a valid email address.', 'error');
+      emailInput.focus();
+      return;
+    }
+
+    emailInput.setAttribute('aria-invalid', 'false');
+    setMessage('Thanks! You are subscribed.', 'success');
+    newsletterForm.reset();
+  });
+}
+
+const languageSelect = document.querySelector('#footer-language-select');
+
+if (languageSelect) {
+  const storageKey = 'site-language-preference';
+
+  try {
+    const storedValue = window.localStorage.getItem(storageKey);
+    if (storedValue) {
+      languageSelect.value = storedValue;
+    }
+  } catch (error) {
+    // localStorage may be unavailable; ignore errors silently.
+  }
+
+  languageSelect.addEventListener('change', () => {
+    try {
+      window.localStorage.setItem(storageKey, languageSelect.value);
+    } catch (error) {
+      // localStorage may be unavailable; ignore errors silently.
+    }
+  });
+}
+
 const testimonialsSection = document.querySelector('.testimonials');
 
 if (testimonialsSection) {
