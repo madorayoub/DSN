@@ -1045,7 +1045,7 @@ ul {
 .funnel {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.75rem, 2vw, 1.25rem);
+  gap: clamp(0.4rem, 1.4vw, 0.8rem);
   width: 100%;
   align-items: center;
 }
@@ -1058,7 +1058,7 @@ ul {
   width: 100%;
   border: none;
   background: none;
-  padding: 1.1rem 0 0.4rem;
+  padding: 0.75rem 0 0.25rem;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.78);
 }
@@ -1067,7 +1067,7 @@ ul {
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translate(-50%, 18%);
+  transform: translate(-50%, -2%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1116,20 +1116,20 @@ ul {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   text-align: center;
-  padding: clamp(2.15rem, 4.5vw, 2.75rem) clamp(1.75rem, 3vw, 3rem) clamp(2.4rem, 4.5vw, 3rem);
+  padding: clamp(1.7rem, 3.8vw, 2.2rem) clamp(1.5rem, 2.6vw, 2.6rem) clamp(1.9rem, 3.6vw, 2.4rem);
   pointer-events: none;
 }
 
 .funnel__stat {
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  font-size: clamp(1rem, 1.8vw, 1.32rem);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.92);
 }
 
 .funnel__support {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.68);
 }
 
@@ -1153,17 +1153,17 @@ ul {
 }
 
 .funnel__layer[data-step-key="conversion"] .funnel__stat {
-  font-size: clamp(1rem, 1.8vw, 1.32rem);
+  font-size: clamp(0.94rem, 1.6vw, 1.18rem);
 }
 
 .funnel__layer[data-step-key="deal-closure"] .funnel__stat {
-  font-size: clamp(0.95rem, 1.6vw, 1.18rem);
+  font-size: clamp(0.9rem, 1.4vw, 1.08rem);
 }
 
 .funnel__layer[data-step-key="deal-closure"] .funnel__arrow {
   width: clamp(148px, 28vw, 182px);
   height: 52px;
-  transform: translate(-50%, 24%);
+  transform: translate(-50%, 4%);
 }
 
 .funnel__layer[data-step-key="deal-closure"] .funnel__arrow span {
