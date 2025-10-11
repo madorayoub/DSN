@@ -1,14 +1,14 @@
 {
   "a11y": [
-    "Pipeline section uses semantic landmarks with WAI-ARIA tabs, roving focus, and mirrored funnel buttons that expose aria-pressed states.",
-    "Panels toggle the hidden attribute for clear announcements while focus-visible outlines ensure keyboard discoverability."
+    "\"What sets us apart\" cards are keyboard-focusable with visible outlines and respect prefers-reduced-motion for hover elevation.",
+    "Section keeps a clear heading hierarchy with aria-labelledby and maintains button semantics for the primary CTA."
   ],
   "perf": [
-    "Static HTML, CSS, and inline SVG keep the section lightweight with zero additional network requests.",
-    "Responsive grid and spacing rules avoid large viewport heights and minimize layout shifts across breakpoints."
+    "All hero cards lazy-load Cloudinary images with explicit 640x360 dimensions to control CLS.",
+    "Clamp-based typography keeps copy near the 50–75 character measure while the responsive grid avoids horizontal scrolling at narrow widths."
   ],
   "known_gaps": [
-    "Pixel-parity with the Belkins reference still needs manual visual QA across browsers.",
-    "Playwright coverage relies on local file:// navigation; CI environments must allow file protocol access."
+    "Visual polish still needs manual review against final brand styling.",
+    "Playwright browsers are not installed in this sandbox; run `npx playwright install` before executing the test suite elsewhere."
   ]
 }
