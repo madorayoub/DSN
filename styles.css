@@ -2374,3 +2374,23 @@ ul {
     padding-right: 1.5rem;
   }
 }
+
+/* Sticky header */
+.site-header, header.site-header { position: sticky; top: 0; z-index: 50; }
+@supports (backdrop-filter: blur(6px)) {
+  .site-header.is-sticky { backdrop-filter: blur(6px); }
+}
+.site-header.is-sticky { box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+
+/* Sticky footer layout (footer pins to bottom on short pages) */
+html, body { height: 100%; }
+body { min-height: 100dvh; display: flex; flex-direction: column; }
+main#main-content { flex: 1 0 auto; }
+#site-footer, footer.site-footer { margin-top: auto; }
+
+/* Focus visibility remains clear */
+:focus-visible { outline: 2px solid rgba(0,0,0,.5); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
