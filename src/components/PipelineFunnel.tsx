@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, KeyboardEvent } from "react";
+import type { KeyboardEvent } from "react";
 
 type StepKey =
   | "omnichannel-engagement"
@@ -16,9 +16,11 @@ type StepConfig = {
   label: string;
   metric: string;
   path: string;
-  overlayPosition: { top: string; height: string };
+  viewBox: string;
   tabGroup?: "primary" | "secondary";
   funnelLabel: string;
+  tabId: string;
+  panelId: string;
 };
 
 const STEPS: StepConfig[] = [
@@ -28,11 +30,13 @@ const STEPS: StepConfig[] = [
     description:
       "We develop a comprehensive plan that combines email, LinkedIn, and cold calling to reach your prospects at the right time and in the right place.",
     label: "Leads",
-    funnelLabel: "Highlight Leads",
+    funnelLabel: "Leads",
     metric: "Up to 18,000* prospects within your client profile",
-    path: "M60 30H300L270 90H90Z",
-    overlayPosition: { top: "4%", height: "21%" },
+    path: "M20 0h420l-36 120H56L20 0Z",
+    viewBox: "0 0 460 120",
     tabGroup: "primary",
+    tabId: "omni",
+    panelId: "panel-omni",
   },
   {
     key: "activation",
@@ -40,11 +44,13 @@ const STEPS: StepConfig[] = [
     description:
       "Prospects engage by replying to emails, subscribing to newsletters, clicking on ads, answering in WhatsApp, attending a webinar, etc.",
     label: "MQLs",
-    funnelLabel: "Highlight MQLs",
+    funnelLabel: "MQLs",
     metric: "Up to 9,000* marketing-qualified leads",
-    path: "M75 110H285L255 170H105Z",
-    overlayPosition: { top: "27%", height: "20%" },
+    path: "M18 0h366l-32 116H50L18 0Z",
+    viewBox: "0 0 402 116",
     tabGroup: "primary",
+    tabId: "activation",
+    panelId: "panel-activation",
   },
   {
     key: "conversion",
@@ -52,11 +58,13 @@ const STEPS: StepConfig[] = [
     description:
       "With personalized appointment setting and persistent follow-ups, we ensure your prospects attend demo calls and online or face-to-face meetings with your sales executives.",
     label: "SQLs",
-    funnelLabel: "Highlight SQLs",
+    funnelLabel: "SQLs",
     metric: "200* sales-qualified meetings with decision-makers",
-    path: "M90 190H270L240 250H120Z",
-    overlayPosition: { top: "48%", height: "20%" },
+    path: "M16 0h310l-28 112H44L16 0Z",
+    viewBox: "0 0 342 112",
     tabGroup: "primary",
+    tabId: "conversion",
+    panelId: "panel-conversion",
   },
   {
     key: "deal-closure",
@@ -64,11 +72,13 @@ const STEPS: StepConfig[] = [
     description:
       "All that’s left for you to do is attend booked appointments, run sales negotiations, and sign new deals.",
     label: "Opportunities",
-    funnelLabel: "Highlight Opportunities",
+    funnelLabel: "Opportunities",
     metric: "10–30* closed deals",
-    path: "M105 270H255L225 330H135Z",
-    overlayPosition: { top: "69%", height: "21%" },
+    path: "M14 0h254l-26 96H40L14 0Z",
+    viewBox: "0 0 282 96",
     tabGroup: "secondary",
+    tabId: "deal",
+    panelId: "panel-deal",
   },
 ];
 
@@ -136,26 +146,29 @@ const PipelineFunnel = () => {
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     const total = STEPS.length;
 
+    const focusAndSelect = (nextIndex: number) => {
+      const clamped = (nextIndex + total) % total;
+      setFocusedIndex(clamped);
+      tabsRef.current[clamped]?.focus();
+      handleSelect(clamped, false);
+    };
+
     switch (event.key) {
       case "ArrowDown":
         event.preventDefault();
-        setFocusedIndex((index + 1) % total);
-        tabsRef.current[(index + 1) % total]?.focus();
+        focusAndSelect(index + 1);
         break;
       case "ArrowUp":
         event.preventDefault();
-        setFocusedIndex((index - 1 + total) % total);
-        tabsRef.current[(index - 1 + total) % total]?.focus();
+        focusAndSelect(index - 1);
         break;
       case "Home":
         event.preventDefault();
-        setFocusedIndex(0);
-        tabsRef.current[0]?.focus();
+        focusAndSelect(0);
         break;
       case "End":
         event.preventDefault();
-        setFocusedIndex(total - 1);
-        tabsRef.current[total - 1]?.focus();
+        focusAndSelect(total - 1);
         break;
       case "Enter":
       case " ":
@@ -169,8 +182,6 @@ const PipelineFunnel = () => {
 
   const activeStep = STEPS[activeIndex];
 
-  const panelId = "pipeline-panel";
-
   const groupedSteps = useMemo(() => {
     return {
       primary: STEPS.filter((step) => step.tabGroup !== "secondary"),
@@ -179,149 +190,126 @@ const PipelineFunnel = () => {
   }, []);
 
   return (
-    <section id="pipeline" aria-labelledby="pipeline-heading" className="py-16 md:py-[4.5rem]">
-      <div className="mx-auto max-w-[1160px] px-4 md:px-6">
-        <div
-          className="rounded-3xl bg-neutral-900 text-white shadow-sm p-6 md:p-8 lg:p-10"
-          style={{ "--accent": "#ff5a00" } as CSSProperties}
-        >
-          <header className="space-y-3">
-            <h2 id="pipeline-heading" className="text-[clamp(28px,3.2vw,40px)] font-semibold tracking-tight">
-              How your pipeline will look with Belkins
-            </h2>
-            <p className="text-[clamp(14px,1.6vw,18px)] text-neutral-300">
-              Focus on scaling your business while we deliver you sales-ready B2B leads.
-            </p>
-          </header>
-          <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
-            <div className="flex flex-col gap-6">
-              <nav aria-label="Pipeline steps" className="flex flex-col gap-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">We take care of the entire user journey</p>
-                <div role="tablist" aria-orientation="vertical" className="flex flex-col gap-3">
-                  {groupedSteps.primary.map((step) => {
-                    const index = STEPS.findIndex((item) => item.key === step.key);
-                    const isActive = index === activeIndex;
-                    const isFocused = index === focusedIndex;
-                    return (
-                      <button
-                        key={step.key}
-                        ref={(el) => {
-                          tabsRef.current[index] = el;
-                        }}
-                        id={`pipeline-tab-${step.key}`}
-                        role="tab"
-                        type="button"
-                        aria-selected={isActive}
-                        aria-controls={panelId}
-                        tabIndex={isFocused ? 0 : -1}
-                        onClick={() => handleSelect(index)}
-                        onKeyDown={(event) => handleKeyDown(event, index)}
-                        className={`flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 text-left font-semibold text-[clamp(16px,1.8vw,20px)] motion-safe:transition motion-safe:duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] ${
-                          isActive ? "py-4 shadow-[0_18px_32px_rgba(5,6,10,0.45)]" : "h-14"
-                        }`}
-                      >
-                        <span>{step.title}</span>
-                        <span aria-hidden="true" className="text-lg text-white/50">
-                          ›
-                        </span>
-                      </button>
-                    );
-                  })}
-                  <p className="pt-1 text-xs uppercase tracking-[0.2em] text-neutral-500">Your part in the process</p>
-                  {groupedSteps.secondary.map((step) => {
-                    const index = STEPS.findIndex((item) => item.key === step.key);
-                    const isActive = index === activeIndex;
-                    const isFocused = index === focusedIndex;
-                    return (
-                      <button
-                        key={step.key}
-                        ref={(el) => {
-                          tabsRef.current[index] = el;
-                        }}
-                        id={`pipeline-tab-${step.key}`}
-                        role="tab"
-                        type="button"
-                        aria-selected={isActive}
-                        aria-controls={panelId}
-                        tabIndex={isFocused ? 0 : -1}
-                        onClick={() => handleSelect(index)}
-                        onKeyDown={(event) => handleKeyDown(event, index)}
-                        className={`flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 text-left font-semibold text-[clamp(16px,1.8vw,20px)] motion-safe:transition motion-safe:duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] ${
-                          isActive ? "py-4 shadow-[0_18px_32px_rgba(5,6,10,0.45)]" : "h-14"
-                        }`}
-                      >
-                        <span>{step.title}</span>
-                        <span aria-hidden="true" className="text-lg text-white/50">
-                          ›
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </nav>
-              <div
-                id={panelId}
-                role="tabpanel"
-                aria-live="polite"
-                aria-labelledby={`pipeline-tab-${activeStep.key}`}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6 text-neutral-300 motion-safe:transition motion-safe:duration-200"
-              >
-                <h3 className="text-lg font-semibold text-white">{activeStep.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-neutral-300 md:text-base">{activeStep.description}</p>
+    <section id="pipeline" className="pipeline" aria-labelledby="pipeline-heading">
+      <div className="container">
+        <header className="pipeline__header">
+          <h2 id="pipeline-heading">How your pipeline will look with Belkins</h2>
+          <p className="pipeline__sub">Focus on scaling your business while we deliver you sales-ready B2B leads.</p>
+        </header>
+
+        <div className="pipeline__card" role="group" aria-label="Pipeline overview">
+          <div className="pipeline__grid">
+            <aside className="pipeline__rail" aria-label="Pipeline steps">
+              <p className="pipeline__group-title">We take care of the entire user journey</p>
+
+              <div className="pipeline__tablist" role="tablist" aria-orientation="vertical">
+                {groupedSteps.primary.map((step) => {
+                  const index = STEPS.findIndex((item) => item.key === step.key);
+                  const isActive = index === activeIndex;
+                  const isFocused = index === focusedIndex;
+
+                  return (
+                    <button
+                      key={step.key}
+                      ref={(el) => {
+                        tabsRef.current[index] = el;
+                      }}
+                      type="button"
+                      className={`pipeline__tab${isActive ? " pipeline__tab--active" : ""}`}
+                      id={`tab-${step.tabId}`}
+                      role="tab"
+                      aria-controls={step.panelId}
+                      aria-selected={isActive}
+                      tabIndex={isFocused ? 0 : -1}
+                      data-step-key={step.key}
+                      onClick={() => handleSelect(index)}
+                      onKeyDown={(event) => handleKeyDown(event, index)}
+                      onFocus={() => setFocusedIndex(index)}
+                    >
+                      {step.title}
+                    </button>
+                  );
+                })}
               </div>
-            </div>
-            <div className="flex flex-col gap-4">
-              <p className="text-xs text-neutral-400">
-                * Average yearly outcomes. The results depend on multiple factors.
-              </p>
-              <div className="relative mx-auto w-full max-w-[360px]">
-                <svg
-                  viewBox="0 0 360 360"
-                  role="presentation"
-                  focusable="false"
-                  aria-hidden="true"
-                  className="h-auto w-full"
-                >
-                  {STEPS.map((step) => {
-                    const isActive = step.key === activeStep.key;
-                    return (
-                      <g
-                        key={step.key}
-                        data-step={step.key}
-                        className={`${
-                          isActive
-                            ? "fill-[var(--accent)] text-white drop-shadow-[0_16px_32px_rgba(255,90,0,0.4)]"
-                            : "fill-white/10 text-white/60"
-                        } motion-safe:transition motion-safe:duration-200`}
-                      >
-                        <path d={step.path} stroke={isActive ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.18)"} strokeWidth={2} />
-                        <text x={step.key === "deal-closure" ? 120 : step.key === "conversion" ? 105 : step.key === "activation" ? 90 : 75} y={step.key === "deal-closure" ? 302 : step.key === "conversion" ? 222 : step.key === "activation" ? 142 : 62} className="text-[13px] font-semibold uppercase tracking-[0.18em]">
-                          {step.label}
-                        </text>
-                        <text
-                          x={step.key === "deal-closure" ? 120 : step.key === "conversion" ? 105 : step.key === "activation" ? 90 : 75}
-                          y={step.key === "deal-closure" ? 326 : step.key === "conversion" ? 246 : step.key === "activation" ? 166 : 86}
-                          className="text-[12px] font-medium tracking-tight"
-                        >
-                          {step.metric}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-                {STEPS.map((step, index) => (
-                  <button
+
+              <p className="pipeline__group-title">Your part in the process</p>
+              <div className="pipeline__tablist pipeline__tablist--secondary" role="tablist" aria-orientation="vertical">
+                {groupedSteps.secondary.map((step) => {
+                  const index = STEPS.findIndex((item) => item.key === step.key);
+                  const isActive = index === activeIndex;
+                  const isFocused = index === focusedIndex;
+
+                  return (
+                    <button
+                      key={step.key}
+                      ref={(el) => {
+                        tabsRef.current[index] = el;
+                      }}
+                      type="button"
+                      className={`pipeline__tab${isActive ? " pipeline__tab--active" : ""}`}
+                      id={`tab-${step.tabId}`}
+                      role="tab"
+                      aria-controls={step.panelId}
+                      aria-selected={isActive}
+                      tabIndex={isFocused ? 0 : -1}
+                      data-step-key={step.key}
+                      onClick={() => handleSelect(index)}
+                      onKeyDown={(event) => handleKeyDown(event, index)}
+                      onFocus={() => setFocusedIndex(index)}
+                    >
+                      {step.title}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {STEPS.map((step) => {
+                const isActive = step.key === activeStep.key;
+
+                return (
+                  <div
                     key={step.key}
-                    type="button"
-                    aria-label={`${step.funnelLabel}: ${step.metric}`}
-                    aria-pressed={step.key === activeStep.key}
-                    onClick={() => handleSelect(index)}
-                    className="absolute left-[6%] right-[6%] cursor-pointer rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--accent)]"
-                    style={{ top: step.overlayPosition.top, height: step.overlayPosition.height }}
+                    className={`pipeline__panel${isActive ? " pipeline__panel--active" : ""}`}
+                    id={step.panelId}
+                    role="tabpanel"
+                    aria-labelledby={`tab-${step.tabId}`}
+                    data-step-key={step.key}
+                    hidden={!isActive}
                   >
-                    <span className="sr-only">{`${step.label} layer trigger`}</span>
-                  </button>
-                ))}
+                    {step.description}
+                  </div>
+                );
+              })}
+            </aside>
+
+            <div className="pipeline__funnel">
+              <p className="pipeline__caption">* Average yearly outcomes. The results depend on multiple factors.</p>
+
+              <div className="funnel" role="group" aria-label="Funnel outcomes">
+                {STEPS.map((step, index) => {
+                  const isActive = step.key === activeStep.key;
+
+                  return (
+                    <button
+                      key={step.key}
+                      type="button"
+                      className={`funnel__layer${isActive ? " funnel__layer--active" : ""}`}
+                      data-step={index}
+                      data-step-key={step.key}
+                      aria-pressed={isActive}
+                      aria-label={`${step.funnelLabel} — ${step.metric.replace(/\*\s*/g, "* ")}`}
+                      onClick={() => handleSelect(index)}
+                    >
+                      <svg className="funnel__svg" viewBox={step.viewBox} aria-hidden="true" focusable="false">
+                        <path d={step.path} />
+                      </svg>
+                      <span className="funnel__text">
+                        <span className="funnel__label">{step.label}</span>
+                        <span className="funnel__value">{step.metric}</span>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
