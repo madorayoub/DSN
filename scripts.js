@@ -243,8 +243,54 @@ if (pipelineSection) {
       const res = await fetch(url, { credentials: 'same-origin' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const html = await res.text();
-      if (html.trim()) {
-        slot.innerHTML = html;
+      if (!html.trim()) {
+        return;
+      }
+
+      const template = document.createElement('template');
+      template.innerHTML = html;
+      const textNodeType = typeof Node !== 'undefined' ? Node.TEXT_NODE : 3;
+      const elementNodeType = typeof Node !== 'undefined' ? Node.ELEMENT_NODE : 1;
+      const nodes = Array.from(template.content.childNodes).filter((node) => {
+        if (node.nodeType === textNodeType) {
+          return Boolean(node.textContent && node.textContent.trim().length);
+        }
+        return true;
+      });
+
+      if (!nodes.length) {
+        return;
+      }
+
+      const fragmentName = slot.getAttribute('data-fragment') || partial;
+      const slotIdValue = slot.id;
+
+      if (nodes.length === 1 && nodes[0].nodeType === elementNodeType) {
+        const element = nodes[0];
+
+        if (slotIdValue && !element.id) {
+          element.id = slotIdValue;
+        }
+
+        if (fragmentName && !element.hasAttribute('data-fragment')) {
+          element.setAttribute('data-fragment', fragmentName);
+        }
+
+        const slotAttributes = typeof slot.getAttributeNames === 'function' ? slot.getAttributeNames() : [];
+
+        slotAttributes.forEach((name) => {
+          if (name === 'id' || name === 'data-fragment') {
+            return;
+          }
+
+          if (!element.hasAttribute(name)) {
+            element.setAttribute(name, slot.getAttribute(name));
+          }
+        });
+
+        slot.replaceWith(element);
+      } else {
+        slot.replaceChildren(...nodes);
       }
     } catch (e) {
       // Inline fallback content remains in place if fetch fails.
