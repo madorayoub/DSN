@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import path from 'path';
 
-const htmlFileUrl = `file://${path.resolve(__dirname, '../index.html')}`;
+const htmlFileUrl = `file://${path.resolve(__dirname, '../docs/index.html')}`;
 
 test.describe('Challenges section layout', () => {
   test('remains compact across breakpoints', async ({ page }) => {

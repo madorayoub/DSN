@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import path from "path";
 import { pathToFileURL } from "url";
 
-const fileUrl = pathToFileURL(path.join(__dirname, "..", "index.html")).toString();
+const fileUrl = pathToFileURL(path.join(__dirname, "..", "docs", "index.html")).toString();
 
 test.describe("Pipeline funnel section", () => {
   test("renders content and syncs interactions", async ({ page }) => {
