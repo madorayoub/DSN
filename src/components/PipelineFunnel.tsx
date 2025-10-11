@@ -18,6 +18,7 @@ type StepConfig = {
   support?: string;
   path: string;
   viewBox: string;
+  maxWidth: string;
   tabGroup?: "primary" | "secondary";
   tabId: string;
   panelId: string;
@@ -34,6 +35,7 @@ const STEPS: StepConfig[] = [
     support: "within your client profile",
     path: "M20 0h420l-36 120H56L20 0Z",
     viewBox: "0 0 460 120",
+    maxWidth: "460px",
     tabGroup: "primary",
     tabId: "omni",
     panelId: "panel-omni",
@@ -48,6 +50,7 @@ const STEPS: StepConfig[] = [
     support: "marketing-qualified leads",
     path: "M18 0h366l-32 116H50L18 0Z",
     viewBox: "0 0 402 116",
+    maxWidth: "408px",
     tabGroup: "primary",
     tabId: "activation",
     panelId: "panel-activation",
@@ -62,6 +65,7 @@ const STEPS: StepConfig[] = [
     support: "with decision-makers",
     path: "M16 0h310l-28 112H44L16 0Z",
     viewBox: "0 0 342 112",
+    maxWidth: "356px",
     tabGroup: "primary",
     tabId: "conversion",
     panelId: "panel-conversion",
@@ -75,6 +79,7 @@ const STEPS: StepConfig[] = [
     stat: "10–30* closed deals",
     path: "M14 0h254l-26 96H40L14 0Z",
     viewBox: "0 0 282 96",
+    maxWidth: "300px",
     tabGroup: "secondary",
     tabId: "deal",
     panelId: "panel-deal",
@@ -204,12 +209,11 @@ const PipelineFunnel = () => {
   return (
     <section id="pipeline" className="pipeline" aria-labelledby="pipeline-heading">
       <div className="container">
-        <header className="pipeline__header">
-          <h2 id="pipeline-heading">How your pipeline will look with Belkins</h2>
-          <p className="pipeline__sub">Focus on scaling your business while we deliver you sales-ready B2B leads.</p>
-        </header>
-
         <div className="pipeline__card" role="group" aria-label="Pipeline overview">
+          <header className="pipeline__header">
+            <h2 id="pipeline-heading">How your pipeline will look with Belkins</h2>
+            <p className="pipeline__sub">Focus on scaling your business while we deliver you sales-ready B2B leads.</p>
+          </header>
           <div className="pipeline__grid">
             <aside className="pipeline__rail" aria-label="Pipeline steps">
               <div className="pipeline__group">
@@ -332,6 +336,7 @@ const PipelineFunnel = () => {
                       className={`funnel__layer${isActive ? " funnel__layer--active" : ""}`}
                       data-step={index}
                       data-step-key={step.key}
+                      style={{ maxWidth: step.maxWidth }}
                       aria-pressed={isActive}
                       aria-label={`${step.label} — ${step.stat.replace(/\*\s*/g, "* ")}${step.support ? ` ${step.support}` : ""}`}
                       onClick={() => handleSelect(index)}
