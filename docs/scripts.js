@@ -266,110 +266,40 @@ if (pipelineSection) {
 }
 
 // Inject header/footer fragments once, then fire a ready event for any modules.
-(async function injectChrome() {
-  const resolvePartialUrl = (partial) => {
-    const baseHref = document.querySelector('base')?.href || window.location.href;
+document.addEventListener('DOMContentLoaded', () => {
+  const debug = (msg, ...rest) => console.info('[chrome]', msg, ...rest);
 
-    try {
-      return new URL(`partials/${partial}.html`, baseHref).href;
-    } catch (error) {
-      // As a final fallback (e.g., malformed base tag), fall back to a relative URL.
-      return `partials/${partial}.html`;
-    }
-  };
-
-  const loadFragment = async (slotOrId, partial) => {
-    const slot =
-      typeof slotOrId === 'string'
-        ? document.getElementById(slotOrId) || document.querySelector(`[data-fragment="${partial}"]`)
-        : slotOrId;
-
+  const loadFragment = async (slotSel, partialName, fallbackTplId) => {
+    const slot = document.querySelector(slotSel);
     if (!slot) return;
 
-    const fragmentName = partial || slot.getAttribute('data-fragment');
-    if (!fragmentName) {
-      return;
-    }
-
-    const url = resolvePartialUrl(fragmentName);
+    const url = new URL(`partials/${partialName}.html`, window.location.href);
 
     try {
-      const res = await fetch(url, { credentials: 'same-origin' });
+      const res = await fetch(url.toString(), { credentials: 'same-origin' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const html = await res.text();
-      if (!html.trim()) {
-        return;
-      }
-
-      const template = document.createElement('template');
-      template.innerHTML = html;
-      const textNodeType = typeof Node !== 'undefined' ? Node.TEXT_NODE : 3;
-      const elementNodeType = typeof Node !== 'undefined' ? Node.ELEMENT_NODE : 1;
-      const nodes = Array.from(template.content.childNodes).filter((node) => {
-        if (node.nodeType === textNodeType) {
-          return Boolean(node.textContent && node.textContent.trim().length);
-        }
-        return true;
-      });
-
-      if (!nodes.length) {
-        return;
-      }
-
-      const slotIdValue = slot.id;
-
-      if (nodes.length === 1 && nodes[0].nodeType === elementNodeType) {
-        const element = nodes[0];
-
-        if (slotIdValue && !element.id) {
-          element.id = slotIdValue;
-        }
-
-        if (fragmentName && !element.hasAttribute('data-fragment')) {
-          element.setAttribute('data-fragment', fragmentName);
-        }
-
-        const slotAttributes = typeof slot.getAttributeNames === 'function' ? slot.getAttributeNames() : [];
-
-        slotAttributes.forEach((name) => {
-          if (name === 'id' || name === 'data-fragment') {
-            return;
-          }
-
-          if (!element.hasAttribute(name)) {
-            element.setAttribute(name, slot.getAttribute(name));
-          }
-        });
-
-        slot.replaceWith(element);
-      } else {
-        slot.replaceChildren(...nodes);
-      }
-    } catch (e) {
-      // Inline fallback content remains in place if fetch fails.
+      slot.innerHTML = await res.text();
+      debug(`injected ${partialName} from`, url.toString());
+    } catch (err) {
+      debug(`fallback for ${partialName}:`, err);
+      const tpl = document.getElementById(fallbackTplId);
+      if (tpl?.content) slot.replaceWith(tpl.content.cloneNode(true));
     }
   };
 
-  const placeholders = Array.from(document.querySelectorAll('[data-fragment]'));
-
-  await Promise.all(
-    placeholders.map((slot) => {
-      const name = slot.getAttribute('data-fragment');
-      return name ? loadFragment(slot, name) : undefined;
-    })
-  );
-
-  // Sticky header state (adds .is-sticky after scrolling a bit)
-  const header = document.querySelector('.site-header') || document.querySelector('header.site-header');
-  if (header) {
-    const onScroll = () => header.classList.toggle('is-sticky', window.scrollY > 4);
-    onScroll(); // set initial state
+  Promise.all([
+    loadFragment('[data-fragment="header"]', 'header', 'header-fallback'),
+    loadFragment('[data-fragment="footer"]', 'footer', 'footer-fallback')
+  ]).then(() => {
+    // Sticky header state (non-visual if CSS not present)
+    const header = document.querySelector('.site-header, header.site-header');
+    const onScroll = () => header && header.classList.toggle('is-sticky', window.scrollY > 4);
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-  }
 
-  // Announce that chrome is ready so other scripts can init safely
-  document.dispatchEvent(new CustomEvent('chrome:ready'));
-})();
+    document.dispatchEvent(new CustomEvent('chrome:ready'));
+  });
+});
 
 let footerInitialized = false;
 
