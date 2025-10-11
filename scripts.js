@@ -197,3 +197,76 @@ if (pipelineSection) {
     }
   });
 }
+
+const testimonialsSection = document.querySelector('.testimonials');
+
+if (testimonialsSection) {
+  const scroller = testimonialsSection.querySelector('.testimonials__track');
+  const viewport = testimonialsSection.querySelector('.testimonials__viewport');
+  const cards = Array.from(testimonialsSection.querySelectorAll('.testimonial-card'));
+  const prevButton = testimonialsSection.querySelector('.testimonials__nav[data-direction="prev"]');
+  const nextButton = testimonialsSection.querySelector('.testimonials__nav[data-direction="next"]');
+
+  if (!scroller || !viewport || !cards.length || !prevButton || !nextButton) {
+    return;
+  }
+
+  let ticking = false;
+
+  const getStep = () => {
+    if (cards.length < 2) {
+      return scroller.clientWidth;
+    }
+
+    const firstRect = cards[0].getBoundingClientRect();
+    const secondRect = cards[1].getBoundingClientRect();
+    const step = Math.round(secondRect.left - firstRect.left);
+    return step !== 0 ? step : cards[0].getBoundingClientRect().width;
+  };
+
+  const updateButtons = () => {
+    const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+    const epsilon = 1;
+    prevButton.disabled = scroller.scrollLeft <= epsilon;
+    nextButton.disabled = scroller.scrollLeft >= maxScrollLeft - epsilon;
+  };
+
+  const requestUpdate = () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        updateButtons();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  };
+
+  const scrollByStep = (direction) => {
+    const step = getStep();
+    scroller.scrollBy({ left: direction * step, behavior: 'smooth' });
+  };
+
+  prevButton.addEventListener('click', () => {
+    scrollByStep(-1);
+  });
+
+  nextButton.addEventListener('click', () => {
+    scrollByStep(1);
+  });
+
+  scroller.addEventListener('scroll', requestUpdate, { passive: true });
+
+  window.addEventListener('resize', requestUpdate);
+
+  viewport.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      scrollByStep(-1);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      scrollByStep(1);
+    }
+  });
+
+  updateButtons();
+}
