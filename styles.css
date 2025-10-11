@@ -850,26 +850,27 @@ ul {
 /* Pipeline section */
 
 .pipeline {
-  padding: 4rem 0;
+  padding: clamp(3.5rem, 6vw, 5rem) 0;
 }
 
 .pipeline__header {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 3rem;
+  margin-bottom: clamp(2.25rem, 5vw, 3rem);
   color: #ffffff;
+  text-align: left;
 }
 
 .pipeline__header h2 {
-  font-size: clamp(28px, 3.2vw, 40px);
+  font-size: clamp(1.9rem, 3.4vw, 2.6rem);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   line-height: 1.15;
 }
 
 .pipeline__sub {
-  font-size: clamp(14px, 1.6vw, 18px);
+  font-size: clamp(0.95rem, 1.6vw, 1.15rem);
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.65;
   max-width: 44rem;
@@ -879,105 +880,134 @@ ul {
   background: #1f1f1f;
   color: #ffffff;
   border-radius: 24px;
-  padding: 64px 48px;
+  padding: clamp(3.5rem, 6vw, 5rem) clamp(3rem, 6vw, 5rem);
   display: flex;
   flex-direction: column;
-  gap: 3rem;
-  box-shadow: 0 32px 60px rgba(12, 12, 12, 0.4);
+  gap: clamp(2.5rem, 5vw, 3rem);
+  box-shadow: 0 32px 60px rgba(12, 12, 12, 0.35);
 }
 
 .pipeline__grid {
   display: grid;
-  gap: 3rem;
+  gap: clamp(2rem, 4vw, 2.75rem);
 }
 
 .pipeline__rail {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: clamp(1.5rem, 3vw, 2rem);
+}
+
+.pipeline__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
 }
 
 .pipeline__group-title {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.pipeline__group-box {
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  padding: clamp(1.05rem, 2vw, 1.5rem);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .pipeline__tablist {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .pipeline__tab {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   min-height: 44px;
-  padding: 1rem 1.25rem;
+  padding: 0.85rem 1.15rem;
   width: 100%;
-  border: 1px solid transparent;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.78);
-  font-size: clamp(16px, 1.8vw, 20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: #2a2a2a;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
   font-weight: 600;
+  line-height: 1.25;
   text-align: left;
   cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
 }
 
 .pipeline__tab::after {
   content: "";
   margin-left: auto;
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-right: 2px solid currentColor;
   border-bottom: 2px solid currentColor;
   transform: rotate(-45deg);
-  transition: color 0.25s ease;
+  transition: color 0.3s ease;
 }
 
-.pipeline__tab:hover,
-.pipeline__tab:focus-visible {
-  background: rgba(255, 255, 255, 0.08);
+.pipeline__tab:hover {
+  background: #343434;
   color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
-.pipeline__tab:focus-visible,
-.funnel__layer:focus-visible {
-  outline: 3px solid rgba(255, 90, 31, 0.6);
-  outline-offset: 4px;
+.pipeline :focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
 }
 
-.pipeline__tab--active {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
+.pipeline__tab.is-active {
+  background: #ff5a1f;
   color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 12px 26px rgba(255, 90, 31, 0.25);
 }
 
 .pipeline__panel {
-  padding: 1.75rem;
-  border-radius: 20px;
-  border: 1px dashed rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.06);
+  margin: 0;
+  border-radius: 16px;
+  border: 1px dotted rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.25rem 1.4rem;
+  color: rgba(255, 255, 255, 0.75);
   font-size: 0.95rem;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.6;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .pipeline__panel[hidden] {
   display: none;
 }
 
-.pipeline__panel--active {
+.pipeline__panel.is-active {
+  opacity: 1;
+  transform: translateY(0);
   border-color: rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.pipeline__panels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .pipeline__funnel {
@@ -990,17 +1020,17 @@ ul {
 .pipeline__caption {
   margin: 0;
   text-align: center;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.62);
   line-height: 1.4;
 }
 
 .funnel {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 18px;
   width: 100%;
-  align-items: center;
 }
 
 .funnel__layer {
@@ -1012,9 +1042,10 @@ ul {
   max-width: 460px;
   border: none;
   background: none;
-  padding: 0;
+  padding: 2.2rem 0 0;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.78);
+  transition: color 0.3s ease;
 }
 
 .funnel__svg {
@@ -1023,11 +1054,41 @@ ul {
   display: block;
 }
 
-.funnel__layer path {
+.funnel__svg path {
   fill: rgba(255, 255, 255, 0.08);
-  stroke: rgba(255, 255, 255, 0.18);
+  stroke: rgba(255, 255, 255, 0.15);
   stroke-width: 1.5;
-  transition: fill 0.25s ease, stroke 0.25s ease;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transition: fill 0.35s ease, stroke 0.35s ease;
+}
+
+.funnel__badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -70%);
+  background: #3d3d3d;
+  color: rgba(255, 255, 255, 0.86);
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  pointer-events: none;
+}
+
+.funnel__badge.is-active {
+  background: #4a4a4a;
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #ffffff;
 }
 
 .funnel__text {
@@ -1037,45 +1098,40 @@ ul {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   text-align: center;
-  padding: 0 2rem;
+  padding: 0 2.5rem;
   pointer-events: none;
 }
 
 .funnel__label {
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.82);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .funnel__value {
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.78);
 }
 
-.funnel__layer--active path {
+.funnel__layer.is-active .funnel__svg path {
   fill: #ff5a1f;
-  stroke: rgba(255, 255, 255, 0.35);
+  stroke: rgba(255, 255, 255, 0.24);
 }
 
-.funnel__layer--active .funnel__label,
-.funnel__layer--active .funnel__value {
+.funnel__layer.is-active .funnel__label,
+.funnel__layer.is-active .funnel__value {
   color: #ffffff;
-}
-
-@media (min-width: 48em) {
-  .pipeline__grid {
-    gap: 3.25rem;
-  }
 }
 
 @media (min-width: 64em) {
   .pipeline__grid {
     grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
     align-items: flex-start;
-    gap: 2.5rem;
+    gap: clamp(1.75rem, 3vw, 2.25rem);
   }
 
   .pipeline__funnel {
@@ -1084,32 +1140,26 @@ ul {
 }
 
 @media (min-width: 80em) {
-  .pipeline__card {
-    padding: 80px;
-  }
-
   .pipeline__grid {
-    gap: 2.75rem;
+    gap: 2.5rem;
   }
 }
 
 @media (max-width: 40em) {
   .pipeline__card {
-    padding: 56px 28px;
-  }
-
-  .pipeline__header {
-    margin-bottom: 2.5rem;
+    padding: clamp(3rem, 8vw, 3.5rem) clamp(1.75rem, 7vw, 2.5rem);
   }
 
   .pipeline__funnel {
-    gap: 2rem;
+    gap: 2.1rem;
   }
 }
-
 @media (prefers-reduced-motion: reduce) {
   .pipeline__tab,
-  .funnel__layer path {
+  .pipeline__panel,
+  .funnel__layer,
+  .funnel__svg path,
+  .funnel__badge {
     transition: none !important;
   }
 }

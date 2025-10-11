@@ -353,98 +353,111 @@
           <div class="pipeline__card" role="group" aria-label="Pipeline overview">
             <div class="pipeline__grid">
               <aside class="pipeline__rail" aria-label="Pipeline steps">
-                <p class="pipeline__group-title">We take care of the entire user journey</p>
-
-                <div class="pipeline__tablist" role="tablist" aria-orientation="vertical">
-                  <button
-                    type="button"
-                    class="pipeline__tab"
-                    id="tab-omni"
-                    role="tab"
-                    aria-controls="panel-omni"
-                    aria-selected="true"
-                    tabindex="0"
-                    data-step-key="omnichannel-engagement"
-                  >
-                    Omnichannel engagement
-                  </button>
-                  <button
-                    type="button"
-                    class="pipeline__tab"
-                    id="tab-activation"
-                    role="tab"
-                    aria-controls="panel-activation"
-                    aria-selected="false"
-                    tabindex="-1"
-                    data-step-key="activation"
-                  >
-                    Activation
-                  </button>
-                  <button
-                    type="button"
-                    class="pipeline__tab"
-                    id="tab-conversion"
-                    role="tab"
-                    aria-controls="panel-conversion"
-                    aria-selected="false"
-                    tabindex="-1"
-                    data-step-key="conversion"
-                  >
-                    Conversion
-                  </button>
+                <div class="pipeline__group">
+                  <p class="pipeline__group-title">We take care of the entire user journey</p>
+                  <div class="pipeline__group-box">
+                    <div class="pipeline__tablist" role="tablist" aria-orientation="vertical">
+                      <button
+                        type="button"
+                        class="pipeline__tab is-active"
+                        id="tab-omni"
+                        role="tab"
+                        aria-controls="panel-omni"
+                        aria-selected="true"
+                        tabindex="0"
+                        data-step-key="omnichannel-engagement"
+                      >
+                        Omnichannel engagement
+                      </button>
+                      <button
+                        type="button"
+                        class="pipeline__tab"
+                        id="tab-activation"
+                        role="tab"
+                        aria-controls="panel-activation"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-step-key="activation"
+                      >
+                        Activation
+                      </button>
+                      <button
+                        type="button"
+                        class="pipeline__tab"
+                        id="tab-conversion"
+                        role="tab"
+                        aria-controls="panel-conversion"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-step-key="conversion"
+                      >
+                        Conversion
+                      </button>
+                    </div>
+                    <div class="pipeline__panels">
+                      <div
+                        class="pipeline__panel is-active"
+                        id="panel-omni"
+                        role="tabpanel"
+                        aria-labelledby="tab-omni"
+                        data-step-key="omnichannel-engagement"
+                      >
+                        We develop a comprehensive plan that combines email, LinkedIn, and cold calling to reach your prospects at the right time and in the right place.
+                      </div>
+                      <div
+                        class="pipeline__panel"
+                        id="panel-activation"
+                        role="tabpanel"
+                        aria-labelledby="tab-activation"
+                        hidden
+                        data-step-key="activation"
+                      >
+                        Prospects engage by replying to emails, subscribing to newsletters, clicking on ads, answering in WhatsApp, attending a webinar, etc.
+                      </div>
+                      <div
+                        class="pipeline__panel"
+                        id="panel-conversion"
+                        role="tabpanel"
+                        aria-labelledby="tab-conversion"
+                        hidden
+                        data-step-key="conversion"
+                      >
+                        With personalized appointment setting and persistent follow-ups, we ensure your prospects attend demo calls and online or face-to-face meetings with your sales executives.
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <p class="pipeline__group-title">Your part in the process</p>
-                <div class="pipeline__tablist pipeline__tablist--secondary" role="tablist" aria-orientation="vertical">
-                  <button
-                    type="button"
-                    class="pipeline__tab"
-                    id="tab-deal"
-                    role="tab"
-                    aria-controls="panel-deal"
-                    aria-selected="false"
-                    tabindex="-1"
-                    data-step-key="deal-closure"
-                  >
-                    Deal closure
-                  </button>
-                </div>
-
-                <div class="pipeline__panel" id="panel-omni" role="tabpanel" aria-labelledby="tab-omni" data-step-key="omnichannel-engagement">
-                  We develop a comprehensive plan that combines email, LinkedIn, and cold calling to reach your prospects at the
-                  right time and in the right place.
-                </div>
-                <div
-                  class="pipeline__panel"
-                  id="panel-activation"
-                  role="tabpanel"
-                  aria-labelledby="tab-activation"
-                  hidden
-                  data-step-key="activation"
-                >
-                  Prospects engage by replying to emails, subscribing to newsletters, clicking on ads, answering in WhatsApp,
-                  attending a webinar, etc.
-                </div>
-                <div
-                  class="pipeline__panel"
-                  id="panel-conversion"
-                  role="tabpanel"
-                  aria-labelledby="tab-conversion"
-                  hidden
-                  data-step-key="conversion"
-                >
-                  With personalized appointment setting and persistent follow-ups, we ensure your prospects attend demo calls
-                  and online or face-to-face meetings with your sales executives.
-                </div>
-                <div
-                  class="pipeline__panel"
-                  id="panel-deal"
-                  role="tabpanel"
-                  aria-labelledby="tab-deal"
-                  hidden
-                  data-step-key="deal-closure"
-                >
-                  All that’s left for you to do is attend booked appointments, run sales negotiations, and sign new deals.
+                <div class="pipeline__group">
+                  <p class="pipeline__group-title">Your part in the process</p>
+                  <div class="pipeline__group-box">
+                    <div class="pipeline__tablist pipeline__tablist--secondary" role="tablist" aria-orientation="vertical">
+                      <button
+                        type="button"
+                        class="pipeline__tab"
+                        id="tab-deal"
+                        role="tab"
+                        aria-controls="panel-deal"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-step-key="deal-closure"
+                      >
+                        Deal closure
+                      </button>
+                    </div>
+                    <div class="pipeline__panels">
+                      <div
+                        class="pipeline__panel"
+                        id="panel-deal"
+                        role="tabpanel"
+                        aria-labelledby="tab-deal"
+                        hidden
+                        data-step-key="deal-closure"
+                      >
+                        All that’s left for you to do is attend booked appointments, run sales negotiations, and sign new deals.
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </aside>
 
@@ -454,18 +467,36 @@
                 <div class="funnel" role="group" aria-label="Funnel outcomes">
                   <button
                     type="button"
-                    class="funnel__layer funnel__layer--active"
+                    class="funnel__layer is-active"
                     data-step="0"
                     data-step-key="omnichannel-engagement"
                     aria-pressed="true"
-                    aria-label="Leads — Up to 18,000 prospects within your client profile"
+                    aria-label="Leads — Up to 18,000 prospects within your client profile*"
                   >
-                    <svg class="funnel__svg" viewBox="0 0 460 120" aria-hidden="true" focusable="false">
-                      <path d="M20 0h420l-36 120H56L20 0Z" />
+                    <span class="funnel__badge is-active">LEADS</span>
+                    <svg
+                      class="funnel__svg"
+                      viewBox="0 0 461 116"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <defs>
+                        <filter id="funnel-shadow-leads" x="-30%" y="-20%" width="160%" height="180%">
+                          <feDropShadow dx="0" dy="8" stdDeviation="8" flood-opacity="0.25" flood-color="#000" />
+                        </filter>
+                      </defs>
+                      <path
+                        data-shape="funnel"
+                        data-width-top="461"
+                        data-width-bottom="378"
+                        data-height="116"
+                        data-radius="12"
+                        filter="url(#funnel-shadow-leads)"
+                      ></path>
                     </svg>
                     <span class="funnel__text">
                       <span class="funnel__label">Leads</span>
-                      <span class="funnel__value">Up to 18,000* prospects within your client profile</span>
+                      <span class="funnel__value">Up to 18,000 prospects within your client profile*</span>
                     </span>
                   </button>
 
@@ -475,14 +506,32 @@
                     data-step="1"
                     data-step-key="activation"
                     aria-pressed="false"
-                    aria-label="MQLs — Up to 9,000 marketing-qualified leads"
+                    aria-label="MQLs — Up to 9,000 marketing-qualified leads*"
                   >
-                    <svg class="funnel__svg" viewBox="0 0 402 116" aria-hidden="true" focusable="false">
-                      <path d="M18 0h366l-32 116H50L18 0Z" />
+                    <span class="funnel__badge">MQLs</span>
+                    <svg
+                      class="funnel__svg"
+                      viewBox="0 0 402 116"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <defs>
+                        <filter id="funnel-shadow-mqls" x="-30%" y="-20%" width="160%" height="180%">
+                          <feDropShadow dx="0" dy="8" stdDeviation="8" flood-opacity="0.25" flood-color="#000" />
+                        </filter>
+                      </defs>
+                      <path
+                        data-shape="funnel"
+                        data-width-top="402"
+                        data-width-bottom="324"
+                        data-height="116"
+                        data-radius="12"
+                        filter="url(#funnel-shadow-mqls)"
+                      ></path>
                     </svg>
                     <span class="funnel__text">
                       <span class="funnel__label">MQLs</span>
-                      <span class="funnel__value">Up to 9,000* marketing-qualified leads</span>
+                      <span class="funnel__value">Up to 9,000 marketing-qualified leads*</span>
                     </span>
                   </button>
 
@@ -492,14 +541,32 @@
                     data-step="2"
                     data-step-key="conversion"
                     aria-pressed="false"
-                    aria-label="SQLs — 200 sales-qualified meetings with decision-makers"
+                    aria-label="SQLs — 200 sales-qualified meetings with decision-makers*"
                   >
-                    <svg class="funnel__svg" viewBox="0 0 342 112" aria-hidden="true" focusable="false">
-                      <path d="M16 0h310l-28 112H44L16 0Z" />
+                    <span class="funnel__badge">SQLs</span>
+                    <svg
+                      class="funnel__svg"
+                      viewBox="0 0 342 112"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <defs>
+                        <filter id="funnel-shadow-sqls" x="-30%" y="-20%" width="160%" height="180%">
+                          <feDropShadow dx="0" dy="8" stdDeviation="8" flood-opacity="0.25" flood-color="#000" />
+                        </filter>
+                      </defs>
+                      <path
+                        data-shape="funnel"
+                        data-width-top="342"
+                        data-width-bottom="270"
+                        data-height="112"
+                        data-radius="12"
+                        filter="url(#funnel-shadow-sqls)"
+                      ></path>
                     </svg>
                     <span class="funnel__text">
                       <span class="funnel__label">SQLs</span>
-                      <span class="funnel__value">200* sales-qualified meetings with decision-makers</span>
+                      <span class="funnel__value">200 sales-qualified meetings with decision-makers*</span>
                     </span>
                   </button>
 
@@ -509,14 +576,32 @@
                     data-step="3"
                     data-step-key="deal-closure"
                     aria-pressed="false"
-                    aria-label="Opportunities — 10 to 30 closed deals"
+                    aria-label="Opportunities — 10–30 closed deals*"
                   >
-                    <svg class="funnel__svg" viewBox="0 0 282 96" aria-hidden="true" focusable="false">
-                      <path d="M14 0h254l-26 96H40L14 0Z" />
+                    <span class="funnel__badge">Opportunities</span>
+                    <svg
+                      class="funnel__svg"
+                      viewBox="0 0 282 89"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <defs>
+                        <filter id="funnel-shadow-opps" x="-30%" y="-20%" width="160%" height="180%">
+                          <feDropShadow dx="0" dy="8" stdDeviation="8" flood-opacity="0.25" flood-color="#000" />
+                        </filter>
+                      </defs>
+                      <path
+                        data-shape="funnel"
+                        data-width-top="282"
+                        data-width-bottom="222"
+                        data-height="89"
+                        data-radius="12"
+                        filter="url(#funnel-shadow-opps)"
+                      ></path>
                     </svg>
                     <span class="funnel__text">
                       <span class="funnel__label">Opportunities</span>
-                      <span class="funnel__value">10–30* closed deals</span>
+                      <span class="funnel__value">10–30 closed deals*</span>
                     </span>
                   </button>
                 </div>
