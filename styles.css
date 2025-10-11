@@ -816,6 +816,122 @@ ul {
   line-height: 1.55;
 }
 
+.sets-apart {
+  padding: 4.5rem 0;
+}
+
+.sets-apart__inner {
+  background: var(--color-surface);
+  border-radius: 24px;
+  padding: clamp(2.5rem, 4vw, 3.5rem);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.sets-apart__header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sets-apart__intro h2 {
+  font-size: clamp(1.75rem, 3.2vw, 2.25rem);
+  line-height: 1.2;
+}
+
+.sets-apart__intro p {
+  margin-top: 0.75rem;
+  color: var(--color-muted);
+}
+
+.sets-apart__cta {
+  align-self: flex-start;
+}
+
+.sets-apart__cta:focus-visible {
+  outline: 3px solid rgba(255, 90, 31, 0.35);
+  outline-offset: 4px;
+}
+
+.sets-apart__grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+.sets-apart__card {
+  background: #f7f9fd;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 18px 36px rgba(27, 36, 48, 0.08);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.sets-apart__card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.sets-apart__card-body {
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sets-apart__card h3 {
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
+
+.sets-apart__card p {
+  color: var(--color-muted);
+}
+
+.sets-apart__card:focus-visible {
+  outline: 3px solid rgba(255, 90, 31, 0.45);
+  outline-offset: 3px;
+}
+
+@media (min-width: 48em) {
+  .sets-apart__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sets-apart__intro {
+    max-width: 36rem;
+  }
+
+  .sets-apart__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64em) {
+  .sets-apart {
+    padding: 5rem 0;
+  }
+
+  .sets-apart__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sets-apart__card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 22px 40px rgba(27, 36, 48, 0.12);
+  }
+}
+
 @media (min-width: 48em) {
   .challenges__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -841,6 +957,11 @@ ul {
 
 @media (prefers-reduced-motion: reduce) {
   .challenge-card {
+    transition: none;
+    transform: none !important;
+  }
+
+  .sets-apart__card {
     transition: none;
     transform: none !important;
   }
