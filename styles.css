@@ -73,6 +73,21 @@ ul {
 
 .skip-link {
   position: absolute;
+  top: 0;
+  left: 0.5rem;
+  transform: translateY(-150%);
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-weight: 600;
+  transition: transform var(--transition), box-shadow var(--transition);
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  transform: translateY(0.75rem);
+  box-shadow: 0 12px 24px rgba(23, 28, 38, 0.25);
   left: 1.5rem;
   top: 1.5rem;
   transform: translateY(-150%);
