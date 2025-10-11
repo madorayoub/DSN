@@ -79,7 +79,7 @@ const STEPS: StepConfig[] = [
     stat: "10–30* closed deals",
     path: "M14 0h254l-26 96H40L14 0Z",
     viewBox: "0 0 282 96",
-    maxWidth: "300px",
+    maxWidth: "320px",
     tabGroup: "secondary",
     tabId: "deal",
     panelId: "panel-deal",
