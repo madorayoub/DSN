@@ -547,6 +547,10 @@ ul {
   transition: color var(--transition);
 }
 
+.nav-links a.is-active {
+  color: var(--color-text);
+}
+
 .nav-links a:hover,
 .nav-links a:focus-visible {
   color: var(--color-text);

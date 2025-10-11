@@ -1,3 +1,42 @@
+const normalizePathname = (path) => {
+  if (!path) {
+    return '/';
+  }
+
+  return path.replace(/[#?].*$/, '').replace(/index\.html$/i, '').replace(/\/+$/, '') || '/';
+};
+
+const highlightActiveNav = () => {
+  const navLinks = Array.from(document.querySelectorAll('.main-nav a[href]'));
+
+  if (!navLinks.length) {
+    return;
+  }
+
+  const currentPath = normalizePathname(window.location.pathname);
+
+  navLinks.forEach((link) => {
+    if (link.classList.contains('btn')) {
+      link.classList.remove('is-active');
+      return;
+    }
+
+    try {
+      const linkPath = normalizePathname(new URL(link.getAttribute('href'), window.location.href).pathname);
+      const isActive = linkPath === currentPath;
+      link.classList.toggle('is-active', isActive);
+      if (isActive) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    } catch (error) {
+      link.classList.remove('is-active');
+      link.removeAttribute('aria-current');
+    }
+  });
+};
+
 let navigationInitialized = false;
 
 const initNavigation = () => {
@@ -13,6 +52,8 @@ const initNavigation = () => {
   }
 
   navigationInitialized = true;
+
+  highlightActiveNav();
 
   const toggleNav = () => {
     const isOpen = nav.classList.toggle('open');
@@ -33,10 +74,14 @@ const initNavigation = () => {
 };
 
 document.addEventListener('chrome:ready', initNavigation);
+document.addEventListener('chrome:ready', highlightActiveNav);
 document.addEventListener('DOMContentLoaded', initNavigation);
+document.addEventListener('DOMContentLoaded', highlightActiveNav);
 if (document.readyState !== 'loading') {
   initNavigation();
 }
+
+window.addEventListener('popstate', highlightActiveNav);
 
 const pipelineSection = document.querySelector('#pipeline');
 
