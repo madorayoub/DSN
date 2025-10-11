@@ -71,6 +71,28 @@ ul {
   border: 0;
 }
 
+.skip-link {
+  position: absolute;
+  left: 1.5rem;
+  top: 1.5rem;
+  transform: translateY(-150%);
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--transition), box-shadow var(--transition);
+  z-index: 10;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 3px solid var(--color-accent);
+  outline-offset: 4px;
+  box-shadow: 0 12px 24px rgba(26, 40, 66, 0.15);
+}
+
 .container {
   width: var(--container-width);
   margin: 0 auto;
