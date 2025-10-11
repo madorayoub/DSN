@@ -222,14 +222,22 @@ if (pipelineSection) {
 
 // Inject header/footer fragments once, then fire a ready event for any modules.
 (async function injectChrome() {
+  const resolvePartialUrl = (partial) => {
+    const baseHref = document.querySelector('base')?.href || window.location.href;
+
+    try {
+      return new URL(`partials/${partial}.html`, baseHref).href;
+    } catch (error) {
+      // As a final fallback (e.g., malformed base tag), fall back to a relative URL.
+      return `partials/${partial}.html`;
+    }
+  };
+
   const loadFragment = async (slotId, partial, fallbackTplId) => {
     const slot = document.getElementById(slotId) || document.querySelector(`[data-fragment="${partial}"]`);
     if (!slot) return;
 
-    // Resolve path to /partials/*.html (handles nested pages)
-    const root = document.querySelector('base')?.href || window.location.origin || '';
-    const base = root === 'null' ? '' : root; // file:// safety
-    const url = `${base.replace(/\/$/, '')}/partials/${partial}.html`;
+    const url = resolvePartialUrl(partial);
 
     try {
       const res = await fetch(url, { credentials: 'same-origin' });
