@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const nav = document.querySelector('.main-nav');
     const toggle = document.querySelector('.nav-toggle');
-    const navLinks = Array.from(document.querySelectorAll('.nav-links a'));
+    const links = document.querySelector('#primary-navigation');
     const inertTargets = Array.from(document.querySelectorAll('main, #site-footer, footer.site-footer'));
     const supportsInert = typeof HTMLElement !== 'undefined' && 'inert' in HTMLElement.prototype;
     let previousOverflow = '';
@@ -72,63 +72,77 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    const closeNav = () => {
+    const setMenu = (open) => {
       if (!nav) {
         return;
       }
 
-      nav.classList.remove('open');
-      toggle?.setAttribute('aria-expanded', 'false');
-      if (document.body) {
-        document.body.style.overflow = previousOverflow;
+      const isOpen = Boolean(open);
+      nav.classList.toggle('open', isOpen);
+      toggle?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      if (links) {
+        links.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
       }
-      setSurfaceInert(false);
+
+      if (document.body) {
+        if (isOpen) {
+          previousOverflow = document.body.style.overflow;
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = previousOverflow;
+        }
+      }
+
+      setSurfaceInert(isOpen);
+
+      if (!isOpen) {
+        toggle?.focus();
+      }
     };
 
-    const openNav = () => {
-      if (!nav || !toggle) {
-        return;
-      }
-
-      if (document.body) {
-        previousOverflow = document.body.style.overflow;
-      }
-      nav.classList.add('open');
-      toggle.setAttribute('aria-expanded', 'true');
-      if (document.body) {
-        document.body.style.overflow = 'hidden';
-      }
-      setSurfaceInert(true);
-    };
-
-    toggle?.addEventListener('click', () => {
-      if (nav?.classList.contains('open')) {
-        closeNav();
-      } else {
-        openNav();
-      }
-    });
+    toggle?.addEventListener('click', () => setMenu(!nav?.classList.contains('open')));
 
     document.addEventListener('keydown', (event) => {
-      const isOpen = nav?.classList.contains('open');
-      if (!isOpen || event.key !== 'Escape') {
+      if (event.key !== 'Escape' || !nav?.classList.contains('open')) {
         return;
       }
 
       event.preventDefault();
-      closeNav();
-      toggle?.focus();
+      setMenu(false);
     });
 
-    navLinks.forEach((link) => {
-      link.addEventListener('click', closeNav);
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!nav?.classList.contains('open') || !(target instanceof Element)) {
+        return;
+      }
+
+      if (!nav.contains(target)) {
+        setMenu(false);
+      }
     });
+
+    links?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!nav?.classList.contains('open') || !(target instanceof Element)) {
+        return;
+      }
+
+      if (target.closest('a')) {
+        setMenu(false);
+      }
+    });
+
+    if (links && !nav?.classList.contains('open')) {
+      links.setAttribute('aria-hidden', 'true');
+    }
 
     const updateActiveNav = () => {
       const segments = window.location.pathname.split('/').filter(Boolean);
       const currentPath = segments.length ? segments[segments.length - 1] : 'index.html';
 
-      navLinks.forEach((link) => {
+      const navLinkNodes = Array.from(document.querySelectorAll('.nav-links a'));
+      navLinkNodes.forEach((link) => {
         const href = link.getAttribute('href');
 
         if (!href || href.startsWith('#')) {
