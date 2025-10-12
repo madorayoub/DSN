@@ -1,42 +1,61 @@
-let navigationInitialized = false;
+document.addEventListener('DOMContentLoaded', () => {
+  const debug = (...a) => console.info('[chrome]', ...a);
 
-const initNavigation = () => {
-  if (navigationInitialized) {
-    return;
-  }
-
-  const nav = document.querySelector('.main-nav');
-  const navToggle = document.querySelector('.nav-toggle');
-
-  if (!nav || !navToggle) {
-    return;
-  }
-
-  navigationInitialized = true;
-
-  const toggleNav = () => {
-    const isOpen = nav.classList.toggle('open');
-    navToggle.setAttribute('aria-expanded', String(isOpen));
+  const cloneTpl = (id) => {
+    const tpl = document.getElementById(id);
+    return tpl?.content ? tpl.content.cloneNode(true) : null;
   };
 
-  navToggle.addEventListener('click', toggleNav);
+  const injectFromTpl = (slotSel, tplId) => {
+    const slot = document.querySelector(slotSel);
+    const frag = cloneTpl(tplId);
+    if (slot && frag) slot.replaceWith(frag);
+  };
 
-  const desktopQuery = window.matchMedia('(min-width: 901px)');
-  const handleBreakpointChange = (event) => {
-    if (event.matches) {
-      nav.classList.remove('open');
-      navToggle.setAttribute('aria-expanded', 'false');
+  const load = async (slotSel, partial, tplId) => {
+    const isFile = location.protocol === 'file:';
+    if (isFile) {
+      debug(`file:// detected → using ${tplId} fallback`);
+      injectFromTpl(slotSel, tplId);
+      return;
+    }
+    const url = new URL(`partials/${partial}.html`, location.href).toString();
+    try {
+      const res = await fetch(url, { credentials: 'same-origin' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const html = await res.text();
+      const tpl = document.createElement('template');
+      tpl.innerHTML = html;
+      const slot = document.querySelector(slotSel);
+      if (slot) slot.replaceWith(tpl.content.cloneNode(true));
+      debug(`injected ${partial} from`, url);
+    } catch (e) {
+      debug(`failed ${partial} → fallback`, e);
+      injectFromTpl(slotSel, tplId);
     }
   };
 
-  desktopQuery.addEventListener('change', handleBreakpointChange);
-};
+  Promise
+    .all([
+      load('[data-fragment="header"]', 'header', 'header-fallback'),
+      load('[data-fragment="footer"]', 'footer', 'footer-fallback')
+    ])
+    .then(() => {
+      // sticky header class
+      const header = document.querySelector('.site-header, header.site-header');
+      const onScroll = () => header && header.classList.toggle('is-sticky', scrollY > 4);
+      onScroll(); addEventListener('scroll', onScroll, { passive: true });
 
-document.addEventListener('chrome:ready', initNavigation);
-document.addEventListener('DOMContentLoaded', initNavigation);
-if (document.readyState !== 'loading') {
-  initNavigation();
-}
+      // init nav toggle after injection
+      document.querySelector('.nav-toggle')?.addEventListener('click', (e) => {
+        const nav = document.querySelector('.main-nav');
+        const open = nav?.classList.toggle('open');
+        e.currentTarget.setAttribute('aria-expanded', String(!!open));
+      });
+
+      document.dispatchEvent(new CustomEvent('chrome:ready'));
+    });
+});
 
 const pipelineSection = document.querySelector('#pipeline');
 
@@ -219,112 +238,6 @@ if (pipelineSection) {
     }
   });
 }
-
-// Inject header/footer fragments once, then fire a ready event for any modules.
-(async function injectChrome() {
-  const resolvePartialUrl = (partial) => {
-    const baseHref = document.querySelector('base')?.href || window.location.href;
-
-    try {
-      return new URL(`partials/${partial}.html`, baseHref).href;
-    } catch (error) {
-      // As a final fallback (e.g., malformed base tag), fall back to a relative URL.
-      return `partials/${partial}.html`;
-    }
-  };
-
-  const loadFragment = async (slotOrId, partial) => {
-    const slot =
-      typeof slotOrId === 'string'
-        ? document.getElementById(slotOrId) || document.querySelector(`[data-fragment="${partial}"]`)
-        : slotOrId;
-
-    if (!slot) return;
-
-    const fragmentName = partial || slot.getAttribute('data-fragment');
-    if (!fragmentName) {
-      return;
-    }
-
-    const url = resolvePartialUrl(fragmentName);
-
-    try {
-      const res = await fetch(url, { credentials: 'same-origin' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const html = await res.text();
-      if (!html.trim()) {
-        return;
-      }
-
-      const template = document.createElement('template');
-      template.innerHTML = html;
-      const textNodeType = typeof Node !== 'undefined' ? Node.TEXT_NODE : 3;
-      const elementNodeType = typeof Node !== 'undefined' ? Node.ELEMENT_NODE : 1;
-      const nodes = Array.from(template.content.childNodes).filter((node) => {
-        if (node.nodeType === textNodeType) {
-          return Boolean(node.textContent && node.textContent.trim().length);
-        }
-        return true;
-      });
-
-      if (!nodes.length) {
-        return;
-      }
-
-      const slotIdValue = slot.id;
-
-      if (nodes.length === 1 && nodes[0].nodeType === elementNodeType) {
-        const element = nodes[0];
-
-        if (slotIdValue && !element.id) {
-          element.id = slotIdValue;
-        }
-
-        if (fragmentName && !element.hasAttribute('data-fragment')) {
-          element.setAttribute('data-fragment', fragmentName);
-        }
-
-        const slotAttributes = typeof slot.getAttributeNames === 'function' ? slot.getAttributeNames() : [];
-
-        slotAttributes.forEach((name) => {
-          if (name === 'id' || name === 'data-fragment') {
-            return;
-          }
-
-          if (!element.hasAttribute(name)) {
-            element.setAttribute(name, slot.getAttribute(name));
-          }
-        });
-
-        slot.replaceWith(element);
-      } else {
-        slot.replaceChildren(...nodes);
-      }
-    } catch (e) {
-      // Inline fallback content remains in place if fetch fails.
-    }
-  };
-
-  const placeholders = Array.from(document.querySelectorAll('[data-fragment]'));
-
-  await Promise.all(
-    placeholders.map((slot) => {
-      const name = slot.getAttribute('data-fragment');
-      return name ? loadFragment(slot, name) : undefined;
-    })
-  );
-
-  // Sticky header state (adds .is-sticky after scrolling a bit)
-  const header = document.querySelector('.site-header') || document.querySelector('header.site-header');
-  if (header) {
-    const onScroll = () => header.classList.toggle('is-sticky', window.scrollY > 4);
-    onScroll(); // set initial state
-    window.addEventListener('scroll', onScroll, { passive: true });
-  }
-
-  // Announce that chrome is ready so other scripts can init safely
-  document.dispatchEvent(new CustomEvent('chrome:ready'));
-})();
 
 let footerInitialized = false;
 
