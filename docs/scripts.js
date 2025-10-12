@@ -49,14 +49,104 @@ document.addEventListener('DOMContentLoaded', () => {
 
   Promise.all(fragments.map((fragment) => loadFragment(fragment))).then(() => {
     const header = document.querySelector('.site-header, header.site-header');
-    const onScroll = () => header && header.classList.toggle('is-sticky', scrollY > 4);
-    onScroll(); addEventListener('scroll', onScroll, { passive: true });
+    const onScroll = () => header && header.classList.toggle('is-sticky', window.scrollY > 4);
+    onScroll();
+    addEventListener('scroll', onScroll, { passive: true });
 
-    document.querySelector('.nav-toggle')?.addEventListener('click', (e) => {
-      const nav = document.querySelector('.main-nav');
-      const open = nav?.classList.toggle('open');
-      e.currentTarget.setAttribute('aria-expanded', String(!!open));
+    const nav = document.querySelector('.main-nav');
+    const toggle = document.querySelector('.nav-toggle');
+    const navLinks = Array.from(document.querySelectorAll('.nav-links a'));
+    const inertTargets = Array.from(document.querySelectorAll('main, #site-footer, footer.site-footer'));
+    const supportsInert = typeof HTMLElement !== 'undefined' && 'inert' in HTMLElement.prototype;
+    let previousOverflow = '';
+
+    const setSurfaceInert = (value) => {
+      if (!supportsInert) {
+        return;
+      }
+
+      inertTargets.forEach((element) => {
+        if (element) {
+          element.inert = value;
+        }
+      });
+    };
+
+    const closeNav = () => {
+      if (!nav) {
+        return;
+      }
+
+      nav.classList.remove('open');
+      toggle?.setAttribute('aria-expanded', 'false');
+      if (document.body) {
+        document.body.style.overflow = previousOverflow;
+      }
+      setSurfaceInert(false);
+    };
+
+    const openNav = () => {
+      if (!nav || !toggle) {
+        return;
+      }
+
+      if (document.body) {
+        previousOverflow = document.body.style.overflow;
+      }
+      nav.classList.add('open');
+      toggle.setAttribute('aria-expanded', 'true');
+      if (document.body) {
+        document.body.style.overflow = 'hidden';
+      }
+      setSurfaceInert(true);
+    };
+
+    toggle?.addEventListener('click', () => {
+      if (nav?.classList.contains('open')) {
+        closeNav();
+      } else {
+        openNav();
+      }
     });
+
+    document.addEventListener('keydown', (event) => {
+      const isOpen = nav?.classList.contains('open');
+      if (!isOpen || event.key !== 'Escape') {
+        return;
+      }
+
+      event.preventDefault();
+      closeNav();
+      toggle?.focus();
+    });
+
+    navLinks.forEach((link) => {
+      link.addEventListener('click', closeNav);
+    });
+
+    const updateActiveNav = () => {
+      const segments = window.location.pathname.split('/').filter(Boolean);
+      const currentPath = segments.length ? segments[segments.length - 1] : 'index.html';
+
+      navLinks.forEach((link) => {
+        const href = link.getAttribute('href');
+
+        if (!href || href.startsWith('#')) {
+          link.removeAttribute('aria-current');
+          return;
+        }
+
+        const normalizedHref = href.replace(/^\//, '');
+
+        if (normalizedHref === currentPath || (normalizedHref === 'index.html' && currentPath === '')) {
+          link.setAttribute('aria-current', 'page');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    };
+
+    updateActiveNav();
 
     document.dispatchEvent(new CustomEvent('chrome:ready'));
   });
