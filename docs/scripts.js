@@ -1,23 +1,53 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const cloneTpl = (id) => document.getElementById(id)?.content?.cloneNode(true) || null;
-  const injectFromTpl = (sel, tplId) => { const slot = document.querySelector(sel); const frag = cloneTpl(tplId); if (slot && frag) slot.replaceWith(frag); };
+  const cloneTpl = (id) => (id ? document.getElementById(id)?.content?.cloneNode(true) || null : null);
 
-  const load = async (sel, name, tplId) => {
-    if (location.protocol === 'file:') { injectFromTpl(sel, tplId); return; }
+  const loadFragment = async ({ selector, name, fallbackId }) => {
+    const slot = document.querySelector(selector);
+
+    if (!slot) {
+      return;
+    }
+
+    const injectFallback = () => {
+      if (!fallbackId) {
+        return;
+      }
+
+      const frag = cloneTpl(fallbackId);
+      if (frag) {
+        slot.replaceWith(frag);
+      }
+    };
+
+    if (location.protocol === 'file:') {
+      injectFallback();
+      return;
+    }
+
     const url = new URL(`partials/${name}.html`, location.href).toString();
+
     try {
       const res = await fetch(url, { credentials: 'same-origin' });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        throw new Error();
+      }
+
       const html = await res.text();
-      const t = document.createElement('template'); t.innerHTML = html;
-      const slot = document.querySelector(sel); if (slot) slot.replaceWith(t.content.cloneNode(true));
-    } catch { injectFromTpl(sel, tplId); }
+      const template = document.createElement('template');
+      template.innerHTML = html;
+      slot.replaceWith(template.content.cloneNode(true));
+    } catch {
+      injectFallback();
+    }
   };
 
-  Promise.all([
-    load('[data-fragment="header"]', 'header', 'header-fallback'),
-    load('[data-fragment="footer"]', 'footer', 'footer-fallback')
-  ]).then(() => {
+  const fragments = [
+    { selector: '[data-fragment="header"]', name: 'header', fallbackId: 'header-fallback' },
+    { selector: '[data-fragment="footer"]', name: 'footer', fallbackId: 'footer-fallback' },
+    { selector: '[data-fragment="testimonials"]', name: 'testimonials' }
+  ];
+
+  Promise.all(fragments.map((fragment) => loadFragment(fragment))).then(() => {
     const header = document.querySelector('.site-header, header.site-header');
     const onScroll = () => header && header.classList.toggle('is-sticky', scrollY > 4);
     onScroll(); addEventListener('scroll', onScroll, { passive: true });
