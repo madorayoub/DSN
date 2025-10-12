@@ -419,40 +419,23 @@ ul {
 }
 
 .skip-link {
-  position: absolute;
-  top: 0;
-  left: 0.5rem;
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
   transform: translateY(-150%);
   padding: 0.75rem 1.25rem;
   border-radius: 999px;
   background: var(--color-text);
   color: var(--color-surface);
   font-weight: 600;
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition: transform 150ms ease;
   z-index: 1000;
 }
 
 .skip-link:focus {
-  transform: translateY(0.75rem);
-  box-shadow: 0 12px 24px rgba(23, 28, 38, 0.25);
-  left: 1.5rem;
-  top: 1.5rem;
-  transform: translateY(-150%);
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.75rem;
-  background: var(--color-text);
-  color: var(--color-surface);
-  font-weight: 600;
-  box-shadow: var(--shadow-soft);
-  transition: transform var(--transition), box-shadow var(--transition);
-  z-index: 10;
-}
-
-.skip-link:focus {
   transform: translateY(0);
-  outline: 3px solid var(--color-accent);
-  outline-offset: 4px;
-  box-shadow: 0 12px 24px rgba(26, 40, 66, 0.15);
+  outline: 2px solid #222;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .container {
@@ -2398,6 +2381,7 @@ ul {
   font-size: 1rem;
   line-height: 1.7;
   color: var(--color-text);
+  margin: 0;
 }
 
 .testimonial-card__footer {
