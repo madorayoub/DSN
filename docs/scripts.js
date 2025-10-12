@@ -1,60 +1,35 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const debug = (...a) => console.info('[chrome]', ...a);
+  const cloneTpl = (id) => document.getElementById(id)?.content?.cloneNode(true) || null;
+  const injectFromTpl = (sel, tplId) => { const slot = document.querySelector(sel); const frag = cloneTpl(tplId); if (slot && frag) slot.replaceWith(frag); };
 
-  const cloneTpl = (id) => {
-    const tpl = document.getElementById(id);
-    return tpl?.content ? tpl.content.cloneNode(true) : null;
-  };
-
-  const injectFromTpl = (slotSel, tplId) => {
-    const slot = document.querySelector(slotSel);
-    const frag = cloneTpl(tplId);
-    if (slot && frag) slot.replaceWith(frag);
-  };
-
-  const load = async (slotSel, partial, tplId) => {
-    const isFile = location.protocol === 'file:';
-    if (isFile) {
-      debug(`file:// detected → using ${tplId} fallback`);
-      injectFromTpl(slotSel, tplId);
-      return;
-    }
-    const url = new URL(`partials/${partial}.html`, location.href).toString();
+  const load = async (sel, name, tplId) => {
+    if (location.protocol === 'file:') { injectFromTpl(sel, tplId); return; }
+    const url = new URL(`partials/${name}.html`, location.href).toString();
     try {
       const res = await fetch(url, { credentials: 'same-origin' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) throw new Error();
       const html = await res.text();
-      const tpl = document.createElement('template');
-      tpl.innerHTML = html;
-      const slot = document.querySelector(slotSel);
-      if (slot) slot.replaceWith(tpl.content.cloneNode(true));
-      debug(`injected ${partial} from`, url);
-    } catch (e) {
-      debug(`failed ${partial} → fallback`, e);
-      injectFromTpl(slotSel, tplId);
-    }
+      const t = document.createElement('template'); t.innerHTML = html;
+      const slot = document.querySelector(sel); if (slot) slot.replaceWith(t.content.cloneNode(true));
+    } catch { injectFromTpl(sel, tplId); }
   };
 
-  Promise
-    .all([
-      load('[data-fragment="header"]', 'header', 'header-fallback'),
-      load('[data-fragment="footer"]', 'footer', 'footer-fallback')
-    ])
-    .then(() => {
-      // sticky header class
-      const header = document.querySelector('.site-header, header.site-header');
-      const onScroll = () => header && header.classList.toggle('is-sticky', scrollY > 4);
-      onScroll(); addEventListener('scroll', onScroll, { passive: true });
+  Promise.all([
+    load('[data-fragment="header"]', 'header', 'header-fallback'),
+    load('[data-fragment="footer"]', 'footer', 'footer-fallback')
+  ]).then(() => {
+    const header = document.querySelector('.site-header, header.site-header');
+    const onScroll = () => header && header.classList.toggle('is-sticky', scrollY > 4);
+    onScroll(); addEventListener('scroll', onScroll, { passive: true });
 
-      // init nav toggle after injection
-      document.querySelector('.nav-toggle')?.addEventListener('click', (e) => {
-        const nav = document.querySelector('.main-nav');
-        const open = nav?.classList.toggle('open');
-        e.currentTarget.setAttribute('aria-expanded', String(!!open));
-      });
-
-      document.dispatchEvent(new CustomEvent('chrome:ready'));
+    document.querySelector('.nav-toggle')?.addEventListener('click', (e) => {
+      const nav = document.querySelector('.main-nav');
+      const open = nav?.classList.toggle('open');
+      e.currentTarget.setAttribute('aria-expanded', String(!!open));
     });
+
+    document.dispatchEvent(new CustomEvent('chrome:ready'));
+  });
 });
 
 const pipelineSection = document.querySelector('#pipeline');
