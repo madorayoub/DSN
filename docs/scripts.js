@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const url = new URL(`partials/${name}.html`, location.href).toString();
+    const url = new URL(`partials/${name}.html`, document.baseURI).toString();
 
     try {
       const res = await fetch(url, { credentials: 'same-origin' });
@@ -49,9 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   Promise.all(fragments.map((fragment) => loadFragment(fragment))).then(() => {
     const header = document.querySelector('.site-header, header.site-header');
-    const onScroll = () => header && header.classList.toggle('is-sticky', window.scrollY > 4);
+    const onScroll = () => {
+      if (header) {
+        header.classList.toggle('is-sticky', window.scrollY > 4);
+      }
+    };
     onScroll();
-    addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     const nav = document.querySelector('.main-nav');
     const toggle = document.querySelector('.nav-toggle');
@@ -79,7 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const isOpen = Boolean(open);
       nav.classList.toggle('open', isOpen);
-      toggle?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      toggle?.setAttribute('aria-expanded', String(isOpen));
+
       if (links) {
         links.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
       }
@@ -100,35 +105,36 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
-    toggle?.addEventListener('click', () => setMenu(!nav?.classList.contains('open')));
+    toggle?.addEventListener('click', () => {
+      const nextState = !nav?.classList.contains('open');
+      setMenu(nextState);
+    });
 
     document.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape' || !nav?.classList.contains('open')) {
-        return;
+      if (event.key === 'Escape' && nav?.classList.contains('open')) {
+        event.preventDefault();
+        setMenu(false);
       }
-
-      event.preventDefault();
-      setMenu(false);
     });
 
     document.addEventListener('click', (event) => {
-      const target = event.target;
-      if (!nav?.classList.contains('open') || !(target instanceof Element)) {
+      if (!nav?.classList.contains('open')) {
         return;
       }
 
-      if (!nav.contains(target)) {
+      const target = event.target;
+      if (target instanceof Element && !nav.contains(target)) {
         setMenu(false);
       }
     });
 
     links?.addEventListener('click', (event) => {
-      const target = event.target;
-      if (!nav?.classList.contains('open') || !(target instanceof Element)) {
+      if (!nav?.classList.contains('open')) {
         return;
       }
 
-      if (target.closest('a')) {
+      const target = event.target;
+      if (target instanceof Element && target.closest('a')) {
         setMenu(false);
       }
     });
@@ -137,30 +143,17 @@ document.addEventListener('DOMContentLoaded', () => {
       links.setAttribute('aria-hidden', 'true');
     }
 
-    const updateActiveNav = () => {
-      const segments = window.location.pathname.split('/').filter(Boolean);
-      const currentPath = segments.length ? segments[segments.length - 1] : 'index.html';
+    if (toggle && !nav?.classList.contains('open')) {
+      toggle.setAttribute('aria-expanded', 'false');
+    }
 
-      const navLinkNodes = Array.from(document.querySelectorAll('.nav-links a'));
-      navLinkNodes.forEach((link) => {
-        const href = link.getAttribute('href');
-
-        if (!href || href.startsWith('#')) {
-          link.removeAttribute('aria-current');
-          return;
-        }
-
-        const normalizedHref = href.replace(/^\//, '');
-
-        if (normalizedHref === currentPath || (normalizedHref === 'index.html' && currentPath === '')) {
-          link.setAttribute('aria-current', 'page');
-        } else {
-          link.removeAttribute('aria-current');
-        }
-      });
-    };
-
-    updateActiveNav();
+    document.querySelectorAll('.nav-links a').forEach((anchor) => {
+      anchor.removeAttribute('aria-current');
+      const href = anchor.getAttribute('href');
+      if (href && window.location.pathname.endsWith(href)) {
+        anchor.setAttribute('aria-current', 'page');
+      }
+    });
 
     document.dispatchEvent(new CustomEvent('chrome:ready'));
   });
@@ -465,71 +458,71 @@ if (document.readyState !== 'loading') {
 
 const testimonialsSection = document.querySelector('.testimonials');
 
-  if (testimonialsSection) {
-    const scroller = testimonialsSection.querySelector('.testimonials__track');
-    const viewport = testimonialsSection.querySelector('.testimonials__viewport');
-    const cards = Array.from(testimonialsSection.querySelectorAll('.testimonial-card'));
-    const prevButton = testimonialsSection.querySelector('.testimonials__nav[data-direction="prev"]');
-    const nextButton = testimonialsSection.querySelector('.testimonials__nav[data-direction="next"]');
+if (testimonialsSection) {
+  const scroller = testimonialsSection.querySelector('.testimonials__track');
+  const viewport = testimonialsSection.querySelector('.testimonials__viewport');
+  const cards = Array.from(testimonialsSection.querySelectorAll('.testimonial-card'));
+  const prevButton = testimonialsSection.querySelector('.testimonials__nav[data-direction="prev"]');
+  const nextButton = testimonialsSection.querySelector('.testimonials__nav[data-direction="next"]');
 
-    if (scroller && viewport && cards.length && prevButton && nextButton) {
-      let ticking = false;
+  if (scroller && viewport && cards.length && prevButton && nextButton) {
+    let ticking = false;
 
-      const getStep = () => {
-        if (cards.length < 2) {
-          return scroller.clientWidth;
-        }
+    const getStep = () => {
+      if (cards.length < 2) {
+        return scroller.clientWidth;
+      }
 
-        const firstRect = cards[0].getBoundingClientRect();
-        const secondRect = cards[1].getBoundingClientRect();
-        const step = Math.round(secondRect.left - firstRect.left);
-        return step !== 0 ? step : cards[0].getBoundingClientRect().width;
-      };
+      const firstRect = cards[0].getBoundingClientRect();
+      const secondRect = cards[1].getBoundingClientRect();
+      const step = Math.round(secondRect.left - firstRect.left);
+      return step !== 0 ? step : cards[0].getBoundingClientRect().width;
+    };
 
-      const updateButtons = () => {
-        const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
-        const epsilon = 1;
-        prevButton.disabled = scroller.scrollLeft <= epsilon;
-        nextButton.disabled = scroller.scrollLeft >= maxScrollLeft - epsilon;
-      };
+    const updateButtons = () => {
+      const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+      const epsilon = 1;
+      prevButton.disabled = scroller.scrollLeft <= epsilon;
+      nextButton.disabled = scroller.scrollLeft >= maxScrollLeft - epsilon;
+    };
 
-      const requestUpdate = () => {
-        if (!ticking) {
-          window.requestAnimationFrame(() => {
-            updateButtons();
-            ticking = false;
-          });
-          ticking = true;
-        }
-      };
+    const requestUpdate = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateButtons();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
 
-      const scrollByStep = (direction) => {
-        const step = getStep();
-        scroller.scrollBy({ left: direction * step, behavior: 'smooth' });
-      };
+    const scrollByStep = (direction) => {
+      const step = getStep();
+      scroller.scrollBy({ left: direction * step, behavior: 'smooth' });
+    };
 
-      prevButton.addEventListener('click', () => {
+    prevButton.addEventListener('click', () => {
+      scrollByStep(-1);
+    });
+
+    nextButton.addEventListener('click', () => {
+      scrollByStep(1);
+    });
+
+    scroller.addEventListener('scroll', requestUpdate, { passive: true });
+
+    window.addEventListener('resize', requestUpdate);
+
+    viewport.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
         scrollByStep(-1);
-      });
-
-      nextButton.addEventListener('click', () => {
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
         scrollByStep(1);
-      });
+      }
+    });
 
-      scroller.addEventListener('scroll', requestUpdate, { passive: true });
-
-      window.addEventListener('resize', requestUpdate);
-
-      viewport.addEventListener('keydown', (event) => {
-        if (event.key === 'ArrowLeft') {
-          event.preventDefault();
-          scrollByStep(-1);
-        } else if (event.key === 'ArrowRight') {
-          event.preventDefault();
-          scrollByStep(1);
-        }
-      });
-
-      updateButtons();
-    }
+    updateButtons();
   }
+}
