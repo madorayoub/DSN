@@ -10,32 +10,40 @@
 }
 
 :root {
-  --color-background: var(--surface-50);
-  --color-surface: var(--surface-0);
-  --color-text: var(--text-900);
-  --color-muted: var(--text-700);
-  --color-subtle: var(--text-600);
-  --color-accent: var(--brand-500);
-  --color-accent-dark: var(--brand-600);
-  --color-on-accent: var(--surface-0);
-  --shadow-soft: 0 24px 48px color-mix(in srgb, var(--ink-inverse) 8%, transparent);
+  --color-background: var(--surface-50, #f4faf5);
+  --color-surface: var(--surface-0, #ffffff);
+  --color-text: var(--text-900, #121816);
+  --color-muted: var(--text-700, #545c67);
+  --color-subtle: var(--text-600, #81898d);
+  --color-accent: var(--brand-500, #48cf52);
+  --color-accent-dark: var(--brand-600, #19ad50);
+  --color-on-accent: var(--surface-0, #ffffff);
+  --shadow-soft: 0 24px 48px color-mix(in srgb, var(--ink-inverse, #061318) 8%, transparent);
   --container-width: min(1100px, calc(100% - 3.5rem));
   --transition: 200ms ease;
   --brand-rail-cycle: 45s;
   --brand-rail-fade: clamp(4rem, 12vw, 6.5rem);
   --radius-pill: 999px;
-  --gradient-brand-soft: linear-gradient(135deg, var(--brand-50), var(--brand-100));
-  --gradient-brand-strong: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+  --gradient-brand-soft: linear-gradient(
+    135deg,
+    var(--brand-50, color-mix(in oklab, #48cf52 8%, white)),
+    var(--brand-100, #caefce)
+  );
+  --gradient-brand-strong: linear-gradient(
+    135deg,
+    var(--brand-500, #48cf52),
+    var(--brand-600, #19ad50)
+  );
   --gradient-warning-soft: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--warning-500) 12%, white),
-    color-mix(in oklab, var(--warning-500) 22%, white)
+    color-mix(in oklab, var(--warning-500, #ff5a1f) 12%, white),
+    color-mix(in oklab, var(--warning-500, #ff5a1f) 22%, white)
   );
   --gradient-inverse: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink-inverse) 88%, black) 0%,
-    color-mix(in srgb, var(--ink-inverse) 64%, black) 60%,
-    color-mix(in srgb, var(--ink-inverse) 94%, black) 100%
+    color-mix(in srgb, var(--ink-inverse, #061318) 88%, black) 0%,
+    color-mix(in srgb, var(--ink-inverse, #061318) 64%, black) 60%,
+    color-mix(in srgb, var(--ink-inverse, #061318) 94%, black) 100%
   );
 }
 
