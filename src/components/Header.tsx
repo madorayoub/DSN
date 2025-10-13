@@ -220,7 +220,7 @@ const Header = () => {
               ref={toggleRef}
               className="nav-toggle"
               type="button"
-              aria-expanded={isMenuOpen}
+              aria-expanded={isMenuOpen ? "true" : "false"}
               aria-controls="primary-navigation"
               aria-label="Toggle navigation"
               onClick={handleToggle}
