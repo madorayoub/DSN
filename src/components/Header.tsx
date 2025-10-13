@@ -98,7 +98,7 @@ const Header = () => {
       }
     };
 
-    const handleClickOutside = (event: MouseEvent) => {
+    const handlePointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (
         target instanceof Element &&
@@ -110,11 +110,11 @@ const Header = () => {
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("pointerdown", handlePointerDown);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [isMenuOpen, closeMenu]);
 
