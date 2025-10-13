@@ -1,15 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-
-type NewsletterState = "idle" | "success" | "error";
-
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { useEffect, useState } from "react";
 
 const Footer = () => {
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [status, setStatus] = useState<NewsletterState>("idle");
   const [language, setLanguage] = useState("en");
 
   useEffect(() => {
@@ -39,34 +32,7 @@ const Footer = () => {
     }
   }, [language]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!email.trim()) {
-      setStatus("error");
-      setMessage("Please enter your email address.");
-      return;
-    }
-
-    if (!emailPattern.test(email.trim())) {
-      setStatus("error");
-      setMessage("Please enter a valid email address.");
-      return;
-    }
-
-    setStatus("success");
-    setMessage("Thanks! You are subscribed.");
-    setEmail("");
-  };
-
   const currentYear = new Date().getFullYear();
-  const messageClass = [
-    "footer-newsletter__message",
-    status === "success" ? "is-success" : "",
-    status === "error" ? "is-error" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
 
   return (
     <footer id="site-footer" className="site-footer" aria-labelledby="footer-heading">
@@ -77,9 +43,31 @@ const Footer = () => {
         <div className="container">
           <div className="footer-callout">
             <div className="footer-callout__content">
-              <a className="brand brand--footer" href="#" aria-label="Belkins home">
-                <span className="brand-icon" aria-hidden="true"></span>
-                <span className="brand-text">belkins</span>
+              <a
+                className="brand brand--footer"
+                href="#"
+                aria-label="Direct Sales Network ® home"
+              >
+                <span className="brand-icon">
+                  <picture className="brand-mark">
+                    <source
+                      media="(max-width: 420px)"
+                      srcSet="https://res.cloudinary.com/diptffkzh/image/upload/v1759298298/2d235155-6742-4f37-9224-b610afa086b9_1_umlo20.png"
+                    />
+                    <img
+                      src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                      alt="Direct Sales Network logo"
+                      loading="eager"
+                      decoding="async"
+                    />
+                  </picture>
+                </span>
+                <span className="brand-text">
+                  <span className="brand-text__full">Direct Sales Network ®</span>
+                  <span className="brand-text__abbr" aria-hidden="true">
+                    DSN ®
+                  </span>
+                </span>
               </a>
               <p className="footer-callout__value">
                 Revenue-focused outreach that keeps your sales pipeline growing.
@@ -93,12 +81,34 @@ const Footer = () => {
         <div className="container footer-main">
           <div className="footer-grid">
             <div className="footer-column footer-column--brand">
-              <a className="brand brand--footer" href="#" aria-label="Belkins home">
-                <span className="brand-icon" aria-hidden="true"></span>
-                <span className="brand-text">belkins</span>
+              <a
+                className="brand brand--footer"
+                href="#"
+                aria-label="Direct Sales Network ® home"
+              >
+                <span className="brand-icon">
+                  <picture className="brand-mark">
+                    <source
+                      media="(max-width: 420px)"
+                      srcSet="https://res.cloudinary.com/diptffkzh/image/upload/v1759298298/2d235155-6742-4f37-9224-b610afa086b9_1_umlo20.png"
+                    />
+                    <img
+                      src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                      alt="Direct Sales Network logo"
+                      loading="eager"
+                      decoding="async"
+                    />
+                  </picture>
+                </span>
+                <span className="brand-text">
+                  <span className="brand-text__full">Direct Sales Network ®</span>
+                  <span className="brand-text__abbr" aria-hidden="true">
+                    DSN ®
+                  </span>
+                </span>
               </a>
               <p className="footer-column__blurb">
-                Belkins builds predictable revenue engines for ambitious B2B teams.
+                Direct Sales Network ® builds predictable revenue engines for ambitious B2B teams.
               </p>
               <ul className="footer-contact">
                 <li>
@@ -108,7 +118,7 @@ const Footer = () => {
                   <a href="mailto:support@belkins.com">support@belkins.com</a>
                 </li>
               </ul>
-              <ul className="footer-social" aria-label="Follow Belkins">
+              <ul className="footer-social" aria-label="Follow Direct Sales Network ®">
                 <li>
                   <a href="#" aria-label="LinkedIn">
                     <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -160,43 +170,6 @@ const Footer = () => {
                   </a>
                 </li>
               </ul>
-              <div className="footer-newsletter">
-                <h3 className="footer-column__title">Stay in the loop</h3>
-                <p className="footer-newsletter__description">
-                  Get one quick read each month with proven revenue tactics.
-                </p>
-                <form className="footer-newsletter__form" noValidate onSubmit={handleSubmit}>
-                  <label className="sr-only" htmlFor="footer-newsletter-email">
-                    Email address
-                  </label>
-                  <div className="footer-newsletter__controls">
-                    <input
-                      id="footer-newsletter-email"
-                      type="email"
-                      name="email"
-                      aria-describedby="footer-newsletter-message"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(event) => {
-                        setEmail(event.target.value);
-                        if (status !== "idle") {
-                          setStatus("idle");
-                          setMessage("");
-                        }
-                      }}
-                      aria-invalid={status === "error"}
-                    />
-                    <button type="submit" className="btn btn-primary">
-                      Subscribe
-                    </button>
-                  </div>
-                  <p className={messageClass} id="footer-newsletter-message" aria-live="polite">
-                    {message}
-                  </p>
-                </form>
-              </div>
             </div>
             <div className="footer-column">
               <h3 className="footer-column__title">Company</h3>
@@ -254,7 +227,7 @@ const Footer = () => {
         <div className="container">
           <div className="footer-subfooter">
             <p className="footer-subfooter__copy">
-              © <span>{currentYear}</span> Belkins. All rights reserved.
+              © <span>{currentYear}</span> Direct Sales Network ®. All rights reserved.
             </p>
             <div className="footer-subfooter__actions">
               <ul className="footer-subfooter__links">
