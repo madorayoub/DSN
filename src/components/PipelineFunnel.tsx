@@ -211,7 +211,7 @@ const PipelineFunnel = () => {
       <div className="container">
         <div className="pipeline__card" role="group" aria-label="Pipeline overview">
           <header className="pipeline__header">
-            <h2 id="pipeline-heading">How your pipeline will look with Direct Sales Network ®</h2>
+            <h2 id="pipeline-heading">How your pipeline will look with Direct Sales Network®</h2>
             <p className="pipeline__sub">Focus on scaling your business while we deliver you sales-ready B2B leads.</p>
           </header>
           <div className="pipeline__grid">

@@ -38,4 +38,7 @@
 
   /* Inverse / deep */
   --ink-inverse: #061318;
+  --header-bg: #091417;
+  --on-header: #ffffff;
+  --on-header-muted: color-mix(in srgb, #ffffff 70%, transparent);
 }

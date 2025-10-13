@@ -46,7 +46,7 @@ const Footer = () => {
               <a
                 className="brand brand--footer"
                 href="#"
-                aria-label="Direct Sales Network ® home"
+                aria-label="Direct Sales Network home"
               >
                 <span className="brand-icon">
                   <picture className="brand-mark">
@@ -61,12 +61,6 @@ const Footer = () => {
                       decoding="async"
                     />
                   </picture>
-                </span>
-                <span className="brand-text">
-                  <span className="brand-text__full">Direct Sales Network ®</span>
-                  <span className="brand-text__abbr" aria-hidden="true">
-                    DSN ®
-                  </span>
                 </span>
               </a>
               <p className="footer-callout__value">
@@ -84,7 +78,7 @@ const Footer = () => {
               <a
                 className="brand brand--footer"
                 href="#"
-                aria-label="Direct Sales Network ® home"
+                aria-label="Direct Sales Network home"
               >
                 <span className="brand-icon">
                   <picture className="brand-mark">
@@ -100,15 +94,9 @@ const Footer = () => {
                     />
                   </picture>
                 </span>
-                <span className="brand-text">
-                  <span className="brand-text__full">Direct Sales Network ®</span>
-                  <span className="brand-text__abbr" aria-hidden="true">
-                    DSN ®
-                  </span>
-                </span>
               </a>
               <p className="footer-column__blurb">
-                Direct Sales Network ® builds predictable revenue engines for ambitious B2B teams.
+                Direct Sales Network® builds predictable revenue engines for ambitious B2B teams.
               </p>
               <ul className="footer-contact">
                 <li>
@@ -118,7 +106,7 @@ const Footer = () => {
                   <a href="mailto:support@belkins.com">support@belkins.com</a>
                 </li>
               </ul>
-              <ul className="footer-social" aria-label="Follow Direct Sales Network ®">
+              <ul className="footer-social" aria-label="Follow Direct Sales Network">
                 <li>
                   <a href="#" aria-label="LinkedIn">
                     <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -227,7 +215,7 @@ const Footer = () => {
         <div className="container">
           <div className="footer-subfooter">
             <p className="footer-subfooter__copy">
-              © <span>{currentYear}</span> Direct Sales Network ®. All rights reserved.
+              © <span>{currentYear}</span> Direct Sales Network®. All rights reserved.
             </p>
             <div className="footer-subfooter__actions">
               <ul className="footer-subfooter__links">
