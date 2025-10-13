@@ -19,7 +19,11 @@
   --color-accent-dark: var(--brand-600, #19ad50);
   --color-on-accent: var(--surface-0, #ffffff);
   --shadow-soft: 0 24px 48px color-mix(in srgb, var(--ink-inverse, #061318) 8%, transparent);
-  --container-width: min(1100px, calc(100% - 3.5rem));
+  --container-max: 1100px;
+  --container-pad: 1.75rem;
+  --container-width: min(var(--container-max), calc(100% - 2 * var(--container-pad)));
+  --header-pad-y-default: 1.25rem;
+  --header-pad-y-sticky: 1.25rem;
   --transition: 200ms ease;
   --brand-rail-cycle: 45s;
   --brand-rail-fade: clamp(4rem, 12vw, 6.5rem);
@@ -493,10 +497,20 @@ ul {
   margin: 0 auto;
 }
 
-.site-header {
-  padding: 2.5rem 0 6rem;
+header.site-header {
+  padding-block: var(--header-pad-y-default);
   background: var(--color-background);
   transition: padding var(--transition), box-shadow var(--transition), background var(--transition);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.site-header__inner {
+  width: 100%;
+  max-width: var(--container-max, 72rem);
+  margin-inline: auto;
+  padding-inline: var(--container-pad, 1rem);
 }
 
 .main-nav {
@@ -831,10 +845,6 @@ ul {
 @media (max-width: 600px) {
   :root {
     --brand-rail-cycle: 48s;
-  }
-
-  .site-header {
-    padding-bottom: 5rem;
   }
 
   .container {
@@ -1644,123 +1654,6 @@ ul {
   .funnel__arrow svg {
     transition: none !important;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation-play-state: paused;
-    transform: none !important;
-  }
-}
-
-@media (max-width: 900px) {
-  .main-nav {
-    gap: 1rem;
-  }
-
-  .nav-toggle {
-    display: inline-flex;
-  }
-
-  .nav-links {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    margin: 0;
-    padding: 1.5rem;
-    border-radius: 1.5rem;
-    background: var(--color-surface);
-    box-shadow: var(--shadow-soft);
-    display: none;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.25rem;
-    font-size: 1.05rem;
-    z-index: 10;
-    margin-left: 0;
-  }
-
-  .main-nav.open .nav-links {
-    display: flex;
-  }
-
-  .btn-outline {
-    margin-left: auto;
-  }
-
-  .hero-marquee {
-    border-radius: 1.5rem;
-  }
-
-  .marquee-track {
-    gap: 2.5rem;
-  }
-
-  .brand-logo {
-    width: clamp(7.5rem, 24vw, 9rem);
-    border-radius: 1.35rem;
-  }
-}
-
-@media (max-width: 600px) {
-  :root {
-    --brand-rail-cycle: 48s;
-  }
-
-  .site-header {
-    padding-bottom: 5rem;
-  }
-
-  .container {
-    width: min(100%, calc(100% - 2.5rem));
-  }
-
-  .hero {
-    margin-top: 4rem;
-  }
-
-  .hero-marquee {
-    margin-top: 2rem;
-    border-radius: 1.25rem;
-  }
-
-  .marquee-track {
-    gap: 2rem;
-  }
-
-  .brand-logo {
-    width: clamp(6.5rem, 38vw, 8rem);
-    border-radius: 1.1rem;
-  }
-
-  .btn {
-    width: 100%;
-  }
-}
-
-.results-banner {
-  background: color-mix(in srgb, var(--surface-75) 80%, var(--surface-0) 20%);
-  padding: clamp(3.5rem, 9vw, 6rem) 0;
-}
-
-.results-banner__content {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-  align-items: center;
-}
-
-.results-banner__headline {
-  font-size: clamp(2.25rem, 4vw + 1rem, 3.35rem);
-  line-height: 1.18;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.results-banner__headline span {
-  color: var(--color-accent);
 }
 
 .client-plan {
@@ -2796,29 +2689,16 @@ ul {
 }
 
 /* Sticky header */
-.site-header,
-header.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
 @supports (backdrop-filter: blur(6px)) {
-  .site-header.is-sticky {
+  header.site-header.is-sticky {
     backdrop-filter: blur(6px);
   }
 }
-.site-header.is-sticky,
+
 header.site-header.is-sticky {
-  padding: 1.25rem 0 1.5rem;
-  box-shadow: 0 6px 20px color-mix(in srgb, black 8%, transparent);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  padding: 1rem 0 1.25rem;
+  padding-block: var(--header-pad-y-sticky);
   background: var(--color-surface);
   box-shadow: var(--shadow-soft);
-  transition: padding var(--transition), box-shadow var(--transition),
-    background var(--transition);
 }
 
 /* Sticky footer layout (footer pins to bottom on short pages) */

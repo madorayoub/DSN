@@ -206,7 +206,7 @@ const Header = () => {
         Skip to main content
       </a>
       <header className={`site-header${isSticky ? " is-sticky" : ""}`}>
-        <div className="container">
+        <div className="site-header__inner">
           <nav
             ref={navRef}
             className={`main-nav${isMenuOpen ? " open" : ""}`}
