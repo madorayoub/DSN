@@ -46,16 +46,16 @@ const Footer = () => {
               <a
                 className="brand brand--footer"
                 href="#"
-                aria-label="Direct Sales Network home"
+                aria-label="Direct Sales Network® home"
               >
                 <span className="brand-icon">
                   <picture className="brand-mark">
                     <source
                       media="(max-width: 420px)"
-                      srcSet="https://res.cloudinary.com/diptffkzh/image/upload/v1759298298/2d235155-6742-4f37-9224-b610afa086b9_1_umlo20.png"
+                      srcSet="https://res.cloudinary.com/diptffkzh/image/upload/v1760372274/image_-_Edited_1_fq8ksy.png"
                     />
                     <img
-                      src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                      src="https://res.cloudinary.com/diptffkzh/image/upload/v1760372275/image_1_1_-_Edited_zx5rvw.png"
                       alt="Direct Sales Network logo"
                       loading="eager"
                       decoding="async"
@@ -78,16 +78,16 @@ const Footer = () => {
               <a
                 className="brand brand--footer"
                 href="#"
-                aria-label="Direct Sales Network home"
+                aria-label="Direct Sales Network® home"
               >
                 <span className="brand-icon">
                   <picture className="brand-mark">
                     <source
                       media="(max-width: 420px)"
-                      srcSet="https://res.cloudinary.com/diptffkzh/image/upload/v1759298298/2d235155-6742-4f37-9224-b610afa086b9_1_umlo20.png"
+                      srcSet="https://res.cloudinary.com/diptffkzh/image/upload/v1760372274/image_-_Edited_1_fq8ksy.png"
                     />
                     <img
-                      src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                      src="https://res.cloudinary.com/diptffkzh/image/upload/v1760372275/image_1_1_-_Edited_zx5rvw.png"
                       alt="Direct Sales Network logo"
                       loading="eager"
                       decoding="async"
@@ -106,7 +106,7 @@ const Footer = () => {
                   <a href="mailto:support@belkins.com">support@belkins.com</a>
                 </li>
               </ul>
-              <ul className="footer-social" aria-label="Follow Direct Sales Network">
+              <ul className="footer-social" aria-label="Follow Direct Sales Network®">
                 <li>
                   <a href="#" aria-label="LinkedIn">
                     <svg aria-hidden="true" viewBox="0 0 24 24">
