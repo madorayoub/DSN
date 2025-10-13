@@ -11,7 +11,7 @@ test.describe("Pipeline funnel section", () => {
     const section = page.locator("#pipeline");
     await expect(section).toBeVisible();
     await expect(section.locator("h2#pipeline-heading")).toHaveText(
-      "How your pipeline will look with Direct Sales Network ®"
+      "How your pipeline will look with Direct Sales Network®"
     );
     await expect(section.locator(".pipeline__sub")).toHaveText(
       "Focus on scaling your business while we deliver you sales-ready B2B leads."

@@ -212,7 +212,7 @@ const Header = () => {
             className={`main-nav${isMenuOpen ? " open" : ""}`}
             aria-label="Main navigation"
           >
-            <a className="brand" href="#" aria-label="Direct Sales Network ® home">
+            <a className="brand" href="#" aria-label="Direct Sales Network home">
               <span className="brand-icon">
                 <picture className="brand-mark">
                   <source
@@ -226,12 +226,6 @@ const Header = () => {
                     decoding="async"
                   />
                 </picture>
-              </span>
-              <span className="brand-text">
-                <span className="brand-text__full">Direct Sales Network ®</span>
-                <span className="brand-text__abbr" aria-hidden="true">
-                  DSN ®
-                </span>
               </span>
             </a>
             <button

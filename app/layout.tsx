@@ -6,8 +6,8 @@ import Footer from "../src/components/Footer";
 import Header from "../src/components/Header";
 
 export const metadata = {
-  title: "Direct Sales Network ® | B2B Lead Generation Agency",
-  description: "Direct Sales Network ® builds predictable revenue engines for ambitious B2B teams.",
+  title: "Direct Sales Network® | B2B Lead Generation Agency",
+  description: "Direct Sales Network® builds predictable revenue engines for ambitious B2B teams.",
   themeColor: "#19ad50",
 };
 

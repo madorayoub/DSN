@@ -200,7 +200,7 @@ const TopRatedSection = () => {
             company in the USA
           </h2>
           <p className="top-rated__subtitle">
-            See what others are saying about Direct Sales Network ®’s B2B lead generation services and how we helped hack their
+            See what others are saying about Direct Sales Network®’s B2B lead generation services and how we helped hack their
             growth.
           </p>
         </div>

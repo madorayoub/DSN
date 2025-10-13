@@ -46,7 +46,7 @@ test.describe("What sets us apart section", () => {
     await expect(section).toBeVisible();
     await expect(section.locator("h2#sets-apart-heading")).toHaveText("What sets us apart");
     await expect(section.locator(".sets-apart__intro")).toContainText(
-      "Since 2017, Direct Sales Network ® has been the top outbound lead generation agency"
+      "Since 2017, Direct Sales Network® has been the top outbound lead generation agency"
     );
 
     const cta = section.getByRole("link", { name: "Get a quote" });
