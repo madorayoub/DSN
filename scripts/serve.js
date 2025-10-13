@@ -5,7 +5,7 @@ const { readFile } = require("fs/promises");
 const path = require("path");
 
 const PORT = Number(process.env.PORT || 4173);
-const ROOT = path.resolve(__dirname, "..");
+const ROOT = path.resolve(__dirname, "../docs");
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
