@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "color-named": "never",
+    "color-no-hex": true
+  },
+  "overrides": [
+    {
+      "files": ["**/tokens.css", "**/_tokens.scss"],
+      "rules": {
+        "color-no-hex": null
+      }
+    }
+  ]
+}

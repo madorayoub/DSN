@@ -1,0 +1,41 @@
+:root {
+  /* Brand scale */
+  --brand-50:  color-mix(in oklab, #48cf52 8%, white);
+  --brand-100: #caefce;
+  --brand-200: #8bdb8f;
+  --brand-400: #6bd571;
+  --brand-500: #48cf52;
+  --brand-550: #1cca58;
+  --brand-600: #19ad50;
+  --brand-700: color-mix(in oklab, #19ad50 20%, black);
+  --brand-900: #344c44;
+
+  /* Surfaces & neutrals */
+  --surface-0:   #ffffff;
+  --surface-50:  #f4faf5;
+  --surface-75:  #f7f6f5;
+  --text-900:    #121816;
+  --text-700:    #545c67;
+  --text-600:    #81898d;
+  --border-300:  #c4c7c8;
+  --border-350:  #b8bec0;
+  --neutral-600: #737a7c;
+
+  /* Roles (map old names to new where helpful) */
+  --color-background: var(--surface-50);
+  --color-surface:    var(--surface-0);
+  --color-text:       var(--text-900);
+  --color-muted:      var(--text-700);
+  --color-subtle:     var(--text-600);
+
+  /* Primary accent is BRAND (green) */
+  --color-accent:      var(--brand-500);
+  --color-accent-dark: var(--brand-600);
+
+  /* Warning (keep if legacy UIs used orange as primary) */
+  --warning-500: #ff5a1f;
+  --warning-600: #f5480e;
+
+  /* Inverse / deep */
+  --ink-inverse: #061318;
+}
