@@ -212,9 +212,27 @@ const Header = () => {
             className={`main-nav${isMenuOpen ? " open" : ""}`}
             aria-label="Main navigation"
           >
-            <a className="brand" href="#" aria-label="Belkins home">
-              <span className="brand-icon" aria-hidden="true"></span>
-              <span className="brand-text">belkins</span>
+            <a className="brand" href="#" aria-label="Direct Sales Network ® home">
+              <span className="brand-icon">
+                <picture className="brand-mark">
+                  <source
+                    media="(max-width: 420px)"
+                    srcSet="https://res.cloudinary.com/diptffkzh/image/upload/v1759298298/2d235155-6742-4f37-9224-b610afa086b9_1_umlo20.png"
+                  />
+                  <img
+                    src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                    alt="Direct Sales Network logo"
+                    loading="eager"
+                    decoding="async"
+                  />
+                </picture>
+              </span>
+              <span className="brand-text">
+                <span className="brand-text__full">Direct Sales Network ®</span>
+                <span className="brand-text__abbr" aria-hidden="true">
+                  DSN ®
+                </span>
+              </span>
             </a>
             <button
               ref={toggleRef}
