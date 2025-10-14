@@ -347,6 +347,26 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
+/* New: single-image variant */
+.top-rated__figure {
+  margin: 0;
+}
+.top-rated__figure img {
+  display: block;
+  width: 100%;
+  height: auto; /* preserve aspect ratio */
+  object-fit: contain; /* keep transparent edges clean */
+  /* Optional: cap ultra-wide sizes for nicer balance on desktop */
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+@media (max-width: 42rem) {
+  .top-rated__figure img {
+    max-width: 100%;
+  }
+}
+
 .top-rated__card {
   background: var(--color-surface);
   border-radius: 1.5rem;

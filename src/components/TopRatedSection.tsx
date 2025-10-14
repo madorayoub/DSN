@@ -191,7 +191,7 @@ const TopRatedSection = () => {
     <section className="top-rated" aria-labelledby="top-rated-heading">
       <div className="container top-rated__inner">
         <div className="top-rated__content">
-          <p className="top-rated__eyebrow">Awards &amp; Social Proof</p>
+          <p className="top-rated__eyebrow">Awards &amp; recognition</p>
           <h2 id="top-rated-heading" className="top-rated__title">
             We’re the top-rated
             <br />
@@ -204,48 +204,15 @@ const TopRatedSection = () => {
             growth.
           </p>
         </div>
-
-        <div className="top-rated__grid" role="list">
-          <AwardBadge
-            title="QASO Global Index"
-            caption="Top outsourcing partner 2024"
-            theme={recognitionTheme}
-            icon={<TriangleBadge />}
+        {/* Replace cards grid with a single responsive image */}
+        <figure className="top-rated__figure">
+          <img
+            src="https://res.cloudinary.com/diptffkzh/image/upload/v1760438072/86470d71-2884-4fa6-85af-6a9625f68eea_hilkff.png"
+            alt="Awards and ratings recognizing Direct Sales Network®"
+            loading="lazy"
+            decoding="async"
           />
-          <AwardBadge
-            title="Top Lead Generation"
-            caption="Best-in-class demand gen 2024"
-            theme={excellenceTheme}
-            icon={<ShieldBadge />}
-          />
-          <AwardBadge
-            title="Stevie Awards Bronze"
-            caption="Sales &amp; customer service winner"
-            theme={stevieTheme}
-            icon={<RibbonBadge />}
-          />
-          <RatingBadge
-            platform="Clutch"
-            score="4.9 score"
-            reviews="221 reviews"
-            theme={clutchTheme}
-            icon={<ClutchBadge />}
-          />
-          <RatingBadge
-            platform="G2"
-            score="4.8 score"
-            reviews="84 reviews"
-            theme={g2Theme}
-            icon={<G2Badge />}
-          />
-          <RatingBadge
-            platform="UpCity"
-            score="5.0 score"
-            reviews="67 reviews"
-            theme={upcityTheme}
-            icon={<UpcityBadge />}
-          />
-        </div>
+        </figure>
       </div>
     </section>
   );
