@@ -1,8 +1,5 @@
+import { redirect } from "next/navigation";
+
 export default function Page() {
-  return (
-    <main className="container page">
-      <h1>Solutions</h1>
-      <p>Placeholder. Replace with real content.</p>
-    </main>
-  );
+  redirect("/services-and-solutions");
 }
