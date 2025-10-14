@@ -393,7 +393,8 @@ body {
 }
 
 .top-rated__badge path[data-layer="secondary"] {
-  fill: var(--badge-ribbon-fill, var(--warning-500));
+  /* Default ribbon to brand instead of warning orange. */
+  fill: var(--badge-ribbon-fill, var(--brand-600));
 }
 
 .top-rated__badge path[data-layer="highlight"] {
@@ -1561,14 +1562,30 @@ header.site-header,
   color: color-mix(in srgb, var(--color-surface) 68%, transparent);
 }
 
+.funnel__layer--active {
+  /* Brand the active funnel shape & label */
+  --funnel-active-fill: var(--brand-600);
+  --funnel-active-text: #fff;
+}
+
+.funnel__layer--active svg path,
+.funnel__layer--active svg polygon,
+.funnel__layer--active svg rect {
+  fill: var(--funnel-active-fill);
+}
+
 .funnel__layer--active path {
-  fill: var(--warning-500);
   stroke: color-mix(in srgb, var(--color-surface) 50%, transparent);
+}
+
+.funnel__layer--active .funnel__label {
+  background: var(--funnel-active-fill);
+  color: var(--funnel-active-text);
 }
 
 .funnel__layer--active .funnel__stat,
 .funnel__layer--active .funnel__support {
-  color: var(--color-on-accent);
+  color: var(--funnel-active-text);
 }
 
 .funnel__layer--active .funnel__arrow svg {
