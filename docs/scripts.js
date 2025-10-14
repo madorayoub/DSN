@@ -471,14 +471,17 @@ if (testimonialsSection) {
     let ticking = false;
 
     const getStep = () => {
-      if (cards.length < 2) {
+      if (!cards.length) {
         return scroller.clientWidth;
       }
 
-      const firstRect = cards[0].getBoundingClientRect();
-      const secondRect = cards[1].getBoundingClientRect();
-      const step = Math.round(secondRect.left - firstRect.left);
-      return step !== 0 ? step : cards[0].getBoundingClientRect().width;
+      const styles = window.getComputedStyle(scroller);
+      const gapValue = styles.columnGap || styles.gap || '0';
+      const gap = Number.parseFloat(gapValue) || 0;
+      const firstCardWidth = cards[0].getBoundingClientRect().width;
+      const rawStep = firstCardWidth + gap;
+
+      return rawStep > 0 ? rawStep : scroller.clientWidth;
     };
 
     const updateButtons = () => {
@@ -499,8 +502,10 @@ if (testimonialsSection) {
     };
 
     const scrollByStep = (direction) => {
+      const normalizedDirection = Math.sign(direction) || 1;
       const step = getStep();
-      scroller.scrollBy({ left: direction * step, behavior: 'smooth' });
+      scroller.scrollBy({ left: normalizedDirection * step, behavior: 'smooth' });
+      requestUpdate();
     };
 
     prevButton.addEventListener('click', () => {
