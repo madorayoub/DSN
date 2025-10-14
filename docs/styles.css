@@ -2167,6 +2167,10 @@ header.site-header,
   flex-wrap: wrap;
 }
 
+.testimonials__intro {
+  max-width: 36rem;
+}
+
 .testimonials__eyebrow {
   font-size: 0.85rem;
   font-weight: 700;
@@ -2181,10 +2185,61 @@ header.site-header,
   line-height: 1.1;
 }
 
+.testimonials__summary {
+  margin-top: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--color-text) 80%, white);
+}
+
+.testimonials__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-end;
+  min-width: min(100%, 16rem);
+}
+
+.testimonials__metric {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.85rem;
+  padding: 1.15rem 1.35rem;
+  border-radius: 1.25rem;
+  background: color-mix(in oklab, var(--color-surface) 80%, white);
+  box-shadow: 0 18px 36px color-mix(in srgb, var(--ink-inverse) 8%, transparent);
+  text-align: right;
+}
+
+.testimonials__metric p {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--color-text) 70%, white);
+}
+
+.testimonials__metric-source {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-muted) 85%, white);
+  margin-top: 0.35rem;
+}
+
+.testimonials__score {
+  font-size: clamp(2.25rem, 4vw, 2.85rem);
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-accent) 70%, white);
+  line-height: 1;
+}
+
 .testimonials__controls {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
+  align-self: flex-end;
 }
 
 .testimonials__nav {
@@ -2206,7 +2261,7 @@ header.site-header,
   height: 1.25rem;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 2.25;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -2276,12 +2331,13 @@ header.site-header,
   align-items: center;
   gap: 0.5rem;
   font-weight: 700;
+  color: color-mix(in oklab, var(--color-accent) 65%, white);
 }
 
 .testimonial-card__stars {
   display: inline-flex;
   gap: 0.35rem;
-  color: color-mix(in oklab, var(--color-accent) 55%, white);
+  color: currentColor;
 }
 
 .testimonial-card__stars svg {
@@ -2292,6 +2348,7 @@ header.site-header,
 
 .testimonial-card__score {
   font-size: 1rem;
+  color: color-mix(in srgb, var(--color-text) 80%, white);
 }
 
 .testimonial-card__tag {
@@ -2342,6 +2399,23 @@ header.site-header,
 @media (min-width: 48em) {
   .testimonial-card {
     flex-basis: calc((100% - 3rem) / 2);
+  }
+}
+
+@media (max-width: 48em) {
+  .testimonials__aside {
+    width: 100%;
+    align-items: flex-start;
+    text-align: left;
+    gap: 1rem;
+  }
+
+  .testimonials__metric {
+    text-align: left;
+  }
+
+  .testimonials__controls {
+    align-self: flex-start;
   }
 }
 
