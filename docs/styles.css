@@ -499,8 +499,9 @@ ul {
 header.site-header,
 .site-header {
   padding-block: var(--header-pad-y-default);
-  padding-top: 14px;
-  padding-bottom: 14px;
+  /* small bump so the taller logo breathes */
+  padding-top: 16px;
+  padding-bottom: 16px;
   background: var(--header-bg);
   color: var(--on-header);
   transition: padding-block var(--transition), box-shadow var(--transition),
@@ -529,11 +530,8 @@ header.site-header,
   flex-shrink: 0;
 }
 
-.brand .brand-mark img {
-  /* Larger, responsive header logo */
-  height: clamp(34px, 6vw, 46px);
-  width: auto;
-}
+/* Remove tiny global cap; header/footer set explicit sizes below */
+.brand .brand-mark img { width: auto; }
 
 /* Keep the brand area aligned */
 .site-header .brand {
@@ -541,18 +539,10 @@ header.site-header,
   align-items: center;
 }
 
-/* Header logo size — mobile first */
+/* Header logo — big enough to read next to CTA, scales with viewport */
 .site-header .brand .brand-mark img {
-  /* Ensure header uses responsive logo sizing */
-  height: clamp(34px, 6vw, 46px);
+  height: clamp(40px, 6.25vw, 56px);
   width: auto;
-}
-
-/* Larger on desktop */
-@media (min-width: 1024px) {
-  .site-header .brand .brand-mark img {
-    height: clamp(34px, 6vw, 46px);
-  }
 }
 
 /* Optional: a touch of spacing so the bigger logo breathes */
@@ -560,15 +550,9 @@ header.site-header,
   margin-right: 0.5rem;
 }
 
-/* If sticky header shrinks things, keep logo size consistent */
+/* Sticky state: keep same responsive height */
 .site-header.is-sticky .brand .brand-mark img {
-  height: clamp(34px, 6vw, 46px);
-}
-
-@media (min-width: 1024px) {
-  .site-header.is-sticky .brand .brand-mark img {
-    height: clamp(34px, 6vw, 46px);
-  }
+  height: clamp(40px, 6.25vw, 56px);
 }
 
 /* Footer brand alignment */
@@ -579,10 +563,9 @@ header.site-header,
   flex-shrink: 0;
 }
 
-/* Footer logo size */
+/* Footer logo — clearly larger but balanced in the grid */
 .brand--footer .brand-mark img {
-  /* Larger, responsive footer logo (callout + main footer) */
-  height: clamp(42px, 7vw, 54px);
+  height: clamp(48px, 7.5vw, 60px);
   width: auto;
 }
 
