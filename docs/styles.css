@@ -530,7 +530,8 @@ header.site-header,
 }
 
 .brand .brand-mark img {
-  height: 28px;
+  /* Larger, responsive header logo */
+  height: clamp(34px, 6vw, 46px);
   width: auto;
 }
 
@@ -542,14 +543,15 @@ header.site-header,
 
 /* Header logo size — mobile first */
 .site-header .brand .brand-mark img {
-  height: 34px;
+  /* Ensure header uses responsive logo sizing */
+  height: clamp(34px, 6vw, 46px);
   width: auto;
 }
 
 /* Larger on desktop */
 @media (min-width: 1024px) {
   .site-header .brand .brand-mark img {
-    height: 40px;
+    height: clamp(34px, 6vw, 46px);
   }
 }
 
@@ -560,12 +562,12 @@ header.site-header,
 
 /* If sticky header shrinks things, keep logo size consistent */
 .site-header.is-sticky .brand .brand-mark img {
-  height: 34px;
+  height: clamp(34px, 6vw, 46px);
 }
 
 @media (min-width: 1024px) {
   .site-header.is-sticky .brand .brand-mark img {
-    height: 40px;
+    height: clamp(34px, 6vw, 46px);
   }
 }
 
@@ -579,7 +581,8 @@ header.site-header,
 
 /* Footer logo size */
 .brand--footer .brand-mark img {
-  height: 42px;
+  /* Larger, responsive footer logo (callout + main footer) */
+  height: clamp(42px, 7vw, 54px);
   width: auto;
 }
 
