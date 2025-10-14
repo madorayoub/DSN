@@ -74,6 +74,24 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.page {
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+}
+
+.page--narrow {
+  max-width: 55rem;
+  margin-inline: auto;
+}
+
+.page__title {
+  margin-block: 0 1rem;
+}
+
+.page__lede {
+  margin-bottom: 2rem;
+  color: var(--color-subtle);
+}
+
 .industries-page {
   background: var(--color-background);
 }

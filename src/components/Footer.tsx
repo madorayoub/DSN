@@ -45,7 +45,7 @@ const Footer = () => {
             <div className="footer-callout__content">
               <a
                 className="brand brand--footer"
-                href="#"
+                href="/"
                 aria-label="Direct Sales Network® home"
               >
                 <span className="brand-icon">
@@ -77,7 +77,7 @@ const Footer = () => {
             <div className="footer-column footer-column--brand">
               <a
                 className="brand brand--footer"
-                href="#"
+                href="/"
                 aria-label="Direct Sales Network® home"
               >
                 <span className="brand-icon">
@@ -163,16 +163,16 @@ const Footer = () => {
               <h3 className="footer-column__title">Company</h3>
               <ul className="footer-links">
                 <li>
-                  <a href="#">About</a>
+                  <a href="/about">About</a>
                 </li>
                 <li>
-                  <a href="#">Careers</a>
+                  <a href="/careers">Careers</a>
                 </li>
                 <li>
-                  <a href="#">Contact</a>
+                  <a href="/contact">Contact</a>
                 </li>
                 <li>
-                  <a href="#">Pricing</a>
+                  <a href="/pricing">Pricing</a>
                 </li>
               </ul>
             </div>
@@ -180,13 +180,13 @@ const Footer = () => {
               <h3 className="footer-column__title">Solutions</h3>
               <ul className="footer-links">
                 <li>
-                  <a href="#">Services &amp; solutions</a>
+                  <a href="/services">Services</a>
                 </li>
                 <li>
-                  <a href="industries.html">Industries</a>
+                  <a href="/solutions">Solutions</a>
                 </li>
                 <li>
-                  <a href="#">Case studies</a>
+                  <a href="/case-studies">Case Studies</a>
                 </li>
               </ul>
             </div>
@@ -194,19 +194,19 @@ const Footer = () => {
               <h3 className="footer-column__title">Resources</h3>
               <ul className="footer-links">
                 <li>
-                  <a href="#">Blog</a>
+                  <a href="/blog">Blog</a>
                 </li>
                 <li>
-                  <a href="#">Knowledge base</a>
+                  <a href="/knowledge-base">Knowledge Base</a>
                 </li>
                 <li>
-                  <a href="#">FAQs</a>
+                  <a href="/faq">FAQ</a>
                 </li>
                 <li>
-                  <a href="#">Privacy policy</a>
+                  <a href="/privacy">Privacy Policy</a>
                 </li>
                 <li>
-                  <a href="#">Terms</a>
+                  <a href="/terms">Terms</a>
                 </li>
               </ul>
             </div>
