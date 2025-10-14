@@ -10,11 +10,13 @@ type NavLink = {
 };
 
 const NAV_LINKS: NavLink[] = [
-  { href: "#", label: "Services & solutions" },
-  { href: "industries.html", label: "Industries" },
-  { href: "#", label: "Case studies" },
-  { href: "#", label: "About" },
-  { href: "#", label: "Pricing" },
+  { href: "/services", label: "Services" },
+  { href: "/solutions", label: "Solutions" },
+  { href: "/case-studies", label: "Case Studies" },
+  { href: "/about", label: "About" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/blog", label: "Blog" },
+  { href: "/contact", label: "Contact" },
 ];
 
 const Header = () => {
@@ -212,7 +214,7 @@ const Header = () => {
             className={`main-nav${isMenuOpen ? " open" : ""}`}
             aria-label="Main navigation"
           >
-            <a className="brand" href="#" aria-label="Direct Sales Network home">
+            <a className="brand" href="/" aria-label="Direct Sales Network home">
               <span className="brand-icon">
                 <picture className="brand-mark">
                   <source

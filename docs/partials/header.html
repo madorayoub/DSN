@@ -2,7 +2,12 @@
 <header class="site-header">
   <div class="container">
     <nav class="main-nav" aria-label="Main navigation">
-      <a class="brand" href="index.html" aria-label="Direct Sales Network home">
+      <a
+        class="brand"
+        href="index.html"
+        data-root-href="index.html"
+        aria-label="Direct Sales Network home"
+      >
         <span class="brand-icon">
           <picture class="brand-mark">
             <source
@@ -30,11 +35,13 @@
         <span></span>
       </button>
       <div class="nav-links" id="primary-navigation">
-        <a href="#">Services &amp; solutions</a>
-        <a href="industries.html">Industries</a>
-        <a href="#">Case studies</a>
-        <a href="#">About</a>
-        <a href="#">Pricing</a>
+        <a href="services.html" data-root-href="services.html">Services</a>
+        <a href="solutions.html" data-root-href="solutions.html">Solutions</a>
+        <a href="case-studies.html" data-root-href="case-studies.html">Case Studies</a>
+        <a href="about.html" data-root-href="about.html">About</a>
+        <a href="pricing.html" data-root-href="pricing.html">Pricing</a>
+        <a href="blog/" data-root-href="blog/">Blog</a>
+        <a href="contact.html" data-root-href="contact.html">Contact</a>
       </div>
       <a class="btn btn-outline" href="#">Book a call</a>
     </nav>

@@ -48,6 +48,65 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   Promise.all(fragments.map((fragment) => loadFragment(fragment))).then(() => {
+    const scriptEl =
+      document.currentScript instanceof HTMLScriptElement
+        ? document.currentScript
+        : document.querySelector('script[src*="scripts.js"]');
+
+    const resolvedScriptUrl = scriptEl
+      ? new URL(scriptEl.getAttribute('src') || 'scripts.js', document.baseURI)
+      : new URL('scripts.js', document.baseURI);
+
+    const basePathname = resolvedScriptUrl.pathname.replace(/[^/]+$/, '');
+
+    const computeRelativeBase = () => {
+      if (typeof window === 'undefined') {
+        return './';
+      }
+
+      const path = window.location.pathname;
+      const pathSegments = path.split('/').filter(Boolean);
+      const isDirectory = path.endsWith('/');
+      const directorySegments = isDirectory
+        ? pathSegments
+        : pathSegments.slice(0, pathSegments.length - 1);
+
+      const baseSegments = basePathname.split('/').filter(Boolean);
+
+      let commonLength = 0;
+      while (
+        commonLength < directorySegments.length &&
+        commonLength < baseSegments.length &&
+        directorySegments[commonLength] === baseSegments[commonLength]
+      ) {
+        commonLength += 1;
+      }
+
+      const upSegments = directorySegments.slice(commonLength).map(() => '..');
+      const downSegments = baseSegments.slice(commonLength);
+      const relativeSegments = [...upSegments, ...downSegments];
+
+      if (relativeSegments.length === 0) {
+        return './';
+      }
+
+      return `${relativeSegments.join('/')}/`;
+    };
+
+    const relativeBase = computeRelativeBase();
+
+    document.querySelectorAll('[data-root-href]').forEach((anchor) => {
+      const target = anchor.getAttribute('data-root-href');
+
+      if (!target) {
+        return;
+      }
+
+      const sanitizedTarget = target.replace(/^\/?/, '');
+      const basePrefix = relativeBase.endsWith('/') ? relativeBase : `${relativeBase}/`;
+      anchor.setAttribute('href', `${basePrefix}${sanitizedTarget}`);
+    });
+
     const header = document.querySelector('.site-header, header.site-header');
     const onScroll = () => {
       if (header) {
@@ -149,8 +208,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.nav-links a').forEach((anchor) => {
       anchor.removeAttribute('aria-current');
-      const href = anchor.getAttribute('href');
-      if (href && window.location.pathname.endsWith(href)) {
+      const target = anchor.getAttribute('data-root-href');
+
+      if (!target) {
+        return;
+      }
+
+      const absoluteTargetPath = new URL(target, resolvedScriptUrl).pathname;
+      const currentPath = window.location.pathname;
+      const isHomeLink = /index\.html$/i.test(target);
+      const matchesHome =
+        isHomeLink &&
+        (currentPath === basePathname || currentPath === `${basePathname}index.html`);
+
+      if (matchesHome || currentPath === absoluteTargetPath) {
         anchor.setAttribute('aria-current', 'page');
       }
     });
