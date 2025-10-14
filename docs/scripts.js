@@ -329,8 +329,10 @@ if (pipelineSection) {
   if (typeof initialIndex === 'number') {
     setActive(initialIndex, { setFocus: true, updateHash: false });
   } else if (stepConfigs.length > 0) {
+    // Keep Activation (index 1) selected by default for visuals,
+    // but do not mutate URL on initial load.
     const defaultIndex = Math.min(1, stepConfigs.length - 1);
-    setActive(defaultIndex, { setFocus: true, updateHash: true });
+    setActive(defaultIndex, { setFocus: true, updateHash: false });
   }
 
   window.addEventListener('hashchange', () => {
