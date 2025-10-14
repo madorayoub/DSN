@@ -7,16 +7,19 @@ const MOBILE_NAV_BREAKPOINT = 900;
 type NavLink = {
   href: string;
   label: string;
+  className?: string;
 };
 
 const NAV_LINKS: NavLink[] = [
-  { href: "/services", label: "Services" },
-  { href: "/solutions", label: "Solutions" },
-  { href: "/case-studies", label: "Case Studies" },
+  { href: "/services-and-solutions", label: "Services & solutions" },
+  { href: "/industries", label: "Industries" },
+  { href: "/case-studies", label: "Case studies" },
   { href: "/about", label: "About" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/blog", label: "Blog" },
-  { href: "/contact", label: "Contact" },
+  {
+    href: "/contact#book-a-call",
+    label: "Book a call",
+    className: "btn btn-primary",
+  },
 ];
 
 const Header = () => {
@@ -27,7 +30,7 @@ const Header = () => {
 
   const navRef = useRef<HTMLElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
-  const linksRef = useRef<HTMLDivElement | null>(null);
+  const linksRef = useRef<HTMLElement | null>(null);
   const previousOverflowRef = useRef<string>("");
   const wasMenuOpenRef = useRef(false);
   const isScrollLockedRef = useRef(false);
@@ -243,10 +246,11 @@ const Header = () => {
               <span></span>
               <span></span>
             </button>
-            <div
+            <nav
               ref={linksRef}
               className="nav-links"
               id="primary-navigation"
+              aria-label="Primary"
             >
               {NAV_LINKS.map((link) => {
                 const isCurrent =
@@ -258,16 +262,15 @@ const Header = () => {
                     href={link.href}
                     onClick={closeMenu}
                     aria-current={isCurrent ? "page" : undefined}
-                    className={isCurrent ? "is-active" : undefined}
+                    className={`${link.className ?? ""}${
+                      isCurrent && !link.className ? " is-active" : ""
+                    }`.trim() || undefined}
                   >
                     {link.label}
                   </a>
                 );
               })}
-            </div>
-            <a className="btn btn-outline" href="#">
-              Book a call
-            </a>
+            </nav>
           </nav>
         </div>
       </header>
