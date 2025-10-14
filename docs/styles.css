@@ -541,7 +541,8 @@ header.site-header,
 
 /* Header logo — big enough to read next to CTA, scales with viewport */
 .site-header .brand .brand-mark img {
-  height: clamp(40px, 6.25vw, 56px);
+  /* ~5% smaller */
+  height: clamp(38px, 5.95vw, 53px);
   width: auto;
 }
 
@@ -552,7 +553,7 @@ header.site-header,
 
 /* Sticky state: keep same responsive height */
 .site-header.is-sticky .brand .brand-mark img {
-  height: clamp(40px, 6.25vw, 56px);
+  height: clamp(38px, 5.95vw, 53px);
 }
 
 /* Footer brand alignment */
@@ -565,7 +566,8 @@ header.site-header,
 
 /* Footer logo — clearly larger but balanced in the grid */
 .brand--footer .brand-mark img {
-  height: clamp(48px, 7.5vw, 60px);
+  /* ~5% smaller */
+  height: clamp(46px, 7.125vw, 57px);
   width: auto;
 }
 
