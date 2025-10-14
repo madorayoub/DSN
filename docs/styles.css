@@ -2296,6 +2296,8 @@ header.site-header,
   scroll-snap-type: x mandatory;
   overflow-x: auto;
   scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: clamp(1.5rem, 3vw, 2.5rem);
 }
 
 .testimonials__track::-webkit-scrollbar {
@@ -2314,6 +2316,7 @@ header.site-header,
   padding: 1.75rem;
   box-shadow: 0 16px 32px color-mix(in srgb, var(--ink-inverse) 8%, transparent);
   scroll-snap-align: start;
+  scroll-snap-stop: always;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -2378,6 +2381,7 @@ header.site-header,
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 50%;
+  aspect-ratio: 1 / 1;
   background: var(--gradient-inverse);
   color: var(--color-on-accent);
   font-weight: 700;
@@ -2416,6 +2420,50 @@ header.site-header,
 
   .testimonials__controls {
     align-self: flex-start;
+  }
+}
+
+@media (max-width: 40em) {
+  .testimonials__header {
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+
+  .testimonials__viewport {
+    border-radius: 1.25rem;
+  }
+
+  .testimonials__track {
+    gap: 1rem;
+    padding: 1.5rem;
+    scroll-padding-inline: 1.5rem;
+  }
+
+  .testimonial-card {
+    flex: 0 0 calc(100% - 1rem);
+    min-width: 16.5rem;
+  }
+
+  .testimonial-card__quote {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+}
+
+@media (max-width: 30em) {
+  .testimonials__track {
+    padding: 1.25rem 1rem;
+    scroll-padding-inline: 1rem;
+  }
+
+  .testimonial-card {
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .testimonial-card__avatar {
+    width: 2.5rem;
+    height: 2.5rem;
   }
 }
 
