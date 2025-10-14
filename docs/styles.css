@@ -499,6 +499,8 @@ ul {
 header.site-header,
 .site-header {
   padding-block: var(--header-pad-y-default);
+  padding-top: 14px;
+  padding-bottom: 14px;
   background: var(--header-bg);
   color: var(--on-header);
   transition: padding-block var(--transition), box-shadow var(--transition),
@@ -532,8 +534,52 @@ header.site-header,
   width: auto;
 }
 
+/* Keep the brand area aligned */
+.site-header .brand {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Header logo size — mobile first */
+.site-header .brand .brand-mark img {
+  height: 34px;
+  width: auto;
+}
+
+/* Larger on desktop */
+@media (min-width: 1024px) {
+  .site-header .brand .brand-mark img {
+    height: 40px;
+  }
+}
+
+/* Optional: a touch of spacing so the bigger logo breathes */
+.site-header .brand .brand-mark {
+  margin-right: 0.5rem;
+}
+
+/* If sticky header shrinks things, keep logo size consistent */
+.site-header.is-sticky .brand .brand-mark img {
+  height: 34px;
+}
+
+@media (min-width: 1024px) {
+  .site-header.is-sticky .brand .brand-mark img {
+    height: 40px;
+  }
+}
+
+/* Footer brand alignment */
+.brand--footer .brand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Footer logo size */
 .brand--footer .brand-mark img {
-  height: 36px;
+  height: 42px;
   width: auto;
 }
 
@@ -2639,6 +2685,8 @@ header.site-header,
 header.site-header.is-sticky,
 .site-header.is-sticky {
   padding-block: var(--header-pad-y-sticky);
+  padding-top: 14px;
+  padding-bottom: 14px;
   background: var(--header-bg);
   box-shadow: var(--shadow-soft);
   position: sticky;
