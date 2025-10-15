@@ -284,7 +284,7 @@ function Hero() {
             ))}
           </div>
           <a className="btn btn-primary" href="/contact#book-a-call">
-            Get a quote
+            Talk to an expert
           </a>
         </div>
       </div>
@@ -378,7 +378,7 @@ function ClosingCTA() {
             <p>Let’s build predictable growth together with omnichannel programs built to scale.</p>
           </div>
           <a className="btn btn-primary" href="/contact#book-a-call">
-            Book a call
+            Talk to an expert
           </a>
         </div>
       </div>

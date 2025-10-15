@@ -49,7 +49,7 @@ test.describe("What sets us apart section", () => {
       "Since 2017, Direct Sales Network® has been the top outbound lead generation agency"
     );
 
-    const cta = section.getByRole("link", { name: "Get a quote" });
+    const cta = section.getByRole("link", { name: "Talk to an expert" });
     await expect(cta).toBeVisible();
 
     const cards = section.locator("article.sets-apart__card");
