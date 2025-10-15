@@ -975,9 +975,21 @@ header.site-header,
 }
 
 .hero-services {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-services__layout {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3rem);
+  align-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.hero-services__content {
   display: flex;
   flex-direction: column;
-  gap: clamp(1.25rem, 2.5vw, 1.75rem);
+  gap: clamp(1rem, 2vw, 1.5rem);
 }
 
 .hero-services .lead {
@@ -987,32 +999,60 @@ header.site-header,
   font-weight: 600;
 }
 
-.hero-services .channels-list {
+.hero-services__actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.25rem;
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
+  flex-direction: column;
+  gap: clamp(1.25rem, 2.5vw, 1.75rem);
+  align-items: flex-start;
 }
 
-.hero-services .channels-list li {
+.channels-grid {
+  display: grid;
+  gap: 0.75rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  width: 100%;
+}
+
+.chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-0);
+  border: 1px solid color-mix(in srgb, var(--brand-500) 22%, transparent);
+  color: var(--brand-600);
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-subtle);
 }
 
-.hero-services .channels-list li::before {
-  content: "•";
-  color: var(--brand-600);
-  font-size: 1.2em;
-  line-height: 1;
+.chip::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--brand-500);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-100) 60%, transparent);
 }
 
 .hero-services .btn {
   align-self: flex-start;
+}
+
+@media (min-width: 48em) {
+  .hero-services__actions {
+    align-items: flex-end;
+  }
+
+  .channels-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+@media (min-width: 72em) {
+  .channels-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
 }
 
 .section__subtitle {
@@ -1031,6 +1071,215 @@ header.site-header,
   display: grid;
   gap: clamp(1.25rem, 3vw, 1.75rem);
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.services-categories {
+  padding-block: clamp(3rem, 6vw, 4.5rem);
+}
+
+.services-categories__grid {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 1.75rem);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.plan-card__icon {
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--brand-100) 60%, transparent);
+  color: var(--brand-600);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plan-card__icon svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.services-categories .plan-card__body {
+  gap: 1rem;
+}
+
+@media (min-width: 48em) {
+  .services-categories__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 72em) {
+  .services-categories__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.channels-detailed {
+  padding-block: clamp(3rem, 6vw, 4.5rem);
+}
+
+.channels-detailed__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  text-align: center;
+  max-width: 54ch;
+  margin: 0 auto clamp(2rem, 4vw, 2.75rem);
+}
+
+.channels-detailed__header h2 {
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.channels-detailed__header p {
+  color: var(--color-muted);
+  font-size: clamp(0.95rem, 0.8vw + 0.85rem, 1.05rem);
+}
+
+.channels-detailed__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.icon-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--brand-100) 65%, transparent);
+  color: var(--brand-600);
+  flex-shrink: 0;
+}
+
+.icon-circle svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.channel-card {
+  background: var(--surface-0);
+  border-radius: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--ink-inverse) 8%, transparent);
+  box-shadow: 0 18px 34px color-mix(in srgb, var(--ink-inverse) 10%, transparent);
+  padding: clamp(1.5rem, 3vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
+.channel-card h3 {
+  font-size: clamp(1.1rem, 0.6vw + 1rem, 1.3rem);
+  font-weight: 600;
+}
+
+.channel-card p {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.differentiators {
+  padding-block: clamp(3rem, 6vw, 4.75rem);
+}
+
+.differentiators h2 {
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: center;
+  margin-bottom: clamp(2rem, 4vw, 2.75rem);
+}
+
+.differentiators__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.differentiator-card {
+  background: var(--surface-0);
+  border-radius: 1.4rem;
+  border: 1px solid color-mix(in srgb, var(--ink-inverse) 8%, transparent);
+  padding: clamp(1.5rem, 3vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  text-align: left;
+  box-shadow: 0 18px 34px color-mix(in srgb, var(--ink-inverse) 10%, transparent);
+}
+
+.differentiator-card h3 {
+  font-size: clamp(1.1rem, 0.7vw + 1rem, 1.35rem);
+  font-weight: 600;
+}
+
+.differentiator-card p {
+  color: var(--color-muted);
+  font-size: 0.97rem;
+  line-height: 1.6;
+}
+
+.differentiators__cta {
+  margin: clamp(2.25rem, 5vw, 3rem) auto 0;
+  display: inline-flex;
+}
+
+@media (min-width: 48em) {
+  .differentiators__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 72em) {
+  .differentiators__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .differentiators__cta {
+    margin-inline: auto;
+  }
+}
+
+.cta-band {
+  padding: clamp(2.75rem, 6vw, 3.5rem) 0;
+  background: var(--gradient-brand-soft);
+}
+
+.cta-band__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  align-items: center;
+  text-align: center;
+  max-width: 60ch;
+  margin-inline: auto;
+}
+
+.cta-band__inner h2 {
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.cta-band__inner p {
+  color: var(--color-text);
+  font-size: clamp(0.95rem, 0.6vw + 0.9rem, 1.05rem);
+}
+
+@media (min-width: 48em) {
+  .cta-band__inner {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+    gap: 2rem;
+  }
 }
 
 .plan-services__list--cards .plan-card {
