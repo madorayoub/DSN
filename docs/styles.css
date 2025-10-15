@@ -28,13 +28,15 @@
     var(--brand-500, #48cf52),
     var(--brand-600, #19ad50)
   );
-  /* Brand-tinted monochrome for logos (greenish, not washed out) */
-  --logo-tint-filter: grayscale(1)
-    contrast(1.05)
-    brightness(0.96)
+  /* Cohesive brand-tinted monochrome (slightly softer than pure green) */
+  --logo-tint-filter:
+    grayscale(1)
+    contrast(1.06)
+    brightness(0.97)
     sepia(1)
     hue-rotate(95deg)
-    saturate(5.2);
+    saturate(4.6);
+  --logo-transition: 160ms ease;
   --gradient-warning-soft: linear-gradient(
     135deg,
     color-mix(in oklab, var(--warning-500, #ff5a1f) 12%, white),
@@ -753,8 +755,7 @@ header.site-header,
   height: 100%;
   object-fit: contain;
   filter: var(--logo-tint-filter);
-  opacity: 1; /* keep crisp */
-  transition: transform var(--transition), filter var(--transition);
+  transition: filter var(--logo-transition), transform var(--logo-transition);
   user-select: none;
 }
 
@@ -768,6 +769,18 @@ header.site-header,
 .hero-marquee .brand-logo:focus-within img {
   filter: none;
   transform: scale(1.04);
+}
+
+@media (hover: none) {
+  .hero-marquee .brand-logo:active img {
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-marquee .brand-logo img {
+    transition: none;
+  }
 }
 
 @keyframes brand-rail-scroll {
