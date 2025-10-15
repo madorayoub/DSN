@@ -276,7 +276,7 @@ function Hero() {
           </p>
         </div>
         <div className="hero-services__actions">
-          <div className="channels-grid" role="list" aria-label="Outreach channels">
+          <div className="channels-grid hero-services__chips" role="list" aria-label="Outreach channels">
             {heroChannels.map((channel) => (
               <div className="chip" role="listitem" key={channel}>
                 {channel}
@@ -303,9 +303,9 @@ function ChannelHighlights() {
             forward faster.
           </p>
         </div>
-        <div className="channels-detailed__grid">
+        <div className="channels-detailed__grid feature-grid feature-grid--three">
           {channelHighlights.map((channel) => (
-            <article className="channel-card" key={channel.name}>
+            <article className="channel-card feature-card" key={channel.name}>
               <span className="icon-circle" aria-hidden="true">
                 {channel.icon}
               </span>
@@ -326,9 +326,9 @@ function CoreServices() {
         <p className="section__subtitle">
           Meet our all-inclusive B2B lead generation services performed by world-class sales experts:
         </p>
-        <div className="plan-services__list plan-services__list--cards services-categories__grid">
+        <div className="plan-services__list plan-services__list--cards services-categories__grid feature-grid feature-grid--services">
           {serviceCategories.map((service) => (
-            <article className="plan-card" key={service.title}>
+            <article className="plan-card feature-card" key={service.title}>
               <div className="plan-card__body">
                 <span className="plan-card__icon" aria-hidden="true">
                   {service.icon}
@@ -349,9 +349,9 @@ function Differentiators() {
     <section className="section section--alt differentiators">
       <div className="container">
         <h2>Why choose Direct Sales Network®</h2>
-        <div className="differentiators__grid">
+        <div className="differentiators__grid feature-grid feature-grid--four">
           {differentiators.map((item) => (
-            <article className="differentiator-card" key={item.title}>
+            <article className="differentiator-card feature-card" key={item.title}>
               <span className="icon-circle" aria-hidden="true">
                 {item.icon}
               </span>
@@ -371,12 +371,16 @@ function Differentiators() {
 function ClosingCTA() {
   return (
     <section className="section cta-band">
-      <div className="container cta-band__inner">
-        <h2>Ready to accelerate your pipeline?</h2>
-        <p>Let’s build predictable growth together with omnichannel programs built to scale.</p>
-        <a className="btn btn-primary" href="/contact#book-a-call">
-          Book a call
-        </a>
+      <div className="container">
+        <div className="cta-band__surface">
+          <div className="cta-band__content">
+            <h2>Ready to accelerate your pipeline?</h2>
+            <p>Let’s build predictable growth together with omnichannel programs built to scale.</p>
+          </div>
+          <a className="btn btn-primary" href="/contact#book-a-call">
+            Book a call
+          </a>
+        </div>
       </div>
     </section>
   );
