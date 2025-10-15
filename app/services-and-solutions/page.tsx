@@ -360,9 +360,6 @@ function Differentiators() {
             </article>
           ))}
         </div>
-        <a className="btn btn-primary differentiators__cta" href="/contact#book-a-call">
-          Talk to an expert
-        </a>
       </div>
     </section>
   );
