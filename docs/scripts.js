@@ -529,78 +529,54 @@ if (document.readyState !== 'loading') {
   initFooterFeatures();
 }
 
-const testimonialsSection = document.querySelector('.testimonials');
+// === Testimonials carousel init (run after fragments inject) ===
+const initTestimonials = () => {
+  const section = document.querySelector('.testimonials');
+  if (!section || section.dataset.initialized === 'true') return;
+  section.dataset.initialized = 'true';
 
-if (testimonialsSection) {
-  const scroller = testimonialsSection.querySelector('.testimonials__track');
-  const viewport = testimonialsSection.querySelector('.testimonials__viewport');
-  const cards = Array.from(testimonialsSection.querySelectorAll('.testimonial-card'));
-  const prevButton = testimonialsSection.querySelector('.testimonials__nav[data-direction="prev"]');
-  const nextButton = testimonialsSection.querySelector('.testimonials__nav[data-direction="next"]');
+  const scroller = section.querySelector('.testimonials__track');
+  const viewport = section.querySelector('.testimonials__viewport');
+  const cards = Array.from(section.querySelectorAll('.testimonial-card'));
+  const prevButton = section.querySelector('.testimonials__nav[data-direction="prev"]');
+  const nextButton = section.querySelector('.testimonials__nav[data-direction="next"]');
+  if (!scroller || !viewport || !cards.length || !prevButton || !nextButton) return;
 
-  if (scroller && viewport && cards.length && prevButton && nextButton) {
-    let ticking = false;
+  let ticking = false;
+  const getStep = () => {
+    const styles = window.getComputedStyle(scroller);
+    const gap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
+    const w = cards[0]?.getBoundingClientRect().width || scroller.clientWidth;
+    return (w + gap) || scroller.clientWidth;
+  };
+  const updateButtons = () => {
+    const max = scroller.scrollWidth - scroller.clientWidth;
+    const eps = 1;
+    prevButton.disabled = scroller.scrollLeft <= eps;
+    nextButton.disabled = scroller.scrollLeft >= max - eps;
+  };
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { updateButtons(); ticking = false; });
+  };
+  const scrollByStep = (dir) => {
+    const step = getStep();
+    scroller.scrollBy({ left: (Math.sign(dir) || 1) * step, behavior: 'smooth' });
+    requestUpdate();
+  };
+  prevButton.addEventListener('click', () => scrollByStep(-1));
+  nextButton.addEventListener('click', () => scrollByStep(1));
+  scroller.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', requestUpdate);
+  viewport.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); scrollByStep(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); scrollByStep(1); }
+  });
+  updateButtons();
+};
 
-    const getStep = () => {
-      if (!cards.length) {
-        return scroller.clientWidth;
-      }
-
-      const styles = window.getComputedStyle(scroller);
-      const gapValue = styles.columnGap || styles.gap || '0';
-      const gap = Number.parseFloat(gapValue) || 0;
-      const firstCardWidth = cards[0].getBoundingClientRect().width;
-      const rawStep = firstCardWidth + gap;
-
-      return rawStep > 0 ? rawStep : scroller.clientWidth;
-    };
-
-    const updateButtons = () => {
-      const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
-      const epsilon = 1;
-      prevButton.disabled = scroller.scrollLeft <= epsilon;
-      nextButton.disabled = scroller.scrollLeft >= maxScrollLeft - epsilon;
-    };
-
-    const requestUpdate = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          updateButtons();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    const scrollByStep = (direction) => {
-      const normalizedDirection = Math.sign(direction) || 1;
-      const step = getStep();
-      scroller.scrollBy({ left: normalizedDirection * step, behavior: 'smooth' });
-      requestUpdate();
-    };
-
-    prevButton.addEventListener('click', () => {
-      scrollByStep(-1);
-    });
-
-    nextButton.addEventListener('click', () => {
-      scrollByStep(1);
-    });
-
-    scroller.addEventListener('scroll', requestUpdate, { passive: true });
-
-    window.addEventListener('resize', requestUpdate);
-
-    viewport.addEventListener('keydown', (event) => {
-      if (event.key === 'ArrowLeft') {
-        event.preventDefault();
-        scrollByStep(-1);
-      } else if (event.key === 'ArrowRight') {
-        event.preventDefault();
-        scrollByStep(1);
-      }
-    });
-
-    updateButtons();
-  }
-}
+// Hook into fragment lifecycle + DOM ready
+document.addEventListener('chrome:ready', initTestimonials);
+document.addEventListener('DOMContentLoaded', initTestimonials);
+if (document.readyState !== 'loading') initTestimonials();
