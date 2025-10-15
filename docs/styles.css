@@ -28,6 +28,13 @@
     var(--brand-500, #48cf52),
     var(--brand-600, #19ad50)
   );
+  /* Brand-tinted monochrome for logos (greenish, not washed out) */
+  --logo-tint-filter: grayscale(1)
+    contrast(1.05)
+    brightness(0.96)
+    sepia(1)
+    hue-rotate(95deg)
+    saturate(5.2);
   --gradient-warning-soft: linear-gradient(
     135deg,
     color-mix(in oklab, var(--warning-500, #ff5a1f) 12%, white),
@@ -740,14 +747,14 @@ header.site-header,
   transition: transform var(--transition), box-shadow var(--transition);
 }
 
-.brand-logo img {
+.hero-marquee .brand-logo img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: none; /* keep marks legible */
-  opacity: 1;
-  transition: transform var(--transition);
+  filter: var(--logo-tint-filter);
+  opacity: 1; /* keep crisp */
+  transition: transform var(--transition), filter var(--transition);
   user-select: none;
 }
 
@@ -757,8 +764,9 @@ header.site-header,
   box-shadow: 0 16px 32px color-mix(in srgb, var(--ink-inverse) 12%, transparent);
 }
 
-.brand-logo:hover img,
-.brand-logo:focus-within img {
+.hero-marquee .brand-logo:hover img,
+.hero-marquee .brand-logo:focus-within img {
+  filter: none;
   transform: scale(1.04);
 }
 
