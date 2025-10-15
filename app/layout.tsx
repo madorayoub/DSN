@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import "../docs/tokens.css";
+import "../docs/styles.css";
 
 import Footer from "../src/components/Footer";
 import Header from "../src/components/Header";
