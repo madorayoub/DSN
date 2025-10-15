@@ -18,111 +18,355 @@
   <body>
     <header data-fragment="header"></header>
 
-    <main class="container page" id="main-content">
-      <h1 class="page__title">Services &amp; solutions</h1>
-
+    <main id="main-content">
       <section class="section section--tight hero-services">
-        <p class="lead">
-          Transcending industry fluctuations, our growth solutions will continuously increase your pipeline up to 45%
-          at just a fourth of the in-house cost.
-        </p>
-        <ul class="channels-list">
-          <li>Omnichannel appointment setting</li>
-          <li>Cold email outreach</li>
-          <li>Cold and intent calling</li>
-          <li>Voicemails</li>
-          <li>SMS / WhatsApp</li>
-          <li>LinkedIn lead generation</li>
-          <li>Paid advertising</li>
-        </ul>
-        <a class="btn btn-primary" href="./contact.html#book-a-call">Get a quote</a>
+        <div class="container hero-services__layout">
+          <div class="hero-services__content">
+            <h1>Services &amp; solutions</h1>
+            <p class="lead">
+              Transcending industry fluctuations, our growth solutions will continuously increase your pipeline up to 45%
+              at just a fourth of the in-house cost.
+            </p>
+          </div>
+          <div class="hero-services__actions">
+            <div class="channels-grid" role="list" aria-label="Outreach channels">
+              <div class="chip" role="listitem">Omnichannel appointment setting</div>
+              <div class="chip" role="listitem">Cold email outreach</div>
+              <div class="chip" role="listitem">Cold and intent calling</div>
+              <div class="chip" role="listitem">Voicemails</div>
+              <div class="chip" role="listitem">SMS / WhatsApp</div>
+              <div class="chip" role="listitem">LinkedIn lead generation</div>
+              <div class="chip" role="listitem">Paid advertising</div>
+            </div>
+            <a class="btn btn-primary" href="./contact.html#book-a-call">Get a quote</a>
+          </div>
+        </div>
       </section>
 
-      <section class="section plan-services">
-        <p class="section__subtitle">
-          Meet our all-inclusive B2B lead generation services performed by world-class sales experts:
-        </p>
-        <div class="plan-services__list plan-services__list--cards">
-          <div class="plan-card">
-            <div class="plan-card__body">
-              <h3 class="plan-card__title">Sales development</h3>
-              <p class="plan-card__description">
-                Build and optimize your sales pipeline with dedicated specialists who align every motion to your goals.
-              </p>
-            </div>
+      <section class="section section--alt channels-detailed">
+        <div class="container">
+          <div class="channels-detailed__header">
+            <h2>Seven channels, one cohesive buying journey</h2>
+            <p>
+              Blend human-led outreach with data-backed timing to engage prospects wherever they respond best and move deals
+              forward faster.
+            </p>
           </div>
-          <div class="plan-card">
-            <div class="plan-card__body">
-              <h3 class="plan-card__title">Outsourced SDRs</h3>
-              <p class="plan-card__description">
-                Extend your team with SDRs trained to represent your brand flawlessly across every channel.
-              </p>
-            </div>
+          <div class="channels-detailed__grid">
+            <article class="channel-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 2v4"></path>
+                  <path d="M8 2v4"></path>
+                  <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                  <path d="M16 10h2"></path>
+                  <path d="M16 14h2"></path>
+                  <path d="M6 10h2"></path>
+                  <path d="M6 14h2"></path>
+                  <path d="M10 6h4"></path>
+                </svg>
+              </span>
+              <h3>Omnichannel appointment setting</h3>
+              <p>Synchronize every touch to convert buying committees into booked meetings.</p>
+            </article>
+            <article class="channel-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                  <polyline points="3,7 12,13 21,7"></polyline>
+                </svg>
+              </span>
+              <h3>Cold email outreach</h3>
+              <p>Nurture prospects with personalized sequences that cut through inbox noise.</p>
+            </article>
+            <article class="channel-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.85 12.85 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8 9a16 16 0 0 0 7 7l.36-.36a2 2 0 0 1 2.11-.45 12.85 12.85 0 0 0 2.81.7A2 2 0 0 1 22 16.92"></path>
+                </svg>
+              </span>
+              <h3>Cold and intent calling</h3>
+              <p>Connect voice-to-voice when readiness spikes to qualify faster and close sooner.</p>
+            </article>
+            <article class="channel-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 3 2 11l6 2 2 6 12-16z"></path>
+                  <path d="m9.37 12.26 4.26 2.37"></path>
+                </svg>
+              </span>
+              <h3>Voicemails</h3>
+              <p>Leave memorable, value-led follow-ups that keep your solution top of mind.</p>
+            </article>
+            <article class="channel-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                  <path d="M8 9h8"></path>
+                  <path d="M8 13h5"></path>
+                  <path d="M16 17v2"></path>
+                  <path d="M8 17v2"></path>
+                </svg>
+              </span>
+              <h3>SMS / WhatsApp</h3>
+              <p>Send timely nudges that keep conversations going between live touchpoints.</p>
+            </article>
+            <article class="channel-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16v16H4z"></path>
+                  <path d="M4 9h16"></path>
+                  <path d="M9 9v11"></path>
+                </svg>
+              </span>
+              <h3>LinkedIn lead generation</h3>
+              <p>Build trust with targeted social selling cadences that spotlight your expertise.</p>
+            </article>
+            <article class="channel-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16v16H4z"></path>
+                  <path d="M4 10h16"></path>
+                  <path d="M10 22v-6"></path>
+                  <path d="M14 22v-6"></path>
+                  <path d="m7 4 5-2 5 2"></path>
+                </svg>
+              </span>
+              <h3>Paid advertising</h3>
+              <p>Capture in-market buyers with campaigns that amplify outbound momentum.</p>
+            </article>
           </div>
-          <div class="plan-card">
-            <div class="plan-card__body">
-              <h3 class="plan-card__title">Lead generation</h3>
-              <p class="plan-card__description">
-                Fill your calendar with qualified meetings sourced through data-driven research and outreach.
-              </p>
-            </div>
+        </div>
+      </section>
+
+      <section class="section plan-services services-categories">
+        <div class="container">
+          <p class="section__subtitle">
+            Meet our all-inclusive B2B lead generation services performed by world-class sales experts:
+          </p>
+          <div class="plan-services__list plan-services__list--cards services-categories__grid">
+            <article class="plan-card">
+              <div class="plan-card__body">
+                <span class="plan-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 3v18h18"></path>
+                    <path d="M18 17V9"></path>
+                    <path d="M13 17V5"></path>
+                    <path d="M8 17v-3"></path>
+                  </svg>
+                </span>
+                <h3 class="plan-card__title">Sales development</h3>
+                <p class="plan-card__description">
+                  Build and optimize your sales pipeline with dedicated specialists who align every motion to your goals.
+                </p>
+              </div>
+            </article>
+            <article class="plan-card">
+              <div class="plan-card__body">
+                <span class="plan-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 7h4l2 10h9l2-6H9"></path>
+                    <circle cx="9" cy="20" r="1"></circle>
+                    <circle cx="19" cy="20" r="1"></circle>
+                  </svg>
+                </span>
+                <h3 class="plan-card__title">Outsourced SDRs</h3>
+                <p class="plan-card__description">
+                  Extend your team with SDRs trained to represent your brand flawlessly across every channel.
+                </p>
+              </div>
+            </article>
+            <article class="plan-card">
+              <div class="plan-card__body">
+                <span class="plan-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 6H3"></path>
+                    <path d="M7 12H3"></path>
+                    <path d="M21 12H11"></path>
+                    <path d="M7 18H3"></path>
+                    <path d="M21 18H11"></path>
+                    <path d="M14 6 9 18"></path>
+                  </svg>
+                </span>
+                <h3 class="plan-card__title">Lead generation</h3>
+                <p class="plan-card__description">
+                  Fill your calendar with qualified meetings sourced through data-driven research and outreach.
+                </p>
+              </div>
+            </article>
+            <article class="plan-card">
+              <div class="plan-card__body">
+                <span class="plan-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m3 3 3 9-3 9"></path>
+                    <path d="M6 12h4"></path>
+                    <path d="M10 9h10"></path>
+                    <path d="M14 6h6"></path>
+                    <path d="M10 15h8"></path>
+                    <path d="M14 18h4"></path>
+                  </svg>
+                </span>
+                <h3 class="plan-card__title">Sales enablement</h3>
+                <p class="plan-card__description">
+                  Equip your reps with messaging, playbooks, and assets engineered to boost win rates.
+                </p>
+              </div>
+            </article>
+            <article class="plan-card">
+              <div class="plan-card__body">
+                <span class="plan-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 3h18v4H3z"></path>
+                    <path d="M3 11h18v10H3z"></path>
+                    <path d="M7 15h6"></path>
+                  </svg>
+                </span>
+                <h3 class="plan-card__title">Lead nurturing</h3>
+                <p class="plan-card__description">
+                  Re-engage stalled opportunities through timely, personalized touchpoints that move deals forward.
+                </p>
+              </div>
+            </article>
+            <article class="plan-card">
+              <div class="plan-card__body">
+                <span class="plan-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 4h18"></path>
+                    <path d="M4 8h16"></path>
+                    <path d="M5 12h14"></path>
+                    <path d="M6 16h12"></path>
+                    <path d="M7 20h10"></path>
+                  </svg>
+                </span>
+                <h3 class="plan-card__title">Lead generation training</h3>
+                <p class="plan-card__description">
+                  Coach your internal team on scalable outreach frameworks and best-in-class prospecting tactics.
+                </p>
+              </div>
+            </article>
+            <article class="plan-card">
+              <div class="plan-card__body">
+                <span class="plan-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 3h6l6 18h6"></path>
+                    <path d="M5 7h8"></path>
+                  </svg>
+                </span>
+                <h3 class="plan-card__title">Demand generation</h3>
+                <p class="plan-card__description">
+                  Launch integrated campaigns that keep every stage of your funnel fueled with intent-rich prospects.
+                </p>
+              </div>
+            </article>
+            <article class="plan-card">
+              <div class="plan-card__body">
+                <span class="plan-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3v12"></path>
+                    <path d="m8 11 4 4 4-4"></path>
+                    <path d="M6 15h12"></path>
+                    <path d="M5 19h14"></path>
+                  </svg>
+                </span>
+                <h3 class="plan-card__title">HubSpot CRM consulting</h3>
+                <p class="plan-card__description">
+                  Streamline RevOps workflows and reporting with guidance from certified HubSpot experts.
+                </p>
+              </div>
+            </article>
+            <article class="plan-card">
+              <div class="plan-card__body">
+                <span class="plan-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 5h18"></path>
+                    <path d="M9 3v4"></path>
+                    <path d="M15 3v4"></path>
+                    <path d="M4 9h16v10H4z"></path>
+                    <path d="m9 13 2 2 4-4"></path>
+                  </svg>
+                </span>
+                <h3 class="plan-card__title">Deliverability consulting</h3>
+                <p class="plan-card__description">
+                  Protect your sender reputation and maximize inbox placement for every outbound sequence.
+                </p>
+              </div>
+            </article>
+            <article class="plan-card">
+              <div class="plan-card__body">
+                <span class="plan-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 7h4l2 10h12"></path>
+                    <path d="M13 5h8v6h-8z"></path>
+                    <path d="M13 9h8"></path>
+                  </svg>
+                </span>
+                <h3 class="plan-card__title">Account-based marketing</h3>
+                <p class="plan-card__description">
+                  Target high-value accounts with bespoke, multi-channel motions tailored to each buying committee.
+                </p>
+              </div>
+            </article>
           </div>
-          <div class="plan-card">
-            <div class="plan-card__body">
-              <h3 class="plan-card__title">Sales enablement</h3>
-              <p class="plan-card__description">
-                Equip your reps with messaging, playbooks, and assets engineered to boost win rates.
-              </p>
-            </div>
+        </div>
+      </section>
+
+      <section class="section section--alt differentiators">
+        <div class="container">
+          <h2>Why choose Direct Sales Network®</h2>
+          <div class="differentiators__grid">
+            <article class="differentiator-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m2 12 7-7 7 7"></path>
+                  <path d="M9 5v14"></path>
+                  <path d="m15 19 5-5-5-5"></path>
+                </svg>
+              </span>
+              <h3>Tailored omnichannel strategies</h3>
+              <p>We orchestrate custom cadences that feel personal across every channel and persona.</p>
+            </article>
+            <article class="differentiator-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v20"></path>
+                  <path d="m17 7-5-5-5 5"></path>
+                  <path d="m7 17 5 5 5-5"></path>
+                </svg>
+              </span>
+              <h3>World-class talent</h3>
+              <p>Senior SDRs, researchers, and strategists embed with your team to deliver enterprise-ready execution.</p>
+            </article>
+            <article class="differentiator-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </span>
+              <h3>First results within a month</h3>
+              <p>Stand up campaigns quickly with proven playbooks that unlock qualified conversations fast.</p>
+            </article>
+            <article class="differentiator-card">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m12 3 7.5 4.5v9L12 21 4.5 16.5v-9L12 3z"></path>
+                  <path d="M12 12 19.5 7.5"></path>
+                  <path d="M12 12v9"></path>
+                </svg>
+              </span>
+              <h3>B2B-focused expertise</h3>
+              <p>Every play is built for complex buying committees and long sales cycles in high-stakes industries.</p>
+            </article>
           </div>
-          <div class="plan-card">
-            <div class="plan-card__body">
-              <h3 class="plan-card__title">Lead nurturing</h3>
-              <p class="plan-card__description">
-                Re-engage stalled opportunities through timely, personalized touchpoints that move deals forward.
-              </p>
-            </div>
-          </div>
-          <div class="plan-card">
-            <div class="plan-card__body">
-              <h3 class="plan-card__title">Lead generation training</h3>
-              <p class="plan-card__description">
-                Coach your internal team on scalable outreach frameworks and best-in-class prospecting tactics.
-              </p>
-            </div>
-          </div>
-          <div class="plan-card">
-            <div class="plan-card__body">
-              <h3 class="plan-card__title">Demand generation</h3>
-              <p class="plan-card__description">
-                Launch integrated campaigns that keep every stage of your funnel fueled with intent-rich prospects.
-              </p>
-            </div>
-          </div>
-          <div class="plan-card">
-            <div class="plan-card__body">
-              <h3 class="plan-card__title">HubSpot CRM consulting</h3>
-              <p class="plan-card__description">
-                Streamline RevOps workflows and reporting with guidance from certified HubSpot experts.
-              </p>
-            </div>
-          </div>
-          <div class="plan-card">
-            <div class="plan-card__body">
-              <h3 class="plan-card__title">Deliverability consulting</h3>
-              <p class="plan-card__description">
-                Protect your sender reputation and maximize inbox placement for every outbound sequence.
-              </p>
-            </div>
-          </div>
-          <div class="plan-card">
-            <div class="plan-card__body">
-              <h3 class="plan-card__title">Account-based marketing</h3>
-              <p class="plan-card__description">
-                Target high-value accounts with bespoke, multi-channel motions tailored to each buying committee.
-              </p>
-            </div>
-          </div>
+          <a class="btn btn-primary differentiators__cta" href="./contact.html#book-a-call">Talk to an expert</a>
+        </div>
+      </section>
+
+      <section class="section cta-band">
+        <div class="container cta-band__inner">
+          <h2>Ready to accelerate your pipeline?</h2>
+          <p>Let’s build predictable growth together with omnichannel programs built to scale.</p>
+          <a class="btn btn-primary" href="./contact.html#book-a-call">Book a call</a>
         </div>
       </section>
     </main>
