@@ -180,10 +180,7 @@ const Footer = () => {
               <h3 className="footer-column__title">Solutions</h3>
               <ul className="footer-links">
                 <li>
-                  <a href="/services">Services</a>
-                </li>
-                <li>
-                  <a href="/solutions">Solutions</a>
+                  <a href="/services-and-solutions">Services &amp; solutions</a>
                 </li>
                 <li>
                   <a href="/case-studies">Case Studies</a>
