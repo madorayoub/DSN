@@ -591,9 +591,10 @@ header.site-header,
   justify-content: center;
   font-weight: 600;
   font-size: 0.98rem;
-  padding: 0.75rem 1.6rem;
+  padding: 0.75rem 1.8rem;
   border-radius: var(--radius-pill);
   transition: transform var(--transition), box-shadow var(--transition), background var(--transition), color var(--transition);
+  white-space: nowrap;
 }
 
 .main-nav > .btn-outline {
@@ -629,6 +630,7 @@ header.site-header,
   color: var(--color-on-accent);
   box-shadow: 0 18px 30px color-mix(in srgb, var(--color-accent) 25%, transparent);
   border: none;
+  white-space: nowrap;
 }
 
 .btn-primary:hover,

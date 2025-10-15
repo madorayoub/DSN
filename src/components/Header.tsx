@@ -17,7 +17,7 @@ const NAV_LINKS: NavLink[] = [
   { href: "/about", label: "About" },
   {
     href: "/contact#book-a-call",
-    label: "Book a call",
+    label: "Talk to an expert",
     className: "btn btn-primary",
   },
 ];

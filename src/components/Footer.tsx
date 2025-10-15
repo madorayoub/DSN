@@ -67,8 +67,8 @@ const Footer = () => {
                 Revenue-focused outreach that keeps your sales pipeline growing.
               </p>
             </div>
-            <a className="btn btn-primary footer-callout__cta" href="#">
-              Get a quote
+            <a className="btn btn-primary footer-callout__cta" href="/contact#book-a-call">
+              Talk to an expert
             </a>
           </div>
         </div>
