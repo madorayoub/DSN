@@ -1267,8 +1267,28 @@ header.site-header,
   }
 }
 
+@media (max-width: 42rem) {
+  .about-page .hero-about__cta {
+    justify-self: stretch;
+    display: flex;
+    justify-content: center;
+  }
+
+  .about-page .hero-about__cta .btn {
+    width: 100%;
+  }
+}
+
 .section--alt {
   background: color-mix(in srgb, var(--brand-50, #e6f7ea) 70%, transparent);
+}
+
+.about-page .section:not(.section--tight) {
+  padding-block: clamp(3rem, 6vw, 4.5rem);
+}
+
+.about-page .section + .section {
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
 }
 
 .mission-vision__grid {
@@ -1392,144 +1412,12 @@ header.site-header,
   margin-bottom: 0.65rem;
 }
 
+
 .history__description {
   color: var(--color-muted);
 }
 
-.products {
-  background: var(--color-surface);
-}
 
-.products__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  max-width: 48ch;
-  margin-bottom: clamp(2rem, 4vw, 2.75rem);
-}
-
-.products__header p {
-  color: var(--color-muted);
-}
-
-.products__grid {
-  display: grid;
-  gap: clamp(1.5rem, 3vw, 2rem);
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-
-.product-card {
-  background: color-mix(in srgb, var(--surface-0) 88%, transparent);
-  border-radius: 1.5rem;
-  padding: clamp(1.75rem, 3vw, 2.25rem);
-  box-shadow: var(--shadow-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-  min-height: 100%;
-}
-
-.product-card p {
-  color: var(--color-muted);
-}
-
-.product-card__icon {
-  background: color-mix(in srgb, var(--brand-100, #daf4df) 65%, transparent);
-}
-
-.product-card .btn {
-  margin-top: auto;
-}
-
-.team {
-  background: var(--color-surface);
-}
-
-.team__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  margin-bottom: clamp(2rem, 4vw, 2.75rem);
-}
-
-.team__header p {
-  color: var(--color-muted);
-}
-
-.team__grid {
-  display: grid;
-  gap: clamp(1.25rem, 3vw, 1.75rem);
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.team-card {
-  background: color-mix(in srgb, var(--surface-0) 92%, transparent);
-  border-radius: 1.5rem;
-  padding: clamp(1.75rem, 3vw, 2rem);
-  box-shadow: var(--shadow-soft);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 1rem;
-}
-
-.team-card__avatar {
-  width: 4.5rem;
-  height: 4.5rem;
-  border-radius: 50%;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--brand-100) 70%, transparent), color-mix(in srgb, var(--brand-300, #8de9a3) 45%, transparent));
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--brand-500) 30%, transparent);
-}
-
-.team-card p {
-  color: var(--color-muted);
-}
-
-.team__actions {
-  margin-top: clamp(1.75rem, 3vw, 2.5rem);
-  display: flex;
-  justify-content: center;
-}
-
-.offices {
-  background: color-mix(in srgb, var(--brand-50, #e6f7ea) 60%, transparent);
-}
-
-.offices__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  margin-bottom: clamp(2rem, 4vw, 2.75rem);
-}
-
-.offices__header p {
-  color: var(--color-muted);
-}
-
-.offices__grid {
-  display: grid;
-  gap: clamp(1.5rem, 3vw, 2rem);
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-}
-
-.office-card {
-  background: var(--color-surface);
-  border-radius: 1.5rem;
-  padding: clamp(1.75rem, 3vw, 2.25rem);
-  box-shadow: var(--shadow-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.office-card__icon {
-  background: color-mix(in srgb, var(--brand-100, #daf4df) 70%, transparent);
-}
-
-.office-card p {
-  color: var(--color-muted);
-}
 
 .section--highlight {
   background: var(--gradient-brand-soft);
@@ -1561,60 +1449,17 @@ header.site-header,
   }
 }
 
-.inspiration {
-  background: var(--color-surface);
+@media (max-width: 48em) {
+  .careers-cta__layout {
+    align-items: center;
+    text-align: center;
+  }
+
+  .careers-cta__content {
+    align-items: center;
+  }
 }
 
-.inspiration__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  margin-bottom: clamp(2rem, 4vw, 2.75rem);
-}
-
-.inspiration__header p {
-  color: var(--color-muted);
-}
-
-.inspiration__list {
-  display: grid;
-  gap: clamp(1.5rem, 3vw, 2rem);
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.inspiration__item {
-  background: color-mix(in srgb, var(--surface-0) 90%, transparent);
-  border-radius: 1.5rem;
-  padding: clamp(1.75rem, 3vw, 2.25rem);
-  box-shadow: var(--shadow-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-.inspiration__item p {
-  color: var(--color-muted);
-}
-
-.inspiration__link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--brand-600);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.inspiration__link::after {
-  content: "→";
-  font-size: 1.1rem;
-  transition: transform var(--transition);
-}
-
-.inspiration__link:hover::after,
-.inspiration__link:focus-visible::after {
-  transform: translateX(4px);
-}
 
 .feature-card h3 + p,
 .services-categories .plan-card__title + .plan-card__description {
