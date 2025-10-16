@@ -592,7 +592,7 @@ header.site-header,
   font-weight: 600;
   font-size: 0.98rem;
   padding-block: 0.75rem;
-  padding-inline: 1.4rem;
+  padding-inline: clamp(1.75rem, 3vw, 2.5rem);
   border-radius: var(--radius-pill);
   transition: transform var(--transition), box-shadow var(--transition), background var(--transition), color var(--transition);
   white-space: nowrap;
@@ -632,7 +632,7 @@ header.site-header,
   box-shadow: 0 18px 30px color-mix(in srgb, var(--color-accent) 25%, transparent);
   border: none;
   white-space: nowrap;
-  padding-inline: 1.4rem;
+  padding-inline: clamp(1.75rem, 3vw, 2.5rem);
 }
 
 .btn-primary:hover,
@@ -3376,7 +3376,7 @@ main#main-content { flex: 1 0 auto; }
 
 
 .book-call .hero {
-  padding: clamp(3rem, 8vw, 6rem) 0;
+  padding: clamp(4rem, 10vw, 7rem) 0;
   background: var(--brand-50);
 }
 
@@ -3479,7 +3479,7 @@ main#main-content { flex: 1 0 auto; }
 
 .book-call .grid {
   display: grid;
-  gap: 1.5rem;
+  gap: clamp(1.25rem, 4vw, 2rem);
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
@@ -3493,6 +3493,7 @@ main#main-content { flex: 1 0 auto; }
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  height: 100%;
 }
 
 .book-call .trust-card h3 {
@@ -3537,6 +3538,7 @@ main#main-content { flex: 1 0 auto; }
   padding: clamp(1.5rem, 4vw, 2.5rem);
   border: 1px solid color-mix(in srgb, var(--brand-200) 35%, transparent);
   box-shadow: 0 1px 3px color-mix(in srgb, var(--brand-900) 8%, transparent);
+  margin-top: clamp(1.5rem, 4vw, 2.5rem);
 }
 
 .book-call .scheduler__intro ul {
