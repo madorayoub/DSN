@@ -108,7 +108,7 @@ export default function Page() {
       <section className="section trust">
         <div className="container">
           <div className="section__header">
-            <h2>Why revenue teams book with DSN</h2>
+            <h2>Why growth leaders book with DSN</h2>
             <p>
               Plug into a partner who brings proven systems, omnichannel specialists, and measurable outcomes to every engagement.
             </p>
@@ -225,7 +225,7 @@ export default function Page() {
       <section className="section testimonials" aria-labelledby="reviews-title">
         <div className="container">
           <div className="section__header">
-            <h2 id="reviews-title">Reviews from revenue leaders</h2>
+            <h2 id="reviews-title">Leaders trust DSN to keep their calendars full</h2>
             <p>See why CROs, CMOs, and founders rely on DSN to keep their outbound engines firing.</p>
           </div>
           <div className="grid testimonials__grid">
@@ -308,6 +308,18 @@ export default function Page() {
               <a href="/case-studies">Explore our latest case studies</a>
             </li>
           </ul>
+        </div>
+      </section>
+
+      <section className="cta-band" aria-labelledby="cta-band-title">
+        <div className="container cta-band__content">
+          <div>
+            <h2 id="cta-band-title">Ready to see how we can help you grow? Let’s talk.</h2>
+            <p>Let’s talk about your goals and build the roadmap to predictable pipeline together.</p>
+          </div>
+          <a className="btn btn-primary" href="#schedule" aria-label="Talk to an expert">
+            Talk to an expert
+          </a>
         </div>
       </section>
     </div>
