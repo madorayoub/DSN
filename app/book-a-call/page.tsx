@@ -1,0 +1,237 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect } from "react";
+
+const schedulerId = "hubspot-scheduler";
+
+type SchedulerWindow = typeof window & {
+  loadHubSpotScheduler?: (container: HTMLElement) => void;
+};
+
+export default function Page() {
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const schedulerElement = document.getElementById(schedulerId);
+
+    if (!schedulerElement) {
+      return;
+    }
+
+    const maybeLoadScheduler = (window as SchedulerWindow).loadHubSpotScheduler;
+
+    if (typeof maybeLoadScheduler === "function") {
+      maybeLoadScheduler(schedulerElement);
+    }
+  }, []);
+
+  return (
+    <main id="main-content" className="book-call">
+      <section className="hero" aria-labelledby="book-call-title">
+        <div className="container">
+          <div className="hero__content">
+            <h1 id="book-call-title">Book a call with our experts</h1>
+            <p className="hero__lead">
+              Schedule a free, no-obligation consultation to see how Direct Sales Network® can supercharge your pipeline.
+            </p>
+            <ul className="hero__list">
+              <li>Assess your current lead generation challenges.</li>
+              <li>Build a tailored growth plan with omnichannel outreach.</li>
+              <li>Show real examples of success in your industry.</li>
+              <li>Map next steps to accelerate predictable revenue.</li>
+            </ul>
+            <div className="hero__actions">
+              <Link className="btn btn-primary" href="#schedule" aria-label="Talk to an expert">
+                Talk to an expert
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="schedule" className="section section--tight scheduler">
+        <div className="container">
+          <div className="section__header">
+            <h2>Choose a time that works for you</h2>
+            <p>Pick a 30-minute slot that fits your schedule. Every consultation is free and focused on actionable insights.</p>
+          </div>
+          <div className="scheduler__embed" aria-live="polite">
+            <div id={schedulerId} className="scheduler__placeholder">
+              {/* TODO: Embed your scheduling widget here */}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section trust">
+        <div className="container">
+          <div className="section__header">
+            <h2>Why revenue teams book with DSN</h2>
+            <p>
+              Plug into a partner who brings proven systems, omnichannel specialists, and measurable outcomes to every engagement.
+            </p>
+          </div>
+          <div className="grid trust__grid">
+            <article className="trust-card">
+              <span className="icon-circle" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M4 6l8-4 8 4v6c0 5-3.33 9.67-8 10-4.67-.33-8-5-8-10V6z"></path>
+                  <path d="M9 12l2 2 4-4"></path>
+                </svg>
+              </span>
+              <h3>Proven track record</h3>
+              <p>
+                See how we deliver 100–400+ qualified appointments annually for brands across SaaS, logistics, and industrial
+                markets.
+              </p>
+            </article>
+            <article className="trust-card">
+              <span className="icon-circle" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 5h18"></path>
+                  <path d="M3 12h18"></path>
+                  <path d="M3 19h18"></path>
+                  <path d="M7 5v14"></path>
+                  <path d="M17 5v14"></path>
+                </svg>
+              </span>
+              <h3>Omnichannel strategies</h3>
+              <p>Unify email, LinkedIn, calling, and gifting to surround your ideal buyers with helpful, relevant touchpoints.</p>
+            </article>
+            <article className="trust-card">
+              <span className="icon-circle" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 20l-7-6 7-6 7 6-7 6z"></path>
+                  <path d="M5 14l7 6 7-6"></path>
+                  <path d="M5 10l7-6 7 6"></path>
+                </svg>
+              </span>
+              <h3>Customized roadmaps</h3>
+              <p>Leave with a playbook tailored to your funnel, team structure, and revenue goals.</p>
+            </article>
+            <article className="trust-card">
+              <span className="icon-circle" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M9 10h6"></path>
+                  <path d="M9 14h6"></path>
+                  <path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"></path>
+                  <path d="m9 6 3-3 3 3"></path>
+                </svg>
+              </span>
+              <h3>No pressure—just insights</h3>
+              <p>Expect a collaborative session focused on sharing benchmarks and next steps without contracts or commitments.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section className="section testimonials">
+        <div className="container">
+          <div className="section__header">
+            <h2>Leaders trust DSN to drive pipeline</h2>
+          </div>
+          <div className="grid testimonials__grid">
+            <figure className="testimonial-card">
+              <blockquote>
+                “In 90 days our SDR calendar was filled with qualified demos. DSN brought the exact messaging and systems we needed.”
+              </blockquote>
+              <figcaption>
+                <span className="testimonial-card__name">Lena Howard</span>
+                <span className="testimonial-card__role">VP of Revenue, TechNova</span>
+              </figcaption>
+            </figure>
+            <figure className="testimonial-card">
+              <blockquote>
+                “Their omnichannel outreach helped us break into enterprise accounts we’d chased for years. The insights from the discovery call were invaluable.”
+              </blockquote>
+              <figcaption>
+                <span className="testimonial-card__name">Caleb Martinez</span>
+                <span className="testimonial-card__role">Head of Growth, Summit Logistics</span>
+              </figcaption>
+            </figure>
+            <figure className="testimonial-card">
+              <blockquote>
+                “DSN feels like an extension of our team. Each strategy session ends with clear actions that keep our pipeline humming.”
+              </blockquote>
+              <figcaption>
+                <span className="testimonial-card__name">Priya Singh</span>
+                <span className="testimonial-card__role">Chief Marketing Officer, Atlas Industrial</span>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section className="section faq">
+        <div className="container">
+          <div className="section__header">
+            <h2>Frequently asked questions</h2>
+          </div>
+          <div className="faq__list">
+            <details>
+              <summary>What happens on the call?</summary>
+              <p>
+                We’ll review your current outbound programs, diagnose gaps, and explore the results you want to achieve in the next 6–12 months.
+              </p>
+            </details>
+            <details>
+              <summary>How long is the consultation?</summary>
+              <p>
+                Each consultation lasts 30 minutes. We reserve time at the end to agree on next steps or share additional resources.
+              </p>
+            </details>
+            <details>
+              <summary>Do I have to sign anything afterwards?</summary>
+              <p>
+                No. The goal is to give you clarity. If partnering with DSN makes sense, we’ll outline what collaboration could look like.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section className="cta-band" aria-labelledby="cta-band-title">
+        <div className="container cta-band__content">
+          <div>
+            <h2 id="cta-band-title">Ready to see how we can help you grow?</h2>
+            <p>Let’s talk about your goals and build the roadmap to predictable pipeline together.</p>
+          </div>
+          <Link className="btn btn-primary" href="#schedule" aria-label="Talk to an expert">
+            Talk to an expert
+          </Link>
+        </div>
+      </section>
+    </main>
+  );
+}
