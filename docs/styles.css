@@ -2951,16 +2951,17 @@ header.site-header,
 .footer-callout {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: clamp(1.25rem, 2vw, 1.75rem);
   padding: clamp(1.75rem, 3vw, 2.25rem);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 10%, transparent) 0%, color-mix(in srgb, var(--color-accent) 18%, transparent) 100%);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--color-accent) 12%, transparent) 0%, color-mix(in srgb, var(--color-accent) 22%, transparent) 100%);
   border-radius: 1.6rem;
 }
 
 .footer-callout__content {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  align-items: flex-start;
+  gap: clamp(0.8rem, 1vw, 1rem);
 }
 
 .footer-callout__value {
@@ -2971,6 +2972,29 @@ header.site-header,
 
 .footer-callout__cta {
   width: 100%;
+}
+
+@media (min-width: 48rem) {
+  .footer-callout {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-callout__content {
+    flex-direction: row;
+    align-items: center;
+    gap: clamp(1rem, 1.5vw, 1.75rem);
+  }
+
+  .footer-callout__value {
+    max-width: 28rem;
+  }
+
+  .footer-callout__cta {
+    width: auto;
+    flex-shrink: 0;
+  }
 }
 
 .footer-main {
