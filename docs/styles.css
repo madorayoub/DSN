@@ -3147,6 +3147,10 @@ header.site-header,
   .footer-column--brand {
     padding-right: 1.5rem;
   }
+
+  .footer-column--brand .brand {
+    transform: translateX(-6%);
+  }
 }
 
 /* Sticky header */
