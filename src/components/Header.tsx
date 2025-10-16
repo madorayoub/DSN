@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+import { BOOK_A_CALL_PATH } from "../lib/links";
 
 const MOBILE_NAV_BREAKPOINT = 900;
 
@@ -8,6 +11,7 @@ type NavLink = {
   href: string;
   label: string;
   className?: string;
+  prefetch?: boolean;
 };
 
 const NAV_LINKS: NavLink[] = [
@@ -16,9 +20,10 @@ const NAV_LINKS: NavLink[] = [
   { href: "/case-studies", label: "Case studies" },
   { href: "/about", label: "About" },
   {
-    href: "/book-a-call",
+    href: BOOK_A_CALL_PATH,
     label: "Talk to an expert",
     className: "btn btn-primary",
+    prefetch: false,
   },
 ];
 
@@ -257,7 +262,7 @@ const Header = () => {
                   link.href !== "#" && currentPath.endsWith(link.href);
 
                 return (
-                  <a
+                  <Link
                     key={link.label}
                     href={link.href}
                     onClick={closeMenu}
@@ -265,9 +270,10 @@ const Header = () => {
                     className={`${link.className ?? ""}${
                       isCurrent && !link.className ? " is-active" : ""
                     }`.trim() || undefined}
+                    prefetch={link.prefetch}
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 );
               })}
             </nav>

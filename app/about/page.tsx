@@ -1,3 +1,7 @@
+import Link from "next/link";
+
+import { BOOK_A_CALL_PATH } from "../../src/lib/links";
+
 const missionVision = [
   {
     title: "Our mission — To provide impactful growth solutions",
@@ -117,9 +121,9 @@ export default function Page() {
             </p>
           </div>
           <div className="hero-about__cta">
-            <a className="btn btn-primary" href="/contact#book-a-call">
+            <Link className="btn btn-primary" href={BOOK_A_CALL_PATH} prefetch={false}>
               Talk to an expert
-            </a>
+            </Link>
           </div>
         </div>
       </section>
