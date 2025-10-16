@@ -3374,3 +3374,179 @@ main#main-content { flex: 1 0 auto; }
   * { transition: none !important; }
 }
 
+
+.book-call .hero {
+  padding: clamp(3rem, 8vw, 6rem) 0;
+  background: var(--brand-50);
+}
+
+.book-call .hero__content {
+  max-width: 720px;
+}
+
+.book-call .hero h1 {
+  font-size: clamp(28px, 4vw, 48px);
+  margin-bottom: 1rem;
+}
+
+.book-call .hero__lead {
+  font-size: clamp(1.05rem, 1vw + 1rem, 1.35rem);
+  color: var(--color-muted);
+}
+
+.book-call .hero ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 1.5rem 0;
+}
+
+.book-call .hero ul li {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.book-call .hero ul li::before {
+  content: "•";
+  color: var(--brand-600);
+  margin-right: 0.5rem;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.book-call .hero__actions {
+  margin-top: clamp(1rem, 2vw, 1.75rem);
+}
+
+.book-call .section__header {
+  max-width: 720px;
+  margin: 0 auto clamp(2rem, 5vw, 3rem);
+  text-align: center;
+}
+
+.book-call .section__header p {
+  color: var(--color-muted);
+}
+
+.book-call .grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.book-call .trust-card,
+.book-call .testimonial-card {
+  background: var(--surface-50);
+  border: 1px solid color-mix(in srgb, var(--brand-200) 35%, transparent);
+  border-radius: 1rem;
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--brand-900) 8%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.book-call .trust-card h3 {
+  font-size: 1.15rem;
+}
+
+.book-call .trust-card p {
+  color: var(--color-muted);
+}
+
+.book-call .scheduler__embed {
+  background: var(--surface-50);
+  border-radius: 1rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid color-mix(in srgb, var(--brand-200) 35%, transparent);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--brand-900) 8%, transparent);
+}
+
+.book-call .scheduler__placeholder {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  color: var(--color-muted);
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.book-call .testimonials__grid {
+  align-items: stretch;
+}
+
+.book-call .testimonial-card blockquote {
+  font-size: 1.05rem;
+  font-style: italic;
+  color: var(--brand-800);
+  margin: 0;
+}
+
+.book-call .testimonial-card__name {
+  font-weight: 600;
+  display: block;
+}
+
+.book-call .testimonial-card__role {
+  color: var(--color-muted);
+  display: block;
+  font-size: 0.95rem;
+}
+
+.book-call .faq__list {
+  display: grid;
+  gap: 1rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.book-call .faq__list details {
+  background: var(--surface-50);
+  border: 1px solid color-mix(in srgb, var(--brand-200) 35%, transparent);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.book-call .faq__list summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.book-call .faq__list p {
+  margin-top: 0.75rem;
+  color: var(--color-muted);
+}
+
+.book-call .cta-band {
+  background: var(--surface-75);
+  padding: clamp(2.5rem, 6vw, 3.5rem) 0;
+}
+
+.book-call .cta-band__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+@media (min-width: 48em) {
+  .book-call .cta-band__content {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .book-call .hero__content {
+    max-width: 780px;
+  }
+}
+
+.book-call .cta-band h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.book-call .cta-band p {
+  color: var(--color-muted);
+  max-width: 36rem;
+}
