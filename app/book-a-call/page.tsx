@@ -30,9 +30,8 @@ export default function Page() {
   return (
     <div className="book-call">
       <section className="hero" aria-labelledby="book-call-title">
-        <div className="container hero__layout">
+        <div className="container">
           <div className="hero__content">
-            <span className="hero__badge">Complimentary 30-minute strategy session</span>
             <h1 id="book-call-title">Book a call with our experts</h1>
             <p className="hero__lead">
               Discover how Direct Sales Network® builds predictable revenue engines across complex buying committees and long sales cycles.
@@ -43,58 +42,15 @@ export default function Page() {
               <li>Preview campaigns we&apos;ve launched for teams like yours.</li>
               <li>Outline an actionable 90-day plan to accelerate revenue.</li>
             </ul>
-            <p className="hero__note">We meet you where you are today and map the path to your next growth milestone.</p>
-          </div>
-          <aside className="hero__stats" aria-label="Direct Sales Network impact metrics">
-            <div className="stat-card">
-              <span className="stat-card__figure">400+</span>
-              <span className="stat-card__label">Qualified meetings added annually for top clients</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-card__figure">3.5x</span>
-              <span className="stat-card__label">Average pipeline multiplier within the first two quarters</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-card__figure">94%</span>
-              <span className="stat-card__label">Customer satisfaction score across ongoing retainers</span>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <section className="section highlights" aria-labelledby="expect-title">
-        <div className="container">
-          <div className="section__header">
-            <h2 id="expect-title">What you can expect from our session</h2>
-            <p>We use this time to understand your goals, share benchmarks, and leave you with clarity on next steps—no pressure, no hard sell.</p>
-          </div>
-          <div className="grid highlights__grid">
-            <article className="highlight-card">
-              <h3>Revenue gap analysis</h3>
-              <p>We review your current funnel, conversion metrics, and buyer engagement to identify the biggest opportunities for quick wins.</p>
-            </article>
-            <article className="highlight-card">
-              <h3>Channel game plan</h3>
-              <p>Our strategists outline how email, calling, LinkedIn, gifting, and events work together to surround your ideal buyers.</p>
-            </article>
-            <article className="highlight-card">
-              <h3>Next-step blueprint</h3>
-              <p>Walk away with a prioritized roadmap, clear resourcing needs, and the metrics we&apos;ll use to measure success together.</p>
-            </article>
           </div>
         </div>
       </section>
 
       <section id="schedule" className="section section--tight scheduler">
-        <div className="container scheduler__layout">
-          <div className="scheduler__intro">
+        <div className="container">
+          <div className="section__header">
             <h2>Choose a time that works for you</h2>
             <p>Pick a 30-minute slot that fits your schedule. Every consultation is free, actionable, and tailored to your revenue targets.</p>
-            <ul>
-              <li>Hosted on Zoom with sales and marketing strategists.</li>
-              <li>We review existing assets in advance when you share them.</li>
-              <li>Leave with meeting notes, benchmarks, and next-step recommendations.</li>
-            </ul>
           </div>
           <div className="scheduler__embed" aria-live="polite">
             <div id={schedulerId} className="scheduler__placeholder" role="presentation">
@@ -108,7 +64,7 @@ export default function Page() {
       <section className="section trust">
         <div className="container">
           <div className="section__header">
-            <h2>Why revenue teams book with DSN</h2>
+            <h2>Why growth leaders book with DSN</h2>
             <p>
               Plug into a partner who brings proven systems, omnichannel specialists, and measurable outcomes to every engagement.
             </p>
@@ -195,38 +151,10 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="section process" aria-labelledby="process-title">
-        <div className="container">
-          <div className="section__header">
-            <h2 id="process-title">How our team shows up for you</h2>
-            <p>Consider this your preview of partnering with Direct Sales Network®. Every engagement follows a proven rhythm focused on outcomes.</p>
-          </div>
-          <ol className="process__steps">
-            <li>
-              <h3>Discovery &amp; alignment</h3>
-              <p>We dig into ICPs, territories, current messaging, and historic performance to confirm the right foundation.</p>
-            </li>
-            <li>
-              <h3>Campaign architecture</h3>
-              <p>Our specialists design the multichannel plays, cadences, and enablement assets needed to surround prospects.</p>
-            </li>
-            <li>
-              <h3>Launch &amp; optimization</h3>
-              <p>We deploy quickly, then iterate weekly using performance data, rep feedback, and market signals.</p>
-            </li>
-            <li>
-              <h3>Revenue reporting</h3>
-              <p>Transparent dashboards show sourced pipeline, influenced deals, and lessons learned to keep growth compounding.</p>
-            </li>
-          </ol>
-        </div>
-      </section>
-
       <section className="section testimonials" aria-labelledby="reviews-title">
         <div className="container">
           <div className="section__header">
-            <h2 id="reviews-title">Reviews from revenue leaders</h2>
-            <p>See why CROs, CMOs, and founders rely on DSN to keep their outbound engines firing.</p>
+            <h2 id="reviews-title">Leaders trust DSN to keep their calendars full</h2>
           </div>
           <div className="grid testimonials__grid">
             <figure className="testimonial-card">
@@ -288,26 +216,15 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="section support" aria-labelledby="support-title">
-        <div className="container support__layout">
+      <section className="cta-band" aria-labelledby="cta-band-title">
+        <div className="container cta-band__content">
           <div>
-            <h2 id="support-title">Need a hand before you schedule?</h2>
-            <p>We&apos;re happy to answer quick questions or coordinate a time manually. Reach out and we&apos;ll get back within one business day.</p>
+            <h2 id="cta-band-title">Ready to see how we can help you grow? Let’s talk.</h2>
+            <p>Let’s talk about your goals and build the roadmap to predictable pipeline together.</p>
           </div>
-          <ul className="support__list">
-            <li>
-              <span className="support__label">Email</span>
-              <a href="mailto:hello@directsalesnetwork.com">hello@directsalesnetwork.com</a>
-            </li>
-            <li>
-              <span className="support__label">Phone</span>
-              <a href="tel:+18885551234">(888) 555-1234</a>
-            </li>
-            <li>
-              <span className="support__label">Resources</span>
-              <a href="/case-studies">Explore our latest case studies</a>
-            </li>
-          </ul>
+          <a className="btn btn-primary" href="#schedule" aria-label="Talk to an expert">
+            Talk to an expert
+          </a>
         </div>
       </section>
     </div>
