@@ -95,6 +95,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const relativeBase = computeRelativeBase();
 
+    const normalizeRelativeBase = (value) => (value === './' ? '' : value || '');
+    const computeBookHref = () => {
+      if (typeof window === 'undefined') {
+        if (resolvedScriptUrl) {
+          return resolvedScriptUrl.href.replace(/scripts\.js(?:\?.*)?$/, 'book-a-call.html');
+        }
+
+        return 'book-a-call.html';
+      }
+
+      if (resolvedScriptUrl && resolvedScriptUrl.protocol === 'file:') {
+        return resolvedScriptUrl.href.replace(/scripts\.js(?:\?.*)?$/, 'book-a-call.html');
+      }
+
+      const base = normalizeRelativeBase(relativeBase);
+      return `${base}book-a-call.html`;
+    };
+
+    const CTA_SELECTOR = 'a[href*="book-a-call"], a[data-cta="book"], a.btn--cta';
+    const bookHref = computeBookHref();
+
+    document.querySelectorAll(CTA_SELECTOR).forEach((anchor) => {
+      const label = (anchor.textContent || '').trim().toLowerCase();
+
+      if (
+        label.includes('book a call') ||
+        label.includes('talk to an expert') ||
+        label.includes('get a quote') ||
+        anchor.dataset.cta === 'book'
+      ) {
+        anchor.setAttribute('href', bookHref);
+      }
+    });
+
     document.querySelectorAll('[data-root-href]').forEach((anchor) => {
       const target = anchor.getAttribute('data-root-href');
 

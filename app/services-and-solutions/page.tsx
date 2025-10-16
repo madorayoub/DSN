@@ -1,3 +1,7 @@
+import Link from "next/link";
+
+import { BOOK_A_CALL_PATH } from "../../src/lib/links";
+
 const heroChannels = [
   "Omnichannel appointment setting",
   "Cold email outreach",
@@ -283,9 +287,9 @@ function Hero() {
               </div>
             ))}
           </div>
-          <a className="btn btn-primary" href="/contact#book-a-call">
+          <Link className="btn btn-primary" href={BOOK_A_CALL_PATH} prefetch={false}>
             Talk to an expert
-          </a>
+          </Link>
         </div>
       </div>
     </section>
@@ -374,9 +378,9 @@ function ClosingCTA() {
             <h2>Ready to accelerate your pipeline?</h2>
             <p>Let’s build predictable growth together with omnichannel programs built to scale.</p>
           </div>
-          <a className="btn btn-primary" href="/contact#book-a-call">
+          <Link className="btn btn-primary" href={BOOK_A_CALL_PATH} prefetch={false}>
             Talk to an expert
-          </a>
+          </Link>
         </div>
       </div>
     </section>

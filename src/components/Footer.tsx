@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+
+import { BOOK_A_CALL_PATH } from "../lib/links";
 
 const Footer = () => {
   const [language, setLanguage] = useState("en");
@@ -67,9 +70,13 @@ const Footer = () => {
                 Revenue-focused outreach that keeps your sales pipeline growing.
               </p>
             </div>
-            <a className="btn btn-primary footer-callout__cta" href="/contact#book-a-call">
+            <Link
+              className="btn btn-primary footer-callout__cta"
+              href={BOOK_A_CALL_PATH}
+              prefetch={false}
+            >
               Talk to an expert
-            </a>
+            </Link>
           </div>
         </div>
         <div className="container footer-main">
