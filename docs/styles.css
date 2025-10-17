@@ -971,11 +971,11 @@ header.site-header,
   color: var(--color-muted);
 }
 
-/* Grid: 1 / 2 / 3 columns at 360 / 768 / 1200+ */
+/* Responsive grid that balances 3 columns on desktop */
 .challenges__grid {
   display: grid;
-  gap: clamp(1.25rem, 2.5vw, 1.75rem);
-  grid-template-columns: 1fr;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 }
 
 @media (min-width: 48rem) {
@@ -984,7 +984,7 @@ header.site-header,
   }
 }
 
-@media (min-width: 75rem) {
+@media (min-width: 64rem) {
   .challenges__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1750,8 +1750,20 @@ header.site-header,
 
 .challenges__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1.25rem;
+  gap: clamp(1rem, 2.4vw, 1.5rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+@media (min-width: 48rem) {
+  .challenges__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .challenges__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .challenge-card {
@@ -2520,8 +2532,20 @@ header.site-header,
 
 .challenges__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1.25rem;
+  gap: clamp(1rem, 2.4vw, 1.5rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+@media (min-width: 48rem) {
+  .challenges__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .challenges__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .challenge-card {
