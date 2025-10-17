@@ -1,0 +1,4 @@
+# Advisory preferences for AI crawlers
+Allow: all
+Contact: contact@directsales.network
+Site: https://directsales.network
