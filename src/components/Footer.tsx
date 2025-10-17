@@ -178,9 +178,6 @@ const Footer = () => {
                 <li>
                   <a href="/contact">Contact</a>
                 </li>
-                <li>
-                  <a href="/pricing">Pricing</a>
-                </li>
               </ul>
             </div>
             <div className="footer-column">
@@ -199,9 +196,6 @@ const Footer = () => {
               <ul className="footer-links">
                 <li>
                   <a href="/blog">Blog</a>
-                </li>
-                <li>
-                  <a href="/knowledge-base">Knowledge Base</a>
                 </li>
                 <li>
                   <a href="/faq">FAQ</a>
