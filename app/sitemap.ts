@@ -8,7 +8,6 @@ const routes: string[] = [
   "/case-studies",
   "/about",
   "/book-a-call",
-  "/pricing",
   "/careers",
   "/contact",
   "/knowledge-base",

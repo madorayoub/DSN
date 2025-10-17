@@ -178,9 +178,6 @@ const Footer = () => {
                 <li>
                   <a href="/contact">Contact</a>
                 </li>
-                <li>
-                  <a href="/pricing">Pricing</a>
-                </li>
               </ul>
             </div>
             <div className="footer-column">
