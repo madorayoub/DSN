@@ -100,15 +100,14 @@ test.describe("What sets us apart section", () => {
       const value = getComputedStyle(node).gridTemplateColumns;
       return value.split(")").filter(Boolean).length;
     });
-    expect(desktopColumns).toBeGreaterThanOrEqual(3);
+    expect(desktopColumns).toBe(3);
 
-    const cards = page.locator("#sets-apart .sets-apart__card");
-    const firstWidth = await cards.first().evaluate((node) => node.getBoundingClientRect().width);
-    const otherWidth = await cards.nth(1).evaluate((node) => node.getBoundingClientRect().width);
-    expect(firstWidth).toBeGreaterThan(otherWidth * 1.6);
-
-    const firstHeight = await cards.first().evaluate((node) => node.getBoundingClientRect().height);
-    const otherHeight = await cards.nth(1).evaluate((node) => node.getBoundingClientRect().height);
-    expect(firstHeight).toBeGreaterThan(otherHeight * 1.2);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(fileUrl);
+    const wideColumns = await grid.evaluate((node) => {
+      const value = getComputedStyle(node).gridTemplateColumns;
+      return value.split(")").filter(Boolean).length;
+    });
+    expect(wideColumns).toBeGreaterThanOrEqual(4);
   });
 });
