@@ -198,7 +198,7 @@ const Footer = () => {
                   <a href="/blog">Blog</a>
                 </li>
                 <li>
-                  <a href="/faq">FAQ</a>
+                  <a href="#faq-section">FAQ</a>
                 </li>
                 <li>
                   <a href="/privacy">Privacy Policy</a>
@@ -216,15 +216,7 @@ const Footer = () => {
               © <span>{currentYear}</span> Direct Sales Network®. All rights reserved.
             </p>
             <div className="footer-subfooter__actions">
-              <ul className="footer-subfooter__links">
-                <li>
-                  <a href="#">Cookie settings</a>
-                </li>
-                <li>
-                  <a href="#">Sitemap</a>
-                </li>
-              </ul>
-              <div className="footer-language">
+              <div className="footer-language" hidden aria-hidden="true">
                 <label htmlFor="footer-language-select">Language</label>
                 <select
                   id="footer-language-select"
