@@ -938,6 +938,112 @@ header.site-header,
   color: var(--color-text);
 }
 
+/* ——— CHALLENGES (Home) ——— */
+.challenges {
+  padding: clamp(4rem, 8vw, 6.5rem) 0;
+  background: var(--color-background);
+}
+
+.challenges .container {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 4vw, 3rem);
+}
+
+.challenges__intro {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.challenges__title {
+  font-size: clamp(2.25rem, 4vw + 1rem, 3.35rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.challenges__description {
+  font-size: clamp(1rem, 0.8vw + 0.95rem, 1.125rem);
+  color: var(--color-muted);
+}
+
+/* Grid: 1 / 2 / 3 columns at 360 / 768 / 1200+ */
+.challenges__grid {
+  display: grid;
+  gap: clamp(1.25rem, 2.5vw, 1.75rem);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 48rem) {
+  .challenges__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 75rem) {
+  .challenges__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Card */
+.challenge-card {
+  background: var(--color-surface);
+  border-radius: 1.75rem;
+  box-shadow: var(--shadow-soft);
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.challenge-card__icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: var(--gradient-warning-soft);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-surface) 65%, transparent);
+}
+
+.challenge-card__icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.challenge-card__icon svg path,
+.challenge-card__icon svg circle {
+  fill: none;
+  stroke: color-mix(in oklab, var(--warning-500, #ff5a1f) 98%, black 0%);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.challenge-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.challenge-card__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.challenge-card p {
+  color: var(--color-muted);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
 .plan-card__list li::before {
   content: "";
   position: absolute;
