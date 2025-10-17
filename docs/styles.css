@@ -3384,3 +3384,34 @@ details[open] > .accordion__summary::after {
     padding-right: clamp(1.5rem, 4vw, 2rem);
   }
 }
+
+/* Client acquisition plan homepage overrides */
+.client-plan__layout {
+  align-items: stretch;
+}
+
+.client-plan .plan-services__list a::after {
+  content: "→";
+}
+
+@media (min-width: 48rem) {
+  .client-plan__layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.75rem, 4vw, 2.25rem);
+  }
+
+  .client-plan .plan-card__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .client-plan .plan-services__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .client-plan__layout {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 2.75rem);
+  }
+}
