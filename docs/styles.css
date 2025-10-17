@@ -420,7 +420,8 @@ ul {
   overflow: hidden;
 }
 
-.skip-link:focus {
+.skip-link:focus,
+.skip-link:focus-visible {
   position: static;
   left: auto;
   width: auto;

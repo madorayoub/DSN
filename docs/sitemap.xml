@@ -1,117 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://madorayoub.github.io/DSN/</loc>
-    <lastmod>2025-10-16T19:04:41.385Z</lastmod>
+    <loc>https://directsales.network/</loc>
+    <lastmod>2024-01-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/about.html</loc>
-    <lastmod>2025-10-16T19:04:41.384Z</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://directsales.network/about.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/blog/</loc>
-    <lastmod>2025-10-16T19:04:41.385Z</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://directsales.network/services-and-solutions.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://directsales.network/industries.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/book-a-call.html</loc>
-    <lastmod>2025-10-16T19:04:41.385Z</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://directsales.network/case-studies.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/careers.html</loc>
-    <lastmod>2025-10-16T19:04:41.385Z</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://directsales.network/pricing.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/case-studies.html</loc>
-    <lastmod>2025-10-16T19:04:41.385Z</lastmod>
+    <loc>https://directsales.network/book-a-call.html</loc>
+    <lastmod>2024-01-01</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://directsales.network/contact.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/contact.html</loc>
-    <lastmod>2025-10-16T19:04:41.385Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://directsales.network/careers.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/faq.html</loc>
-    <lastmod>2025-10-16T19:04:41.385Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://directsales.network/faq.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/industries.html</loc>
-    <lastmod>2025-10-16T19:04:41.385Z</lastmod>
+    <loc>https://directsales.network/blog/</loc>
+    <lastmod>2024-01-01</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/knowledge-base.html</loc>
-    <lastmod>2025-10-16T19:04:41.386Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://directsales.network/knowledge-base.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/partials/footer.html</loc>
-    <lastmod>2025-10-16T19:04:41.386Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://directsales.network/privacy.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://madorayoub.github.io/DSN/partials/header.html</loc>
-    <lastmod>2025-10-16T19:04:41.386Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://madorayoub.github.io/DSN/partials/testimonials.html</loc>
-    <lastmod>2025-10-16T19:04:41.386Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://madorayoub.github.io/DSN/pricing.html</loc>
-    <lastmod>2025-10-16T19:04:41.386Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://madorayoub.github.io/DSN/privacy.html</loc>
-    <lastmod>2025-10-16T19:04:41.386Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://madorayoub.github.io/DSN/services-and-solutions.html</loc>
-    <lastmod>2025-10-16T19:04:41.386Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://madorayoub.github.io/DSN/services.html</loc>
-    <lastmod>2025-10-16T19:04:41.386Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://madorayoub.github.io/DSN/solutions.html</loc>
-    <lastmod>2025-10-16T19:04:41.386Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://madorayoub.github.io/DSN/terms.html</loc>
-    <lastmod>2025-10-16T19:04:41.386Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://directsales.network/terms.html</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>

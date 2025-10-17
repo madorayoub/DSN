@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://madorayoub.github.io/DSN/sitemap.xml
+Sitemap: https://directsales.network/sitemap.xml
