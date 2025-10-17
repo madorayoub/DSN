@@ -184,7 +184,7 @@ const Footer = () => {
               </ul>
             </div>
             <div className="footer-column">
-              <h3 className="footer-column__title">Solutions</h3>
+              <h3 className="footer-column__title">Services &amp; solutions</h3>
               <ul className="footer-links">
                 <li>
                   <a href="/services-and-solutions">Services &amp; solutions</a>
