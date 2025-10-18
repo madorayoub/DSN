@@ -3675,3 +3675,14 @@ details[open] > .accordion__summary::after {
 .feature-card {
   background: var(--color-surface, #fff);
 }
+/* About → Values: force 4-up on desktop, keep responsive below */
+.values-grid__list { display: grid; gap: clamp(1rem, 2.5vw, 1.5rem); }
+@media (min-width: 1024px) {
+  .values-grid__list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.values-grid__card {
+  background: #fff;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.06);
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+}
