@@ -61,13 +61,13 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://directsales.network/privacy.html</loc>
+    <loc>https://directsales.network/privacy-policy</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://directsales.network/terms.html</loc>
+    <loc>https://directsales.network/terms-of-service</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
