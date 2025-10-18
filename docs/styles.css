@@ -1444,35 +1444,61 @@ header.site-header,
   }
 }
 
-.values-grid__intro {
+/* ——— VALUES (About page) ——— */
+.values-grid {
+  /* same vertical rhythm as other sections */
+  padding: clamp(4rem, 8vw, 6.5rem) 0;
+}
+
+.values-grid .container {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  max-width: 46ch;
-  margin-bottom: clamp(2rem, 4vw, 2.75rem);
+  gap: clamp(2rem, 4vw, 3rem);
 }
 
-.values-grid__intro p {
-  color: var(--color-muted);
-}
-
-.values-grid__list {
-  display: grid;
-  gap: clamp(1.25rem, 3vw, 1.75rem);
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.values-grid__card {
-  background: color-mix(in srgb, var(--brand-50, #e6f7ea) 45%, transparent);
-  border-radius: 1.5rem;
-  padding: clamp(1.6rem, 3vw, 2rem);
+.values-grid__intro {
+  text-align: center;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-width: 56rem;
+  margin: 0 auto;
 }
 
-.values-grid__icon {
-  background: color-mix(in srgb, var(--brand-100, #daf4df) 70%, transparent);
+.values-grid__intro h2 {
+  font-size: clamp(2.25rem, 4vw + 1rem, 3.35rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.values-grid__intro p {
+  font-size: clamp(1rem, 0.8vw + 0.95rem, 1.125rem);
+  color: var(--color-muted);
+}
+
+/* responsive, balanced grid */
+.values-grid__list {
+  display: grid;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+/* the cards themselves — white interior with soft elevation */
+.values-grid__card {
+  background: var(--color-surface);
+  border-radius: 1.75rem;
+  box-shadow: var(--shadow-soft);
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.values-grid__card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-900);
 }
 
 .values-grid__card p {
