@@ -12,7 +12,7 @@ const routes: string[] = [
   "/contact",
   "/faq",
   "/privacy-policy",
-  "/terms",
+  "/terms-of-service",
   "/blog",
 ];
 
