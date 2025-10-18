@@ -3636,3 +3636,42 @@ details[open] > .accordion__summary::after {
     gap: clamp(2rem, 5vw, 2.75rem);
   }
 }
+/* ——— Services & Solutions: grid fixes (non-destructive) ——— */
+.feature-grid {
+  display: grid;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+/* 3-up on wide screens, then 2, then 1 */
+.feature-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Services list: 2-up on desktop, 1 on mobile */
+.feature-grid--services {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* 4-up on wide screens, then 2, then 1 */
+.feature-grid--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Responsive fallbacks */
+@media (max-width: 62rem) {
+  .feature-grid--three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .feature-grid--four  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .feature-grid--services { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 42rem) {
+  .feature-grid--three,
+  .feature-grid--four {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Make sure the inside of all feature cards stays white */
+.feature-card {
+  background: var(--color-surface, #fff);
+}
