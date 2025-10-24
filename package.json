@@ -6,7 +6,8 @@
     "test": "vitest --run",
     "e2e": "playwright test",
     "check:reg": "node scripts/check-reg-symbol.js",
-    "sitemap": "node scripts/generate-sitemap.mjs"
+    "sitemap": "node scripts/generate-sitemap.mjs",
+    "check:legal-links": "node scripts/check-legal-links.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.43.1",
