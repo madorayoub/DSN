@@ -1639,7 +1639,7 @@ header.site-header,
 }
 
 .cta-band__surface {
-  background: var(--brand-50);
+  background: white;
   border-radius: 1.75rem;
   border: 1px solid color-mix(in srgb, var(--brand-200) 35%, transparent);
   padding: clamp(2rem, 5vw, 2.9rem);
