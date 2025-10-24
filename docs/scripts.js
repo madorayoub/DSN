@@ -137,8 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const sanitizedTarget = target.replace(/^\/?/, '');
+      const needsTrailingSlash =
+        sanitizedTarget.length > 0 &&
+        !sanitizedTarget.endsWith('/') &&
+        !sanitizedTarget.includes('#') &&
+        !/\.[a-z0-9]+(?:\?.*)?$/i.test(sanitizedTarget);
+      const normalizedTarget = needsTrailingSlash ? `${sanitizedTarget}/` : sanitizedTarget;
       const basePrefix = relativeBase.endsWith('/') ? relativeBase : `${relativeBase}/`;
-      anchor.setAttribute('href', `${basePrefix}${sanitizedTarget}`);
+      anchor.setAttribute('href', `${basePrefix}${normalizedTarget}`);
     });
 
     const header = document.querySelector('.site-header, header.site-header');

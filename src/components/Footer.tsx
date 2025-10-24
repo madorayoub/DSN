@@ -201,10 +201,14 @@ const Footer = () => {
                   <a href="#faq-section">FAQ</a>
                 </li>
                 <li>
-                  <a href="/privacy-policy">Privacy Policy</a>
+                  <Link href="/privacy-policy" prefetch={false}>
+                    Privacy Policy
+                  </Link>
                 </li>
                 <li>
-                  <a href="/terms-of-service">Terms of Service</a>
+                  <Link href="/terms-of-service" prefetch={false}>
+                    Terms of Service
+                  </Link>
                 </li>
               </ul>
             </div>
