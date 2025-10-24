@@ -1,5 +1,7 @@
 # DSN
 
+> **Legal content note:** Next.js routes currently read from `docs/privacy.html` and `docs/terms.html`, while the pretty URLs serve `docs/privacy-policy/index.html` and `docs/terms-of-service/index.html`. Update both copies of the legal text (or consolidate them) whenever edits are required.
+
 ## Deployment
 
 The production-ready static site lives in the `docs/` directory so GitHub Pages can deploy it without

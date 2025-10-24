@@ -1,3 +1,5 @@
 https://www.directsales.network/*  https://directsales.network/:splat  301!
 /services.html                    /services-and-solutions.html       301
 /solutions.html                   /services-and-solutions.html       301
+/privacy-policy      /privacy-policy/      301
+/terms-of-service    /terms-of-service/    301
