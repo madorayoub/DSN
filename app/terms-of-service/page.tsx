@@ -7,7 +7,7 @@ const MAIN_END = "</main>";
 
 const termsHtmlSource = readFileSync(
   join(process.cwd(), "docs", "terms.html"),
-  "utf8",
+  "utf8"
 );
 
 const startIndex = termsHtmlSource.indexOf(MAIN_START);
@@ -17,7 +17,9 @@ if (startIndex === -1 || endIndex === -1) {
   throw new Error("Unable to locate terms markup in docs/terms.html");
 }
 
-const termsMarkup = termsHtmlSource.slice(startIndex + MAIN_START.length, endIndex).trim();
+const termsMarkup = termsHtmlSource
+  .slice(startIndex + MAIN_START.length, endIndex)
+  .trim();
 
 export const metadata: Metadata = {
   title: "Terms of Service | Direct Sales Network (DSN)",
