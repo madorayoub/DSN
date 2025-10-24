@@ -1286,6 +1286,12 @@ header.site-header,
   gap: clamp(1.25rem, 3vw, 1.75rem);
 }
 
+@media (min-width: 62rem) {
+  .channels-detailed__grid > :last-child {
+    grid-column: 2;
+  }
+}
+
 .icon-circle {
   display: inline-flex;
   align-items: center;
