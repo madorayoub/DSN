@@ -3686,3 +3686,34 @@ details[open] > .accordion__summary::after {
   box-shadow: 0 20px 60px rgba(0,0,0,0.06);
   padding: clamp(1.25rem, 2.5vw, 2rem);
 }
+
+/* --- Legal page polish --- */
+.page.page--narrow { max-width: 70ch; }
+.section + .section { margin-top: 2.25rem; }
+.page__lede { margin-bottom: 1.5rem; }
+
+.toc { padding: 1rem; border: 1px solid var(--border, #e6e6e6); border-radius: .5rem; background: #fafafa; }
+.toc ol { margin: .5rem 0 0; padding-left: 1.25rem; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+.callout { padding: 1rem; border-left: .25rem solid #19ad50; background: #f2fbf6; border-radius: .25rem; }
+.callout--keypoints ul { margin: 0; }
+
+.def-list { display: grid; gap: .75rem 1rem; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .def-list { grid-template-columns: 0.35fr 1fr; } }
+.def-term { font-weight: 600; }
+.def-desc { margin: 0; }
+
+.table-wrapper { overflow-x: auto; margin-top: .5rem; }
+table { width: 100%; border-collapse: collapse; table-layout: auto; }
+thead th { position: sticky; top: 0; background: #fff; }
+th, td { padding: .6rem .7rem; border-bottom: 1px solid #e9e9e9; text-align: left; vertical-align: top; }
+tbody tr:nth-child(odd) { background: #fcfcfc; }
+caption { text-align: left; font-weight: 600; margin-bottom: .25rem; color: #333; }
+
+.back-to-top { margin-top: 1rem; font-size: .9rem; }
+.back-to-top a { text-decoration: none; color: inherit; opacity: .75; }
+.back-to-top a:hover { text-decoration: underline; opacity: 1; }
+
+/* End legal page polish */
