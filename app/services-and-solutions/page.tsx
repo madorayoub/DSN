@@ -2,16 +2,6 @@ import Link from "next/link";
 
 import { BOOK_A_CALL_PATH } from "../../src/lib/links";
 
-const heroChannels = [
-  "Omnichannel appointment setting",
-  "Cold email outreach",
-  "Cold and intent calling",
-  "Voicemails",
-  "SMS / WhatsApp",
-  "LinkedIn lead generation",
-  "Paid advertising",
-];
-
 const channelHighlights = [
   {
     name: "Omnichannel appointment setting",
@@ -268,34 +258,6 @@ const differentiators = [
   },
 ];
 
-function Hero() {
-  return (
-    <section className="section section--tight hero-services">
-      <div className="container hero-services__layout">
-        <div className="hero-services__content">
-          <h1>Services &amp; solutions</h1>
-          <p className="lead">
-            Transcending industry fluctuations, our growth solutions will continuously increase your pipeline up to 45% at
-            just a fourth of the in-house cost.
-          </p>
-        </div>
-        <div className="hero-services__actions">
-          <div className="channels-grid hero-services__chips" role="list" aria-label="Outreach channels">
-            {heroChannels.map((channel) => (
-              <div className="chip" role="listitem" key={channel}>
-                {channel}
-              </div>
-            ))}
-          </div>
-          <Link className="btn btn-primary" href={BOOK_A_CALL_PATH} prefetch={false}>
-            Talk to an expert
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function ChannelHighlights() {
   return (
     <section className="section section--alt channels-detailed">
@@ -390,7 +352,6 @@ function ClosingCTA() {
 export default function Page() {
   return (
     <main id="main-content">
-      <Hero />
       <ChannelHighlights />
       <CoreServices />
       <Differentiators />
