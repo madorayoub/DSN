@@ -1,0 +1,424 @@
+.page {
+  padding-block: clamp(3rem, 6vw, 4.5rem);
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.intro {
+  max-width: 48rem;
+  padding-bottom: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+.eyebrow {
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--brand-600);
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  line-height: 1.05;
+  margin-bottom: 1rem;
+}
+
+.lede {
+  color: var(--color-subtle);
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.section {
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+}
+
+.sectionHeader {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: clamp(1.75rem, 4vw, 2.5rem);
+  max-width: 42rem;
+}
+
+.sectionHeader p {
+  color: var(--color-muted);
+}
+
+.videoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+.videoCard {
+  background: var(--color-surface);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.videoButton {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  gap: 1.25rem;
+  padding: clamp(1.5rem, 4vw, 2rem);
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  color: inherit;
+}
+
+.videoButton:focus-visible {
+  outline: 3px solid var(--brand-500);
+  outline-offset: 4px;
+}
+
+.videoMedia {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.videoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.playBadge {
+  position: absolute;
+  inset: auto auto 1rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand-500) 84%, transparent);
+  color: var(--color-surface);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--brand-500) 28%, transparent);
+}
+
+.playBadge svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  fill: currentColor;
+}
+
+.videoContent {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.videoContent h3 {
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+
+.videoContent p {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
+.videoCarousel {
+  display: none;
+  background: var(--color-surface);
+  border-radius: 1.5rem;
+  padding: clamp(1.5rem, 5vw, 2.25rem);
+  box-shadow: var(--shadow-soft);
+  margin-top: 1.5rem;
+}
+
+.carouselHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.carouselPosition {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+
+.carouselControls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.carouselControl {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-300);
+  background: var(--color-surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.carouselControl svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  fill: none;
+}
+
+.carouselControl:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.carouselControl:not(:disabled):hover,
+.carouselControl:not(:disabled):focus-visible {
+  background: var(--brand-500);
+  border-color: var(--brand-500);
+  color: var(--color-surface);
+  outline: none;
+}
+
+.carouselViewport {
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.carouselTrack {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  transition: transform 320ms ease;
+}
+
+.carouselSlide {
+  padding: 0.5rem 0;
+}
+
+.carouselAccessibleRegion {
+  margin-top: 1.25rem;
+}
+
+.carouselAccessibleRegion:focus-visible {
+  outline: 3px solid var(--brand-500);
+  outline-offset: 6px;
+}
+
+.carouselDots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.carouselDot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--border-350);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.carouselDot[aria-current="true"] {
+  background: var(--brand-500);
+}
+
+.carouselDot:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+}
+
+.caseGrid {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.caseCard {
+  background: var(--color-surface);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.caseMedia {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.caseMedia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.caseContent {
+  display: grid;
+  gap: 0.75rem;
+  padding: clamp(1.5rem, 4vw, 2rem);
+}
+
+.caseIndustry {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  color: var(--brand-600);
+}
+
+.caseContent h3 {
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.caseContent p {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
+.caseLink {
+  font-weight: 600;
+  color: var(--brand-600);
+}
+
+.caseCarousel {
+  display: none;
+  background: var(--color-surface);
+  border-radius: 1.5rem;
+  padding: clamp(1.5rem, 5vw, 2.25rem);
+  box-shadow: var(--shadow-soft);
+  margin-top: 1.5rem;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--ink-inverse, #061318) 70%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 2.5rem);
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--color-surface);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-soft);
+  max-width: min(60rem, 100%);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  gap: 1rem;
+}
+
+.modalHeader h2 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+.modalClose {
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), color var(--transition);
+}
+
+.modalClose svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  fill: none;
+}
+
+.modalClose:hover,
+.modalClose:focus-visible {
+  background: var(--brand-500);
+  color: var(--color-surface);
+  outline: none;
+}
+
+.modalBody {
+  display: grid;
+  gap: 1.25rem;
+  padding: 0 clamp(1.25rem, 3vw, 1.75rem) clamp(1.5rem, 4vw, 2rem);
+  color: var(--color-muted);
+}
+
+.modalMedia {
+  aspect-ratio: 16 / 9;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #000;
+}
+
+.modalMedia iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+@media (max-width: 62rem) {
+  .videoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 50rem) {
+  .videoGrid {
+    display: none;
+  }
+
+  .videoCarousel {
+    display: block;
+  }
+
+  .caseGrid {
+    display: none;
+  }
+
+  .caseCarousel {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carouselTrack {
+    transition: none;
+  }
+
+  .carouselControl,
+  .modalClose {
+    transition: none;
+  }
+}
