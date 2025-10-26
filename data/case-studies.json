@@ -1,0 +1,104 @@
+{
+  "videos": [
+    {
+      "id": "vid-001",
+      "title": "Scaling Conversational AI for Support",
+      "client": "AcmeCo",
+      "industry": "SaaS",
+      "duration": "02:31",
+      "thumbnail": "/case-studies/acmeco-support.jpg",
+      "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      "tags": ["Customer Support", "Automation"]
+    },
+    {
+      "id": "vid-002",
+      "title": "Unlocking 5x Demo Volume",
+      "client": "Northwind Dynamics",
+      "industry": "Cloud Infrastructure",
+      "duration": "03:04",
+      "thumbnail": "/case-studies/northwind-demos.jpg",
+      "videoUrl": "https://player.vimeo.com/video/76979871",
+      "tags": ["Demand Gen", "Pipeline"]
+    },
+    {
+      "id": "vid-003",
+      "title": "Onboarding 40 SDRs in 30 Days",
+      "client": "Globex",
+      "industry": "Fintech",
+      "duration": "02:47",
+      "thumbnail": "/case-studies/globex-onboarding.jpg",
+      "videoUrl": "https://www.youtube.com/embed/V-_O7nl0Ii0",
+      "tags": ["Revenue Operations", "Enablement"]
+    },
+    {
+      "id": "vid-004",
+      "title": "Driving 12 Enterprise Wins",
+      "client": "Initech",
+      "industry": "Enterprise SaaS",
+      "duration": "04:12",
+      "thumbnail": "/case-studies/initech-wins.jpg",
+      "videoUrl": "https://player.vimeo.com/video/22439234",
+      "tags": ["Enterprise", "ABM"]
+    }
+  ],
+  "cards": [
+    {
+      "id": "cs-001",
+      "title": "Reducing Ticket Backlog by 40%",
+      "client": "Globex",
+      "industry": "Fintech",
+      "summary": "How we automated triage and deflection to slash response times.",
+      "thumbnail": "/case-studies/globex-backlog.jpg",
+      "href": "/case-studies/globex",
+      "tags": ["Support", "Deflection"]
+    },
+    {
+      "id": "cs-002",
+      "title": "From Founder-Led to Scalable Pipeline",
+      "client": "AcmeCo",
+      "industry": "SaaS",
+      "summary": "Building a full-cycle revenue engine that books 120 qualified demos a month.",
+      "thumbnail": "/case-studies/acmeco-pipeline.jpg",
+      "href": "/case-studies/acmeco",
+      "tags": ["Pipeline", "SDR Ops"]
+    },
+    {
+      "id": "cs-003",
+      "title": "Standing Up a LATAM Outbound Team",
+      "client": "Initech",
+      "industry": "Enterprise SaaS",
+      "summary": "Localized playbooks and coaching that unlocked a brand-new revenue region.",
+      "thumbnail": "/case-studies/initech-latam.jpg",
+      "tags": ["International", "Outbound"]
+    },
+    {
+      "id": "cs-004",
+      "title": "40% Lift in Enterprise Win Rate",
+      "client": "Vehement Ventures",
+      "industry": "Cybersecurity",
+      "summary": "Multi-threading and intent signals that shortened complex buying cycles.",
+      "thumbnail": "/case-studies/vehement-winrate.jpg",
+      "href": "/case-studies/vehement",
+      "tags": ["Enterprise", "ABM"]
+    },
+    {
+      "id": "cs-005",
+      "title": "Product-Led Motions that Convert",
+      "client": "Fabrikam",
+      "industry": "DevTools",
+      "summary": "Usage-based nurture journeys that doubled trial-to-paid conversions.",
+      "thumbnail": "/case-studies/fabrikam-product-led.jpg",
+      "tags": ["PLG", "Lifecycle"]
+    },
+    {
+      "id": "cs-006",
+      "title": "Sales Enablement in 8 Weeks",
+      "client": "Contoso",
+      "industry": "AI Infrastructure",
+      "summary": "A modular enablement system that ramps new reps in under 21 days.",
+      "thumbnail": "/case-studies/contoso-enablement.jpg",
+      "href": "/case-studies/contoso",
+      "tags": ["Enablement", "Playbooks"]
+    }
+  ]
+}
