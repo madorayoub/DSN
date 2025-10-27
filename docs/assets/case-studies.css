@@ -1,0 +1,424 @@
+.case-studies__page {
+  padding-block: clamp(3rem, 6vw, 4.5rem);
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.case-studies__intro {
+  max-width: 48rem;
+  padding-bottom: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+.case-studies__eyebrow {
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--brand-600);
+  margin-bottom: 0.75rem;
+}
+
+.case-studies__title {
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  line-height: 1.05;
+  margin-bottom: 1rem;
+}
+
+.case-studies__lede {
+  color: var(--color-subtle);
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.case-studies__section {
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+}
+
+.case-studies__section-header {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: clamp(1.75rem, 4vw, 2.5rem);
+  max-width: 42rem;
+}
+
+.case-studies__section-header p {
+  color: var(--color-muted);
+}
+
+.case-studies__video-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+.case-studies__video-card {
+  background: var(--color-surface);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.case-studies__video-button {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  gap: 1.25rem;
+  padding: clamp(1.5rem, 4vw, 2rem);
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  color: inherit;
+}
+
+.case-studies__video-button:focus-visible {
+  outline: 3px solid var(--brand-500);
+  outline-offset: 4px;
+}
+
+.case-studies__video-media {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.case-studies__video-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.case-studies__play-badge {
+  position: absolute;
+  inset: auto auto 1rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand-500) 84%, transparent);
+  color: var(--color-surface);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--brand-500) 28%, transparent);
+}
+
+.case-studies__play-badge svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  fill: currentColor;
+}
+
+.case-studies__video-content {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.case-studies__video-content h3 {
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+
+.case-studies__video-content p {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
+.case-studies__video-carousel {
+  display: none;
+  background: var(--color-surface);
+  border-radius: 1.5rem;
+  padding: clamp(1.5rem, 5vw, 2.25rem);
+  box-shadow: var(--shadow-soft);
+  margin-top: 1.5rem;
+}
+
+.case-studies__carousel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.case-studies__carousel-position {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+
+.case-studies__carousel-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.case-studies__carousel-control {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-300);
+  background: var(--color-surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.case-studies__carousel-control svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  fill: none;
+}
+
+.case-studies__carousel-control:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.case-studies__carousel-control:not(:disabled):hover,
+.case-studies__carousel-control:not(:disabled):focus-visible {
+  background: var(--brand-500);
+  border-color: var(--brand-500);
+  color: var(--color-surface);
+  outline: none;
+}
+
+.case-studies__carousel-viewport {
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.case-studies__carousel-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  transition: transform 320ms ease;
+}
+
+.case-studies__carousel-slide {
+  padding: 0.5rem 0;
+}
+
+.case-studies__carousel-accessible-region {
+  margin-top: 1.25rem;
+}
+
+.case-studies__carousel-accessible-region:focus-visible {
+  outline: 3px solid var(--brand-500);
+  outline-offset: 6px;
+}
+
+.case-studies__carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.case-studies__carousel-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--border-350);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.case-studies__carousel-dot[aria-current="true"] {
+  background: var(--brand-500);
+}
+
+.case-studies__carousel-dot:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+}
+
+.case-studies__case-grid {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.case-studies__case-card {
+  background: var(--color-surface);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.case-studies__case-media {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.case-studies__case-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.case-studies__case-content {
+  display: grid;
+  gap: 0.75rem;
+  padding: clamp(1.5rem, 4vw, 2rem);
+}
+
+.case-studies__case-industry {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  color: var(--brand-600);
+}
+
+.case-studies__case-content h3 {
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.case-studies__case-content p {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
+.case-studies__case-link {
+  font-weight: 600;
+  color: var(--brand-600);
+}
+
+.case-studies__case-carousel {
+  display: none;
+  background: var(--color-surface);
+  border-radius: 1.5rem;
+  padding: clamp(1.5rem, 5vw, 2.25rem);
+  box-shadow: var(--shadow-soft);
+  margin-top: 1.5rem;
+}
+
+.case-studies__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--ink-inverse, #061318) 70%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 2.5rem);
+  z-index: 1000;
+}
+
+.case-studies__modal {
+  background: var(--color-surface);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-soft);
+  max-width: min(60rem, 100%);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.case-studies__modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  gap: 1rem;
+}
+
+.case-studies__modal-header h2 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+.case-studies__modal-close {
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), color var(--transition);
+}
+
+.case-studies__modal-close svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  fill: none;
+}
+
+.case-studies__modal-close:hover,
+.case-studies__modal-close:focus-visible {
+  background: var(--brand-500);
+  color: var(--color-surface);
+  outline: none;
+}
+
+.case-studies__modal-body {
+  display: grid;
+  gap: 1.25rem;
+  padding: 0 clamp(1.25rem, 3vw, 1.75rem) clamp(1.5rem, 4vw, 2rem);
+  color: var(--color-muted);
+}
+
+.case-studies__modal-media {
+  aspect-ratio: 16 / 9;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #000;
+}
+
+.case-studies__modal-media iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+@media (max-width: 62rem) {
+  .case-studies__video-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 50rem) {
+  .case-studies__video-grid {
+    display: none;
+  }
+
+  .case-studies__video-carousel {
+    display: block;
+  }
+
+  .case-studies__case-grid {
+    display: none;
+  }
+
+  .case-studies__case-carousel {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-studies__carousel-track {
+    transition: none;
+  }
+
+  .case-studies__carousel-control,
+  .case-studies__modal-close {
+    transition: none;
+  }
+}

@@ -29,6 +29,7 @@
     <meta name="theme-color" content="#19ad50" />
     <link rel="stylesheet" href="./tokens.css" />
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./assets/case-studies.css" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -53,61 +54,8 @@
   <body>
     <header data-fragment="header"></header>
 
-    <main class="container page page--narrow" id="main-content">
-      <h1 class="page__title">Case studies</h1>
-      <p class="page__lede">
-        Every Direct Sales Network (DSN) engagement is designed to create measurable, repeatable pipeline. The snapshots
-        below summarize how we help growth-stage and enterprise revenue teams unlock stalled territories, reach buying
-        committees faster, and close new business with confidence.
-      </p>
-
-      <section class="section" aria-labelledby="case-metrics">
-        <h2 id="case-metrics">Pipeline wins at a glance</h2>
-        <ul>
-          <li>
-            <strong>Global fintech scale-up:</strong> 312% increase in qualified demos within six months by combining
-            intent monitoring, localized outreach, and an SDR pod embedded in the client’s RevOps stack.
-          </li>
-          <li>
-            <strong>Industrial automation leader:</strong> 78 net-new enterprise opportunities sourced in North America
-            through territory-based calling, tailored webinar nurtures, and executive follow-up scripts.
-          </li>
-          <li>
-            <strong>SaaS cybersecurity platform:</strong> Re-engaged 41 dormant accounts and revived $3.4M in pipeline
-            using persona-specific cadences and CISO roundtables hosted by DSN strategists.
-          </li>
-        </ul>
-      </section>
-
-      <section class="section" aria-labelledby="case-methodology">
-        <h2 id="case-methodology">How DSN delivers results</h2>
-        <p>
-          Our programs begin with deep research: total addressable market sizing, persona mapping, buying committee
-          analysis, and channel performance benchmarks. We translate those insights into omnichannel sequences that blend
-          email, phone, social, direct mail, and paid air cover. SDRs and content strategists collaborate daily, using a
-          shared reporting workspace to review conversion metrics and iterate quickly.
-        </p>
-        <p>
-          Clients stay plugged in with weekly revenue standups, dashboards that surface trending objections, and ABM
-          insights that inform marketing campaigns. Whether you are entering a new geography or repositioning a mature
-          product, DSN supplies the talent, tooling, and playbooks needed to accelerate go-to-market velocity.
-        </p>
-      </section>
-
-      <section class="section" aria-labelledby="case-next">
-        <h2 id="case-next">What happens after a successful pilot</h2>
-        <p>
-          Many of our case studies start with a focused pilot targeting one segment. Once the pilot proves traction, we
-          transition into scaled programs that include multilingual SDR pods, partner enablement cadences, and RevOps
-          automation. We document each experiment so your internal team can inherit processes, scripts, and reporting with
-          zero disruption.
-        </p>
-        <p>
-          Ready to see numbers that match your growth plans? Explore a deeper story or request anonymized dashboards by
-          emailing <a href="mailto:contact@directsales.network">contact@directsales.network</a>. We’ll share relevant
-          examples and outline how DSN can replicate the results for your market.
-        </p>
-      </section>
+    <main id="main-content">
+      <div id="case-studies-root"></div>
     </main>
 
     <footer data-fragment="footer"></footer>
@@ -348,6 +296,10 @@
       </div>
     </footer>
     </template>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel" data-presets="env,react" src="./assets/case-studies.jsx"></script>
     <script src="./scripts.js" defer></script>
   </body>
 </html>
