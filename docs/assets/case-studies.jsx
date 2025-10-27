@@ -608,7 +608,7 @@ function CaseStudiesPage() {
   );
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function mountCaseStudies() {
   const root = document.getElementById("case-studies-root");
   if (!root) {
     return;
@@ -616,4 +616,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const reactRoot = ReactDOM.createRoot(root);
   reactRoot.render(<CaseStudiesPage />);
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", mountCaseStudies, { once: true });
+} else {
+  mountCaseStudies();
+}
