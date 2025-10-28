@@ -1,0 +1,60 @@
+.page{padding-block:clamp(3rem,8vw,5rem);background:var(--color-background);color:var(--color-text)}
+.intro{max-width:48rem;margin:0 auto clamp(2rem,5vw,3rem);text-align:center}
+.eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--color-subtle)}
+.title{font-size:clamp(2.5rem,6vw,3.25rem);line-height:1.1;margin-block:.75rem .5rem}
+.lede{color:var(--color-muted);font-size:clamp(1rem,2.5vw,1.2rem)}
+.videosSection,.cardsSection{padding-block:clamp(2.5rem,6vw,4rem)}
+.sectionHeader{display:grid;gap:.5rem;margin-bottom:1.75rem}
+.sectionTitle{font-size:clamp(1.75rem,4vw,2.25rem);line-height:1.2}
+.sectionDescription{color:var(--color-muted);max-width:38rem}
+.videoGrid{display:none;gap:1.5rem}
+.videoCarousel{margin-top:1rem}
+@media (min-width:40rem){.videoCarousel{display:none}.videoGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:64rem){.videoGrid{gap:2rem}}
+.videoTile,.videoTileCompact,.card,.cardCompact{height:100%}
+.videoButton{background:var(--color-surface);border:1px solid color-mix(in srgb,var(--color-muted)16%,transparent);border-radius:1rem;padding:1rem;width:100%;text-align:left;display:flex;flex-direction:column;gap:.85rem;color:inherit;cursor:pointer;transition:transform 200ms ease,box-shadow 200ms ease,border-color 200ms ease;box-shadow:0 20px 36px color-mix(in srgb,var(--ink-inverse,#061318)8%,transparent)}
+.videoButton:focus-visible,.cardLink:focus-visible,.carouselButton:focus-visible,.modalClose:focus-visible{outline:3px solid var(--color-accent);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){.videoButton:hover,.cardLink:hover{transform:translateY(-4px);box-shadow:0 26px 42px color-mix(in srgb,var(--ink-inverse,#061318)14%,transparent)}}
+.videoThumb,.cardThumb{position:relative;display:block;border-radius:.85rem;overflow:hidden;background:color-mix(in srgb,var(--color-muted)12%,transparent)}
+.videoThumb{aspect-ratio:16/9}
+.cardThumb{aspect-ratio:4/3}
+.videoThumb img,.cardThumb img{width:100%;height:100%;object-fit:cover;display:block}
+.videoDuration{position:absolute;right:.75rem;bottom:.75rem;background:color-mix(in srgb,var(--ink-inverse,#061318)88%,black);color:var(--color-on-accent);font-size:.75rem;font-weight:600;padding:.35rem .5rem;border-radius:999px}
+.videoMeta,.cardBody{display:grid;gap:.45rem}
+.videoClient,.cardEyebrow{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--color-subtle)}
+.videoTitle,.cardTitle{font-size:clamp(1.1rem,3vw,1.35rem);font-weight:600}
+.cardSummary{color:var(--color-muted);font-size:.95rem}
+.tagList{display:flex;flex-wrap:wrap;gap:.35rem}
+.tag{font-size:.75rem;padding:.35rem .5rem;border-radius:999px;background:color-mix(in srgb,var(--color-accent)14%,transparent);color:var(--color-accent-dark)}
+.cardsSection{border-top:1px solid color-mix(in srgb,var(--color-muted)18%,transparent)}
+.cardGrid{display:none;gap:1.5rem}
+.cardsCarousel{margin-top:1.25rem}
+@media (min-width:40rem){.cardsCarousel{display:none}.cardGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:64rem){.cardGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:2rem}}
+.cardLink{display:flex;flex-direction:column;gap:1rem;background:var(--color-surface);border:1px solid color-mix(in srgb,var(--color-muted)14%,transparent);border-radius:1rem;padding:1.1rem;text-decoration:none;color:inherit;height:100%;transition:transform 200ms ease,box-shadow 200ms ease,border-color 200ms ease;box-shadow:0 18px 32px color-mix(in srgb,var(--ink-inverse,#061318)6%,transparent)}
+.carousel{display:none;background:transparent}
+@media (max-width:39.9375rem){.carousel,.videoCarousel,.cardsCarousel{display:block}}
+.carouselHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.carouselControls{display:flex;gap:.5rem}
+.carouselButton{width:2.5rem;height:2.5rem;border-radius:999px;border:1px solid color-mix(in srgb,var(--color-muted)16%,transparent);background:var(--color-surface);color:var(--color-text);font-size:1.5rem;line-height:1;display:grid;place-items:center;cursor:pointer;transition:background 200ms ease,transform 200ms ease}
+.carouselButton:disabled{opacity:.5;cursor:not-allowed}
+@media (hover:hover) and (pointer:fine){.carouselButton:not(:disabled):hover{transform:translateY(-2px);background:color-mix(in srgb,var(--color-surface)92%,var(--color-accent)8%)}}
+.carouselDots{display:flex;gap:.4rem;align-items:center}
+.carouselDot{width:.65rem;height:.65rem;border-radius:999px;border:none;background:color-mix(in srgb,var(--color-subtle)40%,transparent);cursor:pointer}
+.carouselDotActive{background:var(--color-accent)}
+.carouselViewport{overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;padding-bottom:.5rem}
+.carouselViewport::-webkit-scrollbar{display:none}
+.carouselTrack{display:flex;gap:1rem;padding-inline:.25rem}
+.carouselSlide{flex:0 0 100%;scroll-snap-align:start}
+.carouselStatus{margin-top:.75rem;font-size:.85rem;color:var(--color-subtle)}
+.modalBackdrop{position:fixed;inset:0;background:color-mix(in srgb,rgba(6,19,24,.86)85%,transparent);display:grid;place-items:center;padding:1.5rem;z-index:1000}
+.modal{position:relative;background:var(--color-surface);border-radius:1.25rem;width:min(62rem,100%);max-height:min(90vh,48rem);overflow:hidden;display:flex;flex-direction:column;gap:1rem;padding:1.5rem;box-shadow:var(--shadow-soft)}
+.modalClose{position:absolute;inset:1rem 1rem auto auto;width:2.5rem;height:2.5rem;border-radius:999px;border:none;background:color-mix(in srgb,var(--color-muted)12%,transparent);color:var(--color-text);font-size:1.5rem;line-height:1;cursor:pointer}
+.modalHeader{padding-right:3rem}
+.modalClient{font-size:.85rem;text-transform:uppercase;letter-spacing:.1em;color:var(--color-subtle);margin-bottom:.4rem}
+.modalTitle{font-size:clamp(1.5rem,4vw,2rem);line-height:1.25}
+.modalBody{flex:1 1 auto;display:grid}
+.modalFrame{aspect-ratio:16/9;background:color-mix(in srgb,var(--color-muted)12%,transparent);border-radius:1rem;overflow:hidden}
+.modalFrame iframe{width:100%;height:100%;border:none}
+.srOnly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion:reduce){.videoButton,.cardLink,.carouselButton,.carouselViewport{transition:none;scroll-behavior:auto}}
