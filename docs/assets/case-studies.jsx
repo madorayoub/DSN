@@ -142,6 +142,8 @@ function CaseStudiesPage() {
     [activeVideoId],
   );
 
+  const visibleCaseStudies = useMemo(() => caseStudies.slice(0, 3), []);
+
   useEffect(() => {
     if (!activeVideoId || !closeButtonRef.current) {
       return;
@@ -263,8 +265,8 @@ function CaseStudiesPage() {
   }, []);
 
   const nextStudy = useCallback(() => {
-    setStudyIndex((index) => Math.min(index + 1, caseStudies.length - 1));
-  }, []);
+    setStudyIndex((index) => Math.min(index + 1, visibleCaseStudies.length - 1));
+  }, [visibleCaseStudies.length]);
 
   const handleVideoKeyDown = (event) => {
     if (event.key === "ArrowRight") {
@@ -451,7 +453,7 @@ function CaseStudiesPage() {
           </div>
 
           <div className={styles.caseGrid}>
-            {caseStudies.map((study) => (
+            {visibleCaseStudies.map((study) => (
               <article key={study.id} className={styles.caseCard}>
                 <div className={styles.caseMedia}>
                   <img
@@ -474,7 +476,7 @@ function CaseStudiesPage() {
             <div className={styles.carouselHeader}>
               <span className={styles.carouselPosition}>
                 <strong>{studyIndex + 1}</strong>
-                <span aria-hidden="true"> / {caseStudies.length}</span>
+                <span aria-hidden="true"> / {visibleCaseStudies.length}</span>
               </span>
               <div className={styles.carouselControls}>
                 <button
@@ -492,7 +494,7 @@ function CaseStudiesPage() {
                   type="button"
                   className={styles.carouselControl}
                   onClick={nextStudy}
-                  disabled={studyIndex === caseStudies.length - 1}
+                  disabled={studyIndex === visibleCaseStudies.length - 1}
                   aria-label="View next case study"
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -513,7 +515,7 @@ function CaseStudiesPage() {
                 aria-live="polite"
                 aria-atomic="true"
               >
-                {caseStudies.map((study, index) => (
+                {visibleCaseStudies.map((study, index) => (
                   <article
                     key={study.id}
                     className={styles.carouselSlide}
@@ -547,7 +549,7 @@ function CaseStudiesPage() {
               onKeyDown={handleStudyKeyDown}
             >
               <div className={styles.carouselDots}>
-                {caseStudies.map((study, index) => (
+                {visibleCaseStudies.map((study, index) => (
                   <button
                     key={study.id}
                     type="button"
