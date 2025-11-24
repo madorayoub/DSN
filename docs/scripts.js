@@ -1,6 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
   const cloneTpl = (id) => (id ? document.getElementById(id)?.content?.cloneNode(true) || null : null);
 
+  const scriptEl =
+    document.currentScript instanceof HTMLScriptElement
+      ? document.currentScript
+      : document.querySelector('script[src*="scripts.js"]');
+
+  const resolvedScriptUrl = scriptEl
+    ? new URL(scriptEl.getAttribute('src') || 'scripts.js', document.baseURI)
+    : new URL('scripts.js', document.baseURI);
+
   const loadFragment = async ({ selector, name, fallbackId }) => {
     const slot = document.querySelector(selector);
 
@@ -24,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const url = new URL(`partials/${name}.html`, document.baseURI).toString();
+    const url = new URL(`partials/${name}.html`, resolvedScriptUrl).toString();
 
     try {
       const res = await fetch(url, { credentials: 'same-origin' });
@@ -48,15 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   Promise.all(fragments.map((fragment) => loadFragment(fragment))).then(() => {
-    const scriptEl =
-      document.currentScript instanceof HTMLScriptElement
-        ? document.currentScript
-        : document.querySelector('script[src*="scripts.js"]');
-
-    const resolvedScriptUrl = scriptEl
-      ? new URL(scriptEl.getAttribute('src') || 'scripts.js', document.baseURI)
-      : new URL('scripts.js', document.baseURI);
-
     const basePathname = resolvedScriptUrl.pathname.replace(/[^/]+$/, '');
 
     const computeRelativeBase = () => {
