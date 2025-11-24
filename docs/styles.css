@@ -1256,7 +1256,7 @@ header.site-header,
 
 @media (min-width: 75rem) {
   .services-categories__grid.feature-grid--services {
-    grid-template-columns: repeat(auto-fit, minmax(26rem, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
