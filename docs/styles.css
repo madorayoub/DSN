@@ -3651,9 +3651,10 @@ details[open] > .accordion__summary::after {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Services list: 2-up on desktop, 1 on mobile */
+/* Services list: match channels with 3-up desktop layout */
+.services-categories__grid.feature-grid--services,
 .feature-grid--services {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 /* 4-up on wide screens, then 2, then 1 */
@@ -3665,12 +3666,15 @@ details[open] > .accordion__summary::after {
 @media (max-width: 62rem) {
   .feature-grid--three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .feature-grid--four  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .feature-grid--services { grid-template-columns: 1fr; }
+  .services-categories__grid.feature-grid--services,
+  .feature-grid--services { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 42rem) {
   .feature-grid--three,
-  .feature-grid--four {
+  .feature-grid--four,
+  .services-categories__grid.feature-grid--services,
+  .feature-grid--services {
     grid-template-columns: 1fr;
   }
 }
