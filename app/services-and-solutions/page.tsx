@@ -272,10 +272,12 @@ function ChannelHighlights() {
         <div className="channels-detailed__grid feature-grid feature-grid--three">
           {channelHighlights.map((channel) => (
             <article className="channel-card feature-card" key={channel.name}>
-              <span className="icon-circle" aria-hidden="true">
-                {channel.icon}
-              </span>
-              <h3>{channel.name}</h3>
+              <div className="feature-card__header">
+                <span className="icon-circle feature-card__icon" aria-hidden="true">
+                  {channel.icon}
+                </span>
+                <h3>{channel.name}</h3>
+              </div>
               <p>{channel.description}</p>
             </article>
           ))}
@@ -295,13 +297,13 @@ function CoreServices() {
         <div className="plan-services__list plan-services__list--cards services-categories__grid feature-grid feature-grid--services">
           {serviceCategories.map((service) => (
             <article className="plan-card feature-card" key={service.title}>
-              <div className="plan-card__body">
-                <span className="plan-card__icon" aria-hidden="true">
+              <div className="feature-card__header">
+                <span className="icon-circle feature-card__icon" aria-hidden="true">
                   {service.icon}
                 </span>
                 <h3 className="plan-card__title">{service.title}</h3>
-                <p className="plan-card__description">{service.description}</p>
               </div>
+              <p className="plan-card__description">{service.description}</p>
             </article>
           ))}
         </div>
@@ -318,10 +320,12 @@ function Differentiators() {
         <div className="differentiators__grid feature-grid feature-grid--four">
           {differentiators.map((item) => (
             <article className="differentiator-card feature-card" key={item.title}>
-              <span className="icon-circle" aria-hidden="true">
-                {item.icon}
-              </span>
-              <h3>{item.title}</h3>
+              <div className="feature-card__header">
+                <span className="icon-circle feature-card__icon" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <h3>{item.title}</h3>
+              </div>
               <p>{item.description}</p>
             </article>
           ))}
