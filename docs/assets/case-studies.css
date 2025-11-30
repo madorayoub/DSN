@@ -480,27 +480,29 @@
   }
 
   .case-studies__carousel-control svg {
-    width: 1.5rem;
-    height: 1.5rem;
-    stroke: #1a1a1a;
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    stroke: #1a1a1a !important;
     /* Explicit color */
-    stroke-width: 2.5;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    display: block;
+    stroke-width: 2.5 !important;
+    fill: none !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+    display: block !important;
     /* Ensure it's not hidden */
+    opacity: 1 !important;
   }
 
   .case-studies__carousel-control svg path {
-    stroke: #1a1a1a;
+    stroke: #1a1a1a !important;
     /* Explicit color on path too */
-    fill: none;
+    fill: none !important;
+    opacity: 1 !important;
   }
 
   .case-studies__carousel-control:not(:disabled) {
-    color: #1a1a1a;
-    opacity: 1;
+    color: #1a1a1a !important;
+    opacity: 1 !important;
   }
 
   .case-studies__carousel-control:disabled {

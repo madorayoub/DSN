@@ -353,7 +353,7 @@ function CaseStudiesPage() {
                   disabled={videoIndex === 0}
                   aria-label="View previous video"
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M15 6 9 12l6 6" />
                   </svg>
                 </button>
@@ -364,7 +364,7 @@ function CaseStudiesPage() {
                   disabled={videoIndex === featuredVideos.length - 1}
                   aria-label="View next video"
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="m9 6 6 6-6 6" />
                   </svg>
                 </button>
@@ -486,7 +486,7 @@ function CaseStudiesPage() {
                   disabled={studyIndex === 0}
                   aria-label="View previous case study"
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M15 6 9 12l6 6" />
                   </svg>
                 </button>
@@ -497,7 +497,7 @@ function CaseStudiesPage() {
                   disabled={studyIndex === visibleCaseStudies.length - 1}
                   aria-label="View next case study"
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="m9 6 6 6-6 6" />
                   </svg>
                 </button>
