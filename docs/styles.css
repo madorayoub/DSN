@@ -4124,7 +4124,126 @@ caption {
   }
 
   .footer-callout {
-    padding: 1.25rem;
+    padding: 1.75rem 1.5rem;
+    gap: 1.5rem;
+  }
+
+  /* Hide ALL footer logos on mobile */
+  .footer-callout .brand--footer,
+  .footer-callout .brand,
+  .footer-column--brand .brand--footer,
+  .footer-column--brand .brand,
+  .site-footer .brand--footer,
+  .site-footer .brand-mark {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .footer-callout__content {
+    gap: 1.25rem;
+    align-items: center;
+    /* Center logo and text on mobile */
+    text-align: center;
+  }
+
+  .footer-callout__value {
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    font-weight: 500;
+  }
+
+  .footer-callout__cta {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  /* Footer main optimization */
+  .footer-main {
+    margin-top: 2rem;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .footer-column {
+    gap: 1rem;
+  }
+
+  .footer-column__title {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .footer-column__blurb {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .footer-links,
+  .footer-contact {
+    gap: 0.65rem;
+    font-size: 0.9rem;
+  }
+
+  .footer-social {
+    gap: 0.625rem;
+  }
+
+  .footer-social a {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .footer-social svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .footer-subfooter {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    gap: 1rem;
+  }
+
+  .footer-subfooter__copy {
+    font-size: 0.875rem;
+  }
+
+  .footer-subfooter__actions {
+    gap: 0.875rem;
+  }
+
+  .footer-subfooter__links {
+    gap: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  .footer-language {
+    gap: 0.625rem;
+    font-size: 0.875rem;
+  }
+
+  .footer-language select {
+    padding: 0.45rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Center footer brand logo on mobile */
+  .footer-column--brand {
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-column--brand .brand {
+    margin-bottom: 0.5rem;
   }
 }
 
