@@ -3,3 +3,5 @@ export const SITE_URL =
   process.env.SITE_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||
   'https://directsales.network';
+
+export const PHONE_NUMBER = '+15615567182';

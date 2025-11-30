@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { BOOK_A_CALL_PATH } from "../lib/links";
+import { PHONE_NUMBER } from "../../site.config";
 
 const Footer = () => {
   const [language, setLanguage] = useState("en");
@@ -106,6 +107,9 @@ const Footer = () => {
                 Direct Sales Network® builds predictable revenue engines for ambitious B2B teams.
               </p>
               <ul className="footer-contact">
+                <li>
+                  <a href={`tel:${PHONE_NUMBER}`}>{PHONE_NUMBER}</a>
+                </li>
                 <li>
                   <a href="mailto:hello@belkins.com">hello@belkins.com</a>
                 </li>
