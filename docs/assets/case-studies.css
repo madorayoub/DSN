@@ -482,15 +482,25 @@
   .case-studies__carousel-control svg {
     width: 1.5rem;
     height: 1.5rem;
-    stroke: currentColor;
+    stroke: #1a1a1a;
+    /* Explicit color */
     stroke-width: 2.5;
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
+    display: block;
+    /* Ensure it's not hidden */
+  }
+
+  .case-studies__carousel-control svg path {
+    stroke: #1a1a1a;
+    /* Explicit color on path too */
+    fill: none;
   }
 
   .case-studies__carousel-control:not(:disabled) {
     color: #1a1a1a;
+    opacity: 1;
   }
 
   .case-studies__carousel-control:disabled {
