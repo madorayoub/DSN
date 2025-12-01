@@ -50,10 +50,15 @@
   <header data-fragment="header"></header>
 
   <main id="main-content" class="book-call-page">
-    <section class="section hero-book" aria-labelledby="book-call-title">
-      <div class="container">
-        <h1 id="book-call-title" class="h1">Book a call with our experts</h1>
-        <p class="lead">
+    <section class="section section--tight hero-book" aria-labelledby="book-call-title">
+      <div class="hero-book__decorations" aria-hidden="true">
+        <div class="hero-book__decoration hero-book__decoration--1"></div>
+        <div class="hero-book__decoration hero-book__decoration--2"></div>
+        <div class="hero-book__decoration hero-book__decoration--3"></div>
+      </div>
+      <div class="container hero-book__content">
+        <h1 id="book-call-title" class="hero-book__title">Book a call with our experts</h1>
+        <p class="hero-book__lead">
           Schedule a free, no-obligation consultation to see how Direct Sales Network® can accelerate your pipeline with
           an omnichannel plan tailored to your ICP.
         </p>
@@ -73,23 +78,55 @@
       </div>
     </section>
 
-    <section class="section" aria-labelledby="why-dsn">
+    <section class="section section--tight" aria-labelledby="why-dsn">
       <div class="container">
-        <h2 id="why-dsn" class="h3">Why growth leaders book with DSN</h2>
-        <ul class="cards-grid cards-grid--four" role="list">
-          <li class="card">
+        <h2 id="why-dsn" class="h3 section-title">Why growth leaders book with DSN</h2>
+        <ul class="cards-grid cards-grid--four values-grid__list" role="list">
+          <li class="values-grid__card">
+            <span class="icon-circle values-grid__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </span>
             <h3 class="card__title">Proven track record</h3>
             <p class="card__body">Playbooks that generate consistent pipeline for teams like yours.</p>
           </li>
-          <li class="card">
+          <li class="values-grid__card">
+            <span class="icon-circle values-grid__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </span>
             <h3 class="card__title">Omnichannel strategies</h3>
             <p class="card__body">Email, call, social, and paid motions working together for speed.</p>
           </li>
-          <li class="card">
+          <li class="values-grid__card">
+            <span class="icon-circle values-grid__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
+              </svg>
+            </span>
             <h3 class="card__title">Customized roadmaps</h3>
             <p class="card__body">Aligned to your ICP, buying committees, and revenue targets.</p>
           </li>
-          <li class="card">
+          <li class="values-grid__card">
+            <span class="icon-circle values-grid__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </span>
             <h3 class="card__title">No pressure — just insights</h3>
             <p class="card__body">Leave with actionable recommendations, whether we work together or not.</p>
           </li>
