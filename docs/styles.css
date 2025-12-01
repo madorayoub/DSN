@@ -4998,10 +4998,11 @@ caption {
   }
 
   .hero-actions .btn-primary {
-    min-width: 280px;
-    max-width: 380px;
-    padding: 1rem 2.5rem;
-    font-size: 1.0625rem;
+    min-width: unset;
+    width: auto;
+    max-width: none;
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
     font-weight: 700;
     border-radius: 0.625rem;
     box-shadow: 0 4px 14px color-mix(in srgb, var(--color-accent) 30%, transparent);
