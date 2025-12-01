@@ -3886,10 +3886,10 @@ footer.site-footer {
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--text-900) 0%, var(--brand-800) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  background: none;
+  -webkit-text-fill-color: initial;
+  background-clip: border-box;
+  color: var(--color-text);
   margin-bottom: 0.5rem;
 }
 
@@ -5020,10 +5020,18 @@ caption {
     margin-bottom: 2.5rem;
   }
 
+  .desktop-break {
+    display: block;
+  }
+
   .hero-marquee {
     margin-top: 2.75rem;
     padding-block: 2rem;
   }
+}
+
+.desktop-break {
+  display: none;
 }
 
 /* Larger desktop screens */
