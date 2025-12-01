@@ -7,6 +7,7 @@
   <title>About Direct Sales Network (DSN) | Mission, Team & Values</title>
   <meta name="description"
     content="Explore Direct Sales Network (DSN) mission, leadership principles, and values guiding our global revenue team partnerships and client outcomes." />
+  <meta name="keywords" content="Direct Sales Network, DSN, About DSN, B2B Sales Mission, Revenue Growth Team" />
   <link rel="canonical" href="https://directsales.network/about.html" />
   <meta property="og:title" content="About Direct Sales Network (DSN) | Mission, Team & Values" />
   <meta property="og:description"
@@ -26,19 +27,30 @@
   <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
+        "@graph": [
           {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "https://directsales.network/"
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://directsales.network/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "About",
+                "item": "https://directsales.network/about.html"
+              }
+            ]
           },
           {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "About",
-            "item": "https://directsales.network/about.html"
+            "@type": "Organization",
+            "@id": "https://directsales.network#organization",
+            "name": "Direct Sales Network",
+            "url": "https://directsales.network",
+            "logo": "https://directsales.network/assets/brand/logo.png"
           }
         ]
       }
