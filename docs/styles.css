@@ -5481,3 +5481,697 @@ caption {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+/* ========================================
+   CAREERS PAGE STYLES
+   ======================================== */
+
+/* Careers Page Container */
+.careers-page {
+  background: var(--color-background);
+}
+
+/* Careers Hero Section */
+.careers-hero {
+  position: relative;
+  padding: clamp(5rem, 10vw, 8rem) 0 clamp(4rem, 8vw, 6rem);
+  background:
+    radial-gradient(120% 120% at 0% 0%, color-mix(in oklab, var(--brand-500) 16%, white), transparent),
+    radial-gradient(80% 80% at 100% 10%, color-mix(in oklab, var(--brand-500) 12%, white), transparent),
+    var(--color-surface);
+  color: var(--text-900);
+  overflow: hidden;
+}
+
+.careers-hero::before,
+.careers-hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in oklab, var(--brand-500) 8%, white), transparent);
+  pointer-events: none;
+  filter: blur(1px);
+  animation: float 20s ease-in-out infinite;
+}
+
+.careers-hero::before {
+  width: clamp(20rem, 35vw, 28rem);
+  height: clamp(20rem, 35vw, 28rem);
+  top: -15%;
+  right: -8%;
+}
+
+.careers-hero::after {
+  width: clamp(16rem, 30vw, 24rem);
+  height: clamp(16rem, 30vw, 24rem);
+  bottom: -15%;
+  left: -10%;
+  animation-delay: -10s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -30px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+.careers-hero .container {
+  position: relative;
+  z-index: 1;
+}
+
+.careers-hero__content {
+  max-width: 52rem;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.careers-hero__eyebrow {
+  font-size: 0.9rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--brand-600);
+}
+
+.careers-hero__title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.careers-hero__lead {
+  font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+  color: var(--text-700);
+  max-width: 46ch;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.careers-hero__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Benefits Section */
+.careers-benefits,
+.careers-positions,
+.careers-values,
+.careers-process {
+  padding: clamp(4rem, 8vw, 6rem) 0;
+}
+
+.careers-benefits__header,
+.careers-positions__header,
+.careers-values__header,
+.careers-process__header {
+  text-align: center;
+  max-width: 48rem;
+  margin: 0 auto clamp(3rem, 6vw, 4.5rem);
+}
+
+.section-eyebrow {
+  display: block;
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--brand-600);
+  margin-bottom: 0.75rem;
+}
+
+.section-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.15;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-700);
+  max-width: 42ch;
+  margin: 0 auto;
+}
+
+.careers-benefits__grid {
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.benefit-card {
+  background: var(--color-surface);
+  border-radius: 1.75rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--ink-inverse) 6%, transparent);
+  transition: transform var(--transition), box-shadow var(--transition);
+  border: 1px solid color-mix(in srgb, var(--border-300) 20%, transparent);
+}
+
+.benefit-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 56px color-mix(in srgb, var(--ink-inverse) 12%, transparent);
+}
+
+.benefit-card__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1.25rem;
+  display: grid;
+  place-items: center;
+  background: var(--gradient-brand-soft);
+  color: var(--brand-600);
+  flex-shrink: 0;
+}
+
+.benefit-card__icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  stroke-width: 2.5;
+}
+
+.benefit-card__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-900);
+}
+
+.benefit-card__description {
+  font-size: 0.98rem;
+  color: var(--text-700);
+  line-height: 1.6;
+}
+
+/* Positions Section */
+.careers-positions {
+  background: var(--color-surface);
+}
+
+.careers-positions__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.position-card {
+  background: var(--color-background);
+  border-radius: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--border-300) 25%, transparent);
+  overflow: hidden;
+  transition: box-shadow var(--transition), border-color var(--transition);
+}
+
+.position-card:hover {
+  box-shadow: 0 16px 32px color-mix(in srgb, var(--ink-inverse) 8%, transparent);
+  border-color: var(--brand-500);
+}
+
+.position-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.75rem 2rem;
+  cursor: pointer;
+  gap: 1rem;
+}
+
+.position-card__title-group {
+  flex: 1;
+}
+
+.position-card__title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-900);
+  margin-bottom: 0.5rem;
+}
+
+.position-card__meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--text-700);
+}
+
+.position-card__location,
+.position-card__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.position-card__type {
+  padding: 0.25rem 0.75rem;
+  background: color-mix(in srgb, var(--brand-500) 12%, transparent);
+  color: var(--brand-700);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.position-card__toggle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--border-300) 40%, transparent);
+  background: var(--color-surface);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.position-card__toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-700);
+  transition: transform var(--transition);
+}
+
+.position-card:hover .position-card__toggle {
+  background: var(--brand-500);
+  border-color: var(--brand-500);
+}
+
+.position-card:hover .position-card__toggle svg {
+  color: white;
+}
+
+.position-card.is-expanded .position-card__toggle svg {
+  transform: rotate(180deg);
+}
+
+.position-card__content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+  padding: 0 2rem;
+}
+
+.position-card.is-expanded .position-card__content {
+  max-height: 1000px;
+  padding: 0 2rem 2rem;
+}
+
+.position-card__section {
+  margin-bottom: 1.75rem;
+}
+
+.position-card__section h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-900);
+  margin-bottom: 0.75rem;
+}
+
+.position-card__section ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.position-card__section li {
+  padding-left: 1.5rem;
+  position: relative;
+  color: var(--text-700);
+  line-height: 1.6;
+}
+
+.position-card__section li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--brand-600);
+  font-weight: bold;
+}
+
+.position-card__apply {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.careers-positions__cta {
+  text-align: center;
+  margin-top: 3rem;
+  padding: 2.5rem;
+  background: var(--color-background);
+  border-radius: 1.5rem;
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid color-mix(in srgb, var(--border-300) 20%, transparent);
+}
+
+.careers-positions__cta p {
+  font-size: 1.05rem;
+  color: var(--text-700);
+  line-height: 1.6;
+}
+
+.careers-positions__cta p:first-child {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text-900);
+  margin-bottom: 0.5rem;
+}
+
+.careers-positions__cta a {
+  color: var(--brand-600);
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color var(--transition);
+}
+
+.careers-positions__cta a:hover {
+  color: var(--brand-700);
+}
+
+/* Values Section */
+.careers-values__grid {
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.value-card {
+  background: var(--color-surface);
+  border-radius: 1.75rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--ink-inverse) 6%, transparent);
+  transition: transform var(--transition), box-shadow var(--transition);
+  border: 1px solid color-mix(in srgb, var(--border-300) 20%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+
+.value-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-brand-strong);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition);
+}
+
+.value-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 56px color-mix(in srgb, var(--ink-inverse) 12%, transparent);
+}
+
+.value-card:hover::before {
+  transform: scaleX(1);
+}
+
+.value-card__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1.25rem;
+  display: grid;
+  place-items: center;
+  background: var(--gradient-brand-soft);
+  color: var(--brand-600);
+  flex-shrink: 0;
+}
+
+.value-card__icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  stroke-width: 2.5;
+}
+
+.value-card__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-900);
+}
+
+.value-card__description {
+  font-size: 0.98rem;
+  color: var(--text-700);
+  line-height: 1.6;
+}
+
+/* Process Timeline Section */
+.careers-process {
+  background: var(--color-surface);
+}
+
+.careers-process__timeline {
+  max-width: 52rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+}
+
+.careers-process__timeline::before {
+  content: "";
+  position: absolute;
+  left: 1.5rem;
+  top: 3rem;
+  bottom: 3rem;
+  width: 2px;
+  background: linear-gradient(to bottom,
+    var(--brand-500),
+    color-mix(in srgb, var(--brand-500) 40%, transparent));
+}
+
+.process-step {
+  display: flex;
+  gap: 2rem;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.process-step__number {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--gradient-brand-strong);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-500) 30%, transparent);
+  position: relative;
+  z-index: 1;
+}
+
+.process-step__content {
+  flex: 1;
+  padding-bottom: 0.5rem;
+}
+
+.process-step__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-900);
+  margin-bottom: 0.5rem;
+}
+
+.process-step__description {
+  font-size: 1rem;
+  color: var(--text-700);
+  line-height: 1.6;
+}
+
+.careers-process__note {
+  margin-top: 2rem;
+  padding: 1.75rem;
+  background: color-mix(in srgb, var(--brand-500) 8%, transparent);
+  border-left: 4px solid var(--brand-600);
+  border-radius: 0.75rem;
+  max-width: 52rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.careers-process__note p {
+  font-size: 0.95rem;
+  color: var(--text-700);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.careers-process__note strong {
+  color: var(--text-900);
+  font-weight: 700;
+}
+
+.careers-process__note a {
+  color: var(--brand-600);
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color var(--transition);
+}
+
+.careers-process__note a:hover {
+  color: var(--brand-700);
+}
+
+/* Final CTA Section */
+.careers-cta {
+  padding: clamp(4rem, 8vw, 6rem) 0;
+  background:
+    radial-gradient(100% 100% at 50% 0%, color-mix(in oklab, var(--brand-500) 12%, white), transparent),
+    var(--color-background);
+}
+
+.careers-cta__content {
+  text-align: center;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.careers-cta__title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.15;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.careers-cta__description {
+  font-size: 1.15rem;
+  color: var(--text-700);
+  margin-bottom: 2rem;
+  max-width: 40ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.careers-cta__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 48rem) {
+  .careers-hero {
+    padding: clamp(3.5rem, 8vw, 5rem) 0 clamp(3rem, 6vw, 4rem);
+  }
+
+  .careers-hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .careers-hero__actions .btn {
+    width: 100%;
+  }
+
+  .careers-benefits__grid,
+  .careers-values__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .benefit-card,
+  .value-card {
+    padding: 1.75rem 1.5rem;
+  }
+
+  .position-card__header {
+    padding: 1.5rem;
+  }
+
+  .position-card__content {
+    padding: 0 1.5rem;
+  }
+
+  .position-card.is-expanded .position-card__content {
+    padding: 0 1.5rem 1.5rem;
+  }
+
+  .position-card__title {
+    font-size: 1.15rem;
+  }
+
+  .position-card__meta {
+    font-size: 0.85rem;
+  }
+
+  .careers-process__timeline::before {
+    left: 1.25rem;
+  }
+
+  .process-step {
+    gap: 1.5rem;
+    padding-left: 0.5rem;
+  }
+
+  .process-step__number {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.1rem;
+  }
+
+  .process-step__title {
+    font-size: 1.1rem;
+  }
+
+  .careers-positions__cta {
+    padding: 2rem 1.5rem;
+  }
+
+  .careers-cta__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .careers-cta__actions .btn {
+    width: 100%;
+  }
+}
+
+/* Tablet Optimizations */
+@media (min-width: 48rem) and (max-width: 62rem) {
+  .careers-benefits__grid,
+  .careers-values__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .careers-hero::before,
+  .careers-hero::after {
+    animation: none;
+  }
+
+  .benefit-card,
+  .value-card,
+  .position-card {
+    transition: box-shadow var(--transition);
+  }
+
+  .benefit-card:hover,
+  .value-card:hover {
+    transform: none;
+  }
+}

@@ -71,84 +71,439 @@
 <body>
   <header data-fragment="header"></header>
 
-  <main class="container page page--narrow" id="main-content">
-    <h1 class="page__title">Careers</h1>
-    <p class="page__lede">
-      Direct Sales Network (DSN) is a fully distributed revenue organization where strategists, SDRs, marketers, and
-      data scientists collaborate to build predictable growth engines for complex B2B companies. We hire curious
-      people who love experimentation, thrive on cross-functional collaboration, and measure success by the meetings
-      and revenue we create for clients.
-    </p>
-
-    <section class="section" aria-labelledby="career-growth">
-      <h2 id="career-growth">Grow with a distributed revenue team</h2>
-      <p>
-        DSN operates across North America, Europe, and LATAM, so you can work where you have the strongest impact.
-        Every teammate pairs with a mentor, follows a personalized enablement track, and receives quarterly learning
-        stipends to deepen channel expertise. From omnichannel cadences to RevOps automation, you will work with
-        playbooks that set the standard for how modern pipeline teams operate.
-      </p>
-      <p>
-        We prioritize outcomes over office hours. Flexible schedules, asynchronous collaboration, and clear goals let
-        you manage your energy while delivering measurable pipeline. Benefits include competitive compensation,
-        wellness days, and home-office stipends that make remote work sustainable.
-      </p>
+  <main class="careers-page" id="main-content">
+    <!-- Hero Section -->
+    <section class="careers-hero">
+      <div class="container">
+        <div class="careers-hero__content">
+          <span class="careers-hero__eyebrow">Join Our Team</span>
+          <h1 class="careers-hero__title">
+            Build Your Career in Revenue Growth
+          </h1>
+          <p class="careers-hero__lead">
+            Join a distributed team of strategists, SDRs, and RevOps specialists building predictable growth engines
+            for ambitious B2B companies. Work remotely, grow continuously, and make a measurable impact.
+          </p>
+          <div class="careers-hero__actions">
+            <a href="#open-positions" class="btn btn-primary">View Open Positions</a>
+            <a href="#culture" class="btn btn-outline">Learn About Our Culture</a>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="section" aria-labelledby="career-roles">
-      <h2 id="career-roles">Roles we hire throughout the year</h2>
-      <ul>
-        <li>
-          <strong>Sales Development Representatives:</strong> Run multichannel prospecting, personalize outreach, and
-          book executive-level meetings.
-        </li>
-        <li>
-          <strong>Engagement Managers:</strong> Partner with clients to design revenue programs, analyze data, and keep
-          execution aligned to KPIs.
-        </li>
-        <li>
-          <strong>RevOps Specialists:</strong> Architect CRM, intent, and analytics workflows that give teams a unified
-          view of funnel performance.
-        </li>
-        <li>
-          <strong>Content &amp; Paid Strategists:</strong> Build messaging, enablement assets, and paid campaigns that
-          amplify outbound momentum.
-        </li>
-      </ul>
-      <p>
-        Don’t see your ideal role listed? We regularly open contractor-to-hire engagements and internships across
-        analytics, research, and creative teams. Reach out at
-        <a href="mailto:contact@directsales.network">contact@directsales.network</a> with a short note about how you
-        can help revenue leaders grow faster.
-      </p>
+    <!-- Benefits Section -->
+    <section class="careers-benefits" id="why-join">
+      <div class="container">
+        <div class="careers-benefits__header">
+          <span class="section-eyebrow">Why Join DSN</span>
+          <h2 class="section-title">Built for Revenue Talent</h2>
+          <p class="section-subtitle">
+            We invest in our team with benefits designed to help you thrive professionally and personally.
+          </p>
+        </div>
+
+        <div class="careers-benefits__grid">
+          <!-- Benefit Card 1 -->
+          <div class="benefit-card">
+            <div class="benefit-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </div>
+            <h3 class="benefit-card__title">100% Remote</h3>
+            <p class="benefit-card__description">
+              Work from anywhere across North America, Europe, or LATAM with flexible schedules that respect your time.
+            </p>
+          </div>
+
+          <!-- Benefit Card 2 -->
+          <div class="benefit-card">
+            <div class="benefit-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+            </div>
+            <h3 class="benefit-card__title">Learning & Growth</h3>
+            <p class="benefit-card__description">
+              Quarterly learning stipends, personalized enablement tracks, and continuous skill development programs.
+            </p>
+          </div>
+
+          <!-- Benefit Card 3 -->
+          <div class="benefit-card">
+            <div class="benefit-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <h3 class="benefit-card__title">Competitive Pay</h3>
+            <p class="benefit-card__description">
+              Market-leading compensation packages with performance bonuses and transparent career progression paths.
+            </p>
+          </div>
+
+          <!-- Benefit Card 4 -->
+          <div class="benefit-card">
+            <div class="benefit-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+              </svg>
+            </div>
+            <h3 class="benefit-card__title">Wellness First</h3>
+            <p class="benefit-card__description">
+              Wellness days, mental health support, and home office stipends to keep you healthy and productive.
+            </p>
+          </div>
+
+          <!-- Benefit Card 5 -->
+          <div class="benefit-card">
+            <div class="benefit-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <h3 class="benefit-card__title">1:1 Mentorship</h3>
+            <p class="benefit-card__description">
+              Every team member pairs with an experienced mentor who guides your professional development.
+            </p>
+          </div>
+
+          <!-- Benefit Card 6 -->
+          <div class="benefit-card">
+            <div class="benefit-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                </path>
+              </svg>
+            </div>
+            <h3 class="benefit-card__title">Inclusive Culture</h3>
+            <p class="benefit-card__description">
+              Diverse perspectives strengthen our work. We welcome teammates from every background.
+            </p>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="section" aria-labelledby="career-process">
-      <h2 id="career-process">How our hiring process works</h2>
-      <ol>
-        <li>
-          <strong>Application review:</strong> We evaluate your experience, metrics, and motivation to align you with
-          the right pod and vertical.
-        </li>
-        <li>
-          <strong>Skills conversation:</strong> Meet a DSN leader to walk through scenarios, past wins, and how you
-          approach prioritization.
-        </li>
-        <li>
-          <strong>Paid simulation:</strong> Collaborate on a mini-project using our frameworks so you can experience our
-          workflow before joining.
-        </li>
-        <li>
-          <strong>Offer &amp; onboarding:</strong> If it’s a fit, we map your 30-60-90 day plan, assign a mentor, and
-          set
-          your first revenue goals.
-        </li>
-      </ol>
-      <p>
-        We believe diverse perspectives strengthen our client work. DSN is an equal opportunity employer and welcomes
-        teammates from every background. If you require accommodations during the hiring process, email us and we’ll
-        respond within two business days.
-      </p>
+    <!-- Open Positions Section -->
+    <section class="careers-positions" id="open-positions">
+      <div class="container">
+        <div class="careers-positions__header">
+          <span class="section-eyebrow">Open Positions</span>
+          <h2 class="section-title">Join Our Team</h2>
+          <p class="section-subtitle">
+            We're hiring across sales development, RevOps, and strategy. Find your next opportunity.
+          </p>
+        </div>
+
+        <div class="careers-positions__grid">
+          <!-- Position 1 -->
+          <div class="position-card">
+            <div class="position-card__header">
+              <div class="position-card__title-group">
+                <h3 class="position-card__title">Sales Development Representative</h3>
+                <div class="position-card__meta">
+                  <span class="position-card__location">🌍 Remote</span>
+                  <span class="position-card__type">Full-time</span>
+                </div>
+              </div>
+              <button class="position-card__toggle" aria-label="Expand position details">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
+            <div class="position-card__content">
+              <div class="position-card__section">
+                <h4>What You'll Do</h4>
+                <ul>
+                  <li>Run multichannel prospecting campaigns across email, LinkedIn, and phone</li>
+                  <li>Personalize outreach to executive-level buyers in complex B2B markets</li>
+                  <li>Book qualified meetings and hand off to client account executives</li>
+                  <li>Collaborate with strategists to refine messaging and targeting</li>
+                </ul>
+              </div>
+              <div class="position-card__section">
+                <h4>What We're Looking For</h4>
+                <ul>
+                  <li>1+ years in SDR or inside sales role (B2B preferred)</li>
+                  <li>Strong written communication and research skills</li>
+                  <li>Self-motivated and comfortable with asynchronous collaboration</li>
+                  <li>Excitement about experimentation and data-driven iteration</li>
+                </ul>
+              </div>
+              <a href="mailto:contact@directsales.network?subject=Application: Sales Development Representative"
+                class="btn btn-primary position-card__apply">
+                Apply Now
+              </a>
+            </div>
+          </div>
+
+          <!-- Position 2 -->
+          <div class="position-card">
+            <div class="position-card__header">
+              <div class="position-card__title-group">
+                <h3 class="position-card__title">RevOps Specialist</h3>
+                <div class="position-card__meta">
+                  <span class="position-card__location">🌍 Remote</span>
+                  <span class="position-card__type">Full-time</span>
+                </div>
+              </div>
+              <button class="position-card__toggle" aria-label="Expand position details">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
+            <div class="position-card__content">
+              <div class="position-card__section">
+                <h4>What You'll Do</h4>
+                <ul>
+                  <li>Architect CRM workflows, automations, and data integrations</li>
+                  <li>Build dashboards that give teams visibility into funnel performance</li>
+                  <li>Manage intent data, enrichment tools, and analytics platforms</li>
+                  <li>Partner with strategists to optimize conversion at every stage</li>
+                </ul>
+              </div>
+              <div class="position-card__section">
+                <h4>What We're Looking For</h4>
+                <ul>
+                  <li>2+ years in RevOps, Sales Ops, or Marketing Ops</li>
+                  <li>Proficiency with HubSpot, Salesforce, or similar CRM platforms</li>
+                  <li>Experience with APIs, Zapier, or workflow automation tools</li>
+                  <li>Analytical mindset with attention to data quality</li>
+                </ul>
+              </div>
+              <a href="mailto:contact@directsales.network?subject=Application: RevOps Specialist"
+                class="btn btn-primary position-card__apply">
+                Apply Now
+              </a>
+            </div>
+          </div>
+
+          <!-- Position 3 -->
+          <div class="position-card">
+            <div class="position-card__header">
+              <div class="position-card__title-group">
+                <h3 class="position-card__title">Engagement Manager</h3>
+                <div class="position-card__meta">
+                  <span class="position-card__location">🌍 Remote</span>
+                  <span class="position-card__type">Full-time</span>
+                </div>
+              </div>
+              <button class="position-card__toggle" aria-label="Expand position details">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
+            <div class="position-card__content">
+              <div class="position-card__section">
+                <h4>What You'll Do</h4>
+                <ul>
+                  <li>Lead strategic planning and execution for client revenue programs</li>
+                  <li>Analyze campaign data and present actionable insights to stakeholders</li>
+                  <li>Coordinate cross-functional pods (SDRs, RevOps, content teams)</li>
+                  <li>Keep clients aligned to KPIs and deliver consistent pipeline growth</li>
+                </ul>
+              </div>
+              <div class="position-card__section">
+                <h4>What We're Looking For</h4>
+                <ul>
+                  <li>3+ years in revenue operations, consulting, or account management</li>
+                  <li>Strong project management and stakeholder communication skills</li>
+                  <li>Ability to translate data into strategic recommendations</li>
+                  <li>Experience managing B2B sales or marketing programs</li>
+                </ul>
+              </div>
+              <a href="mailto:contact@directsales.network?subject=Application: Engagement Manager"
+                class="btn btn-primary position-card__apply">
+                Apply Now
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="careers-positions__cta">
+          <p>Don't see your ideal role listed?</p>
+          <p>We regularly open contractor-to-hire engagements and internships. <a
+              href="mailto:contact@directsales.network">Reach out</a> with a note about your skills and interests.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Company Values Section -->
+    <section class="careers-values" id="culture">
+      <div class="container">
+        <div class="careers-values__header">
+          <span class="section-eyebrow">Our Culture</span>
+          <h2 class="section-title">Values That Guide Us</h2>
+          <p class="section-subtitle">
+            Our principles shape how we work, collaborate, and deliver results for our clients.
+          </p>
+        </div>
+
+        <div class="careers-values__grid">
+          <!-- Value 1 -->
+          <div class="value-card">
+            <div class="value-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <h3 class="value-card__title">Collaboration First</h3>
+            <p class="value-card__description">
+              We win together. Cross-functional teamwork, knowledge sharing, and transparent communication drive our
+              success.
+            </p>
+          </div>
+
+          <!-- Value 2 -->
+          <div class="value-card">
+            <div class="value-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                <line x1="15" y1="9" x2="15.01" y2="9"></line>
+              </svg>
+            </div>
+            <h3 class="value-card__title">Experimentation</h3>
+            <p class="value-card__description">
+              We test, learn, and iterate. Curiosity and data-driven decision making help us stay ahead of the curve.
+            </p>
+          </div>
+
+          <!-- Value 3 -->
+          <div class="value-card">
+            <div class="value-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+            </div>
+            <h3 class="value-card__title">Outcomes Over Activity</h3>
+            <p class="value-card__description">
+              We measure success by pipeline created and revenue delivered, not hours logged or tasks completed.
+            </p>
+          </div>
+
+          <!-- Value 4 -->
+          <div class="value-card">
+            <div class="value-card__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                <path d="M2 17l10 5 10-5"></path>
+                <path d="M2 12l10 5 10-5"></path>
+              </svg>
+            </div>
+            <h3 class="value-card__title">Diversity Strengthens Us</h3>
+            <p class="value-card__description">
+              Different backgrounds, perspectives, and experiences make our strategies more effective and our culture
+              richer.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Application Process Section -->
+    <section class="careers-process">
+      <div class="container">
+        <div class="careers-process__header">
+          <span class="section-eyebrow">Our Process</span>
+          <h2 class="section-title">How Hiring Works</h2>
+          <p class="section-subtitle">
+            A transparent, candidate-focused process designed to find the right mutual fit.
+          </p>
+        </div>
+
+        <div class="careers-process__timeline">
+          <!-- Step 1 -->
+          <div class="process-step">
+            <div class="process-step__number">1</div>
+            <div class="process-step__content">
+              <h3 class="process-step__title">Application Review</h3>
+              <p class="process-step__description">
+                We evaluate your experience, metrics, and motivation. We'll reach out within 5 business days if there's
+                a potential fit.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="process-step">
+            <div class="process-step__number">2</div>
+            <div class="process-step__content">
+              <h3 class="process-step__title">Skills Conversation</h3>
+              <p class="process-step__description">
+                Meet a DSN leader to discuss scenarios, past wins, and how you approach prioritization. This is a
+                two-way conversation.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="process-step">
+            <div class="process-step__number">3</div>
+            <div class="process-step__content">
+              <h3 class="process-step__title">Paid Simulation</h3>
+              <p class="process-step__description">
+                Collaborate on a mini-project using our frameworks. Experience our workflow and see if the role fits
+                your
+                working style.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="process-step">
+            <div class="process-step__number">4</div>
+            <div class="process-step__content">
+              <h3 class="process-step__title">Offer & Onboarding</h3>
+              <p class="process-step__description">
+                If it's a fit, we map your 30-60-90 day plan, assign a mentor, and set your first revenue goals.
+                Welcome aboard!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="careers-process__note">
+          <p>
+            <strong>Accommodations:</strong> We welcome teammates from every background. If you require accommodations
+            during the hiring process, email us at <a
+              href="mailto:contact@directsales.network">contact@directsales.network</a> and we'll respond within two
+            business days.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="careers-cta">
+      <div class="container">
+        <div class="careers-cta__content">
+          <h2 class="careers-cta__title">Ready to Join the Team?</h2>
+          <p class="careers-cta__description">
+            Explore our open positions and start your journey with DSN. We're excited to meet you.
+          </p>
+          <div class="careers-cta__actions">
+            <a href="#open-positions" class="btn btn-primary">View Open Positions</a>
+            <a href="mailto:contact@directsales.network" class="btn btn-outline">Contact Us</a>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -348,6 +703,29 @@
     </footer>
   </template>
   <script src="./scripts.js" defer></script>
+  <script>
+    // Toggle position card details
+    document.addEventListener('DOMContentLoaded', function () {
+      const positionCards = document.querySelectorAll('.position-card');
+
+      positionCards.forEach(card => {
+        const toggle = card.querySelector('.position-card__toggle');
+        const content = card.querySelector('.position-card__content');
+
+        toggle.addEventListener('click', function () {
+          const isExpanded = card.classList.contains('is-expanded');
+
+          // Close all other cards
+          positionCards.forEach(c => c.classList.remove('is-expanded'));
+
+          // Toggle current card
+          if (!isExpanded) {
+            card.classList.add('is-expanded');
+          }
+        });
+      });
+    });
+  </script>
 </body>
 
 </html>
