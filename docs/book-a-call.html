@@ -28,19 +28,41 @@
   <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
+        "@graph": [
           {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "https://directsales.network/"
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://directsales.network/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Book a call",
+                "item": "https://directsales.network/book-a-call.html"
+              }
+            ]
           },
           {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Book a call",
-            "item": "https://directsales.network/book-a-call.html"
+            "@type": "Organization",
+            "@id": "https://directsales.network#organization",
+            "name": "Direct Sales Network",
+            "alternateName": "DSN",
+            "url": "https://directsales.network",
+            "logo": "https://directsales.network/assets/brand/logo.png",
+            "telephone": "+15615567182",
+            "email": "contact@directsales.network",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "250 International Pkwy Suite 134",
+              "addressLocality": "Lake Mary",
+              "addressRegion": "FL",
+              "postalCode": "32746",
+              "addressCountry": "US"
+            }
           }
         ]
       }
