@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const url = new URL(`partials/${name}.html`, resolvedScriptUrl).toString();
+    // Use absolute path from root to ensure consistent loading on all pages
+    const url = `/partials/${name}.html`;
 
     try {
       const res = await fetch(url, { credentials: 'same-origin' });
