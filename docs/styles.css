@@ -6175,3 +6175,373 @@ caption {
     transform: none;
   }
 }
+/* ===============================================
+   LEGAL PAGES STYLING (Privacy Policy & Terms)
+   =============================================== */
+
+/* Legal Hero Section */
+.legal-hero {
+    position: relative;
+    padding: clamp(3.5rem, 6vw, 5rem) 0 clamp(2.5rem, 4vw, 3.5rem);
+    background:
+        radial-gradient(120% 120% at 0% 0%, color-mix(in oklab, var(--brand-500) 14%, white), transparent),
+        radial-gradient(80% 80% at 95% 5%, color-mix(in oklab, var(--brand-500) 10%, white), transparent),
+        var(--color-surface);
+    overflow: hidden;
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.legal-hero::before,
+.legal-hero::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in oklab, var(--brand-500) 5%, white), transparent);
+    pointer-events: none;
+    filter: blur(50px);
+}
+
+.legal-hero::before {
+    width: clamp(16rem, 28vw, 22rem);
+    height: clamp(16rem, 28vw, 22rem);
+    top: -15%;
+    right: -8%;
+}
+
+.legal-hero::after {
+    width: clamp(12rem, 24vw, 18rem);
+    height: clamp(12rem, 24vw, 18rem);
+    bottom: -15%;
+    left: -10%;
+    background: radial-gradient(circle, color-mix(in oklab, var(--brand-500) 8%, white), transparent);
+}
+
+.legal-hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.legal-hero__eyebrow {
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--brand-600);
+    margin-bottom: 0.75rem;
+}
+
+.legal-hero__title {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    line-height: 1.1;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.legal-hero__meta {
+    font-size: 1rem;
+    color: var(--color-muted);
+    margin-bottom: 0.5rem;
+}
+
+.legal-hero__meta strong {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+/* Legal Sections */
+.legal-section {
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.legal-section h2 {
+    position: relative;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid color-mix(in srgb, var(--brand-500) 15%, transparent);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.legal-section h2::before {
+    content: attr(data-number);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: var(--gradient-brand-soft);
+    color: var(--brand-600);
+    font-size: 1rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.legal-section h3 {
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
+    font-weight: 600;
+    margin-top: 1.75rem;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+}
+
+.legal-section p {
+    line-height: 1.7;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+}
+
+.legal-section ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.legal-section li {
+    margin-bottom: 0.5rem;
+    line-height: 1.7;
+}
+
+.legal-section .def-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.legal-section .def-list li {
+    margin-bottom: 1.5rem;
+}
+
+.def-term {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.def-desc {
+    color: var(--color-muted);
+    margin-left: 1rem;
+}
+
+/* Enhanced Table of Contents */
+.toc-wrapper {
+    background: var(--color-surface);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    border: 1px solid color-mix(in srgb, var(--brand-500) 10%, transparent);
+    margin-bottom: 2rem;
+}
+
+.toc-wrapper h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+    border: none;
+    padding: 0;
+}
+
+.toc-wrapper h2::before {
+    display: none;
+}
+
+.toc {
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+}
+
+.toc ol {
+    list-style: decimal;
+    margin: 0.75rem 0 0;
+    padding-left: 1.5rem;
+}
+
+.toc li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.toc a {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color var(--transition);
+    font-weight: 500;
+}
+
+.toc a:hover {
+    color: var(--brand-600);
+    text-decoration: none;
+}
+
+.toc p {
+    margin-top: 1rem;
+    font-size: 0.95rem;
+}
+
+.toc p a {
+    color: var(--brand-600);
+    font-weight: 600;
+}
+
+/* Enhanced Callouts */
+.callout {
+    padding: 1.5rem;
+    border-left: 4px solid var(--brand-500);
+    background: linear-gradient(135deg,
+            color-mix(in oklab, var(--brand-500) 8%, white),
+            color-mix(in oklab, var(--brand-500) 12%, white));
+    border-radius: 0.75rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.callout--keypoints {
+    border-left-color: var(--brand-500);
+    background: linear-gradient(135deg,
+            color-mix(in oklab, var(--brand-500) 8%, white),
+            color-mix(in oklab, var(--brand-500) 12%, white));
+}
+
+.callout ul {
+    margin-bottom: 0;
+}
+
+.callout li {
+    margin-bottom: 0.75rem;
+}
+
+.callout li:last-child {
+    margin-bottom: 0;
+}
+
+/* Table Styling */
+.table-wrapper {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
+}
+
+.table-wrapper caption {
+    text-align: left;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 1rem;
+    background: color-mix(in srgb, var(--brand-500) 8%, white);
+    color: var(--color-text);
+}
+
+.table-wrapper thead {
+    background: var(--gradient-brand-soft);
+}
+
+.table-wrapper th {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--brand-600);
+    border-bottom: 2px solid var(--brand-500);
+    font-size: 0.95rem;
+}
+
+.table-wrapper td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-900) 8%, transparent);
+    line-height: 1.6;
+}
+
+.table-wrapper tbody tr:hover {
+    background: color-mix(in srgb, var(--brand-500) 4%, white);
+}
+
+.table-wrapper tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Back to Top Link */
+.back-to-top {
+    margin-top: 1.5rem;
+    text-align: right;
+}
+
+.back-to-top a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--brand-600);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: transform var(--transition), color var(--transition);
+}
+
+.back-to-top a:hover {
+    color: var(--brand-500);
+    transform: translateY(-2px);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 48rem) {
+    .legal-hero {
+        padding: clamp(2.5rem, 5vw, 3.5rem) 0 clamp(2rem, 4vw, 2.5rem);
+    }
+
+    .legal-hero__title {
+        font-size: clamp(2rem, 6vw, 2.75rem);
+    }
+
+    .legal-section h2 {
+        font-size: clamp(1.5rem, 4vw, 1.875rem);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .legal-section h2::before {
+        position: relative;
+        top: 0;
+        left: 0;
+    }
+
+    .toc-wrapper {
+        padding: 1.25rem;
+    }
+
+    .table-wrapper {
+        font-size: 0.9rem;
+    }
+
+    .table-wrapper th,
+    .table-wrapper td {
+        padding: 0.625rem 0.75rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+
+    .legal-hero::before,
+    .legal-hero::after {
+        display: none;
+    }
+
+    .back-to-top {
+        display: none;
+    }
+
+    .toc-wrapper {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
