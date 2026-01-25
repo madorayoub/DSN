@@ -446,10 +446,9 @@
         <div class="wrap">
             <span class="eyebrow"><span class="dot" aria-hidden="true"></span>Pre‑Sold Network</span>
 
-            <h1 id="hero-pro12-title">Stop Wasting Money on <span class="accent">Tire‑Kicker Leads</span> That Never
-                Close</h1>
-            <p class="lead">Get <strong>Pre‑Sold Jobs</strong> from customers who already said "Yes" and have the budget
-                ready.</p>
+            <h1 id="hero-pro12-title">Stop Chasing Work. Start <span class="accent">Getting Invited to It.</span></h1>
+            <p class="lead">We put you in front of decision-makers with real projects. Spend less time hunting and more
+                time working.</p>
 
             <div class="actions">
                 <a class="btn" href="#book" data-action="open-booking">
@@ -458,14 +457,6 @@
                             stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                     <span>Book Your Strategy Call</span>
-                </a>
-                <!-- The link now points to the existing "how-combined-title" heading -->
-                <a class="link" href="#how-combined-title">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" />
-                    </svg>
-                    <span>How it works</span>
                 </a>
             </div>
         </div>
@@ -476,172 +467,110 @@
     <!-- Section: Problem (no image) | Namespace: ns-problem-c413b -->
     <section class="ns-problem-c413b" data-section="problem" aria-labelledby="problem-title">
         <style>
-            /* =================== ns-problem-c413b ===================
-       Theme knobs (safe to tweak per page):
-       --pb-bg, --pb-surface, --pb-text, --pb-muted, --pb-accent, --pb-hair
-       Spacing/shape: --pb-space, --pb-radius
-       Type scale: --pb-h1, --pb-lead, --pb-body, --pb-small
-       NOTE: No CTA and no media in this section.
-    ======================================================== */
             .ns-problem-c413b {
-                /* brand palette from knowledge base */
                 --pb-bg: #f8fafc;
-                /* light bg */
                 --pb-surface: #ffffff;
-                /* card bg */
                 --pb-text: #111316;
-                /* primary dark */
                 --pb-muted: #515a67;
-                /* muted text */
                 --pb-accent: #2fcc41;
-                /* brand green */
                 --pb-hair: #e6ebf0;
-                /* hairline */
-
-                --pb-space: clamp(1rem, 3vw, 2.5rem);
+                --pb-space: clamp(2rem, 5vw, 4rem);
                 --pb-radius: 14px;
-
-                /* type scale (consistent across elements) */
-                --pb-h1: clamp(1.75rem, 3.6vw, 2.25rem);
-                --pb-lead: clamp(1rem, 2.2vw, 1.125rem);
-                --pb-body: 1rem;
+                --pb-h1: clamp(1.5rem, 3vw, 2rem);
+                --pb-lead: clamp(1.05rem, 2.2vw, 1.2rem);
+                --pb-body: 1.05rem;
                 --pb-small: .9rem;
-
                 font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
                 color: var(--pb-text);
                 background: var(--pb-bg);
             }
 
-            /* Local reset (scoped) */
             .ns-problem-c413b :where(*, *::before, *::after) {
                 box-sizing: border-box
             }
 
-            .ns-problem-c413b :where(h1, h2, h3, p, ul, ol) {
+            .ns-problem-c413b :where(h1, h2, h3, p) {
                 margin: 0
             }
 
-            .ns-problem-c413b :where(a, button) {
-                color: inherit;
-                font: inherit;
-                text-decoration: none;
-                background: none;
-                border: 0
-            }
-
-            .ns-problem-c413b :where(:focus-visible) {
-                outline: 2px solid var(--pb-accent);
-                outline-offset: 2px
-            }
-
-            /* Layout */
             .ns-problem-c413b .wrap {
-                max-width: 1120px;
+                max-width: 800px;
                 margin-inline: auto;
-                padding: calc(var(--pb-space)*1.6) 16px
+                padding: var(--pb-space) 16px;
+                display: grid;
+                gap: 2rem;
             }
 
-            .ns-problem-c413b .content {
-                max-width: 760px
-            }
-
-            /* Content */
             .ns-problem-c413b .eyebrow {
                 font-size: var(--pb-small);
                 letter-spacing: .12em;
                 text-transform: uppercase;
                 color: var(--pb-accent);
-                font-weight: 700;
-                margin-bottom: .5rem;
+                font-weight: 800;
+                margin-bottom: .8rem;
+                display: inline-block;
             }
 
             .ns-problem-c413b h2 {
                 font-size: var(--pb-h1);
-                line-height: 1.15;
-                font-weight: 800;
-                letter-spacing: -.01em;
-                margin-bottom: .6rem;
+                line-height: 1.1;
+                font-weight: 900;
+                letter-spacing: -.02em;
+                margin-bottom: 1.2rem;
             }
 
             .ns-problem-c413b .lead {
                 font-size: var(--pb-lead);
                 color: var(--pb-muted);
-                margin-bottom: clamp(.9rem, 2.5vw, 1.25rem);
-                max-width: 60ch;
+                line-height: 1.6;
+                font-weight: 500;
             }
 
-            /* Problem list */
-            .ns-problem-c413b .list {
-                list-style: none;
-                padding: 0;
-                margin: 0;
-                display: grid;
-                gap: .75rem;
+            .ns-problem-c413b .highlight {
+                font-size: var(--pb-lead);
+                font-weight: 600;
+                color: var(--pb-muted);
+                line-height: 1.5;
+                margin-top: 1rem;
             }
 
-            .ns-problem-c413b .item {
-                display: grid;
-                grid-template-columns: auto 1fr;
-                gap: .75rem;
-                align-items: start;
+            .ns-problem-c413b .insight-box {
                 background: var(--pb-surface);
                 border: 1px solid var(--pb-hair);
-                border-radius: 12px;
-                padding: .85rem 1rem;
+                border-left: 5px solid var(--pb-accent);
+                border-radius: var(--pb-radius);
+                padding: clamp(1.2rem, 3vw, 1.8rem);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
             }
 
-            .ns-problem-c413b .icon-box {
-                width: 28px;
-                height: 28px;
-                border-radius: 8px;
-                display: grid;
-                place-items: center;
-                background: color-mix(in oklab, var(--pb-accent) 12%, transparent);
+            .ns-problem-c413b .insight-box strong {
+                display: block;
+                font-size: 0.9em;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
                 color: var(--pb-accent);
-                flex: 0 0 28px;
+                margin-bottom: 0.5rem;
             }
 
-            .ns-problem-c413b .icon-box svg {
-                width: 18px;
-                height: 18px;
-            }
-
-            .ns-problem-c413b .item p {
-                font-size: var(--pb-body);
+            .ns-problem-c413b .insight-box p {
+                font-size: var(--pb-lead);
                 line-height: 1.5;
-                color: var(--pb-text)
+                font-weight: 600;
+                color: var(--pb-text);
             }
 
-            /* Consequence note */
-            .ns-problem-c413b .note {
-                margin-top: clamp(1rem, 2.2vw, 1.25rem);
-                background: #fff;
-                border: 1px solid var(--pb-hair);
-                border-left: 4px solid var(--pb-accent);
-                padding: .85rem 1rem;
-                border-radius: 12px;
-                font-size: var(--pb-body);
-                color: var(--pb-muted);
-            }
-
-            @media (min-width: 768px) {
-                .ns-problem-c413b .list {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 1rem;
-                }
+            .ns-problem-c413b .action-line {
+                font-size: var(--pb-lead);
+                font-weight: 800;
+                text-align: center;
+                color: var(--pb-text);
+                margin-top: 1rem;
             }
 
             @media (max-width: 767px) {
                 .ns-problem-c413b .wrap {
-                    padding: 24px 16px;
-                    /* reduced mobile padding */
-                }
-            }
-
-            @media (prefers-reduced-motion: reduce) {
-                .ns-problem-c413b * {
-                    animation: none !important;
-                    transition: none !important
+                    padding: 32px 16px;
+                    gap: 1.5rem;
                 }
             }
         </style>
@@ -649,631 +578,26 @@
         <div class="wrap">
             <div class="content">
                 <p class="eyebrow">The Real Bottleneck</p>
-                <h2 id="problem-title">Great work. Wrong conversations.</h2>
-                <p class="lead">Contractors lose weeks to unqualified leads. It's not a volume problem — it's a filter
-                    problem.</p>
+                <h2 id="problem-title">Commercial work doesn't come from the same places residential does.</h2>
+                <p class="lead">GCs, facility managers, property owners... the people who control the big jobs? They're
+                    not out there looking for you.</p>
+                <p class="lead" style="font-weight: 700; margin-top: 1rem;">You need to be looking for them first.</p>
 
-                <ul class="list" role="list">
-                    <li class="item" role="listitem">
-                        <div class="icon-box">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                aria-hidden="true">
-                                <path d="M12 2v20M2 12h20" clip-rule="evenodd" />
-                                <path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2z"
-                                    opacity="0.2" />
-                                <path d="M12 6v6l4 2" />
-                            </svg>
-                        </div>
-                        <p><strong>Burning gas on tire-kickers:</strong> miles driven, hours gone, calendar still light.
-                        </p>
-                    </li>
-                    <li class="item" role="listitem">
-                        <div class="icon-box">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                aria-hidden="true">
-                                <path d="M9 17h6" />
-                                <path d="M9 13h6" />
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                <path d="M14 2v6h6" />
-                            </svg>
-                        </div>
-                        <p><strong>Estimates that stall:</strong> you measure and price it — then weeks of "checking
-                            around."</p>
-                    </li>
-                    <li class="item" role="listitem">
-                        <div class="icon-box">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                aria-hidden="true">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="15" y1="9" x2="9" y2="15" />
-                                <line x1="9" y1="9" x2="15" y2="15" />
-                            </svg>
-                        </div>
-                        <p><strong>On-site estimates</strong> with non-buyers or no intent to buy.</p>
-                    </li>
-                    <li class="item" role="listitem">
-                        <div class="icon-box">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                aria-hidden="true">
-                                <path
-                                    d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                                <line x1="7" y1="7" x2="7.01" y2="7" />
-                            </svg>
-                        </div>
-                        <p><strong>Price shoppers</strong> chasing the cheapest bid, not the best result.</p>
-                    </li>
-                </ul>
 
-                <p class="note"><strong>Result:</strong> inconsistent pipeline, idle crews, and constant stress about
-                    the
-                    next job.</p>
+                <p class="highlight">If you're sitting back waiting for the phone to ring, you're leaving money on the
+                    table for contractors who aren't.</p>
             </div>
+
+            <div class="insight-box">
+                <strong>Bottom Line</strong>
+                <p>You've got the crew, the capacity, and the work quality. What you don't have is a system that puts
+                    you in front of decision-makers of real projects.</p>
+            </div>
+
+            <p class="action-line">That's the part we handle.</p>
         </div>
     </section>
 
-    <!-- Section: How It Works (Combined Mechanism & Process) | Namespace: ns-how-combined -->
-    <section class="ns-how-combined" data-section="how-it-works" aria-labelledby="how-combined-title">
-        <style>
-            /* === ns-how-combined — theme knobs ================================
-       Unified headline stack EXACTLY matches Value Stack (ns-value-f2d7):
-       - Kicker size/weight/letter-spacing/pill
-       - H2 sizing/line-height/highlight underline
-       - Subhead size
-    ==================================================================== */
-            .ns-how-combined {
-                --hw-bg: #f8fafc;
-                --hw-ink: #111316;
-                --hw-muted: #515a67;
-                --hw-brand: #2fcc41;
-                --hw-card: #ffffff;
-                --hw-hair: #e6ebf0;
-                --hw-radius: 16px;
-                --hw-space: clamp(1rem, 3vw, 2.4rem);
-                --hw-gap: clamp(.9rem, 2.2vw, 1.25rem);
-                --hw-max: 1120px;
-                /* Typography tokens aligned to Value Stack */
-                --t-xs: .875rem;
-                --t-sm: .95rem;
-                --t-md: 1rem;
-                --t-lg: clamp(1.125rem, 2.4vw, 1.25rem);
-                --t-xl: clamp(1.35rem, 3.2vw, 1.6rem);
-                --hw-shadow: 0 10px 30px rgba(17, 19, 22, .06);
-                font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-                color: var(--hw-ink);
-                background: var(--hw-bg);
-                isolation: isolate;
-                position: relative;
-
-                /* Prevent whole-page horizontal scroll */
-                overflow-x: hidden;
-                overscroll-behavior-x: contain;
-            }
-
-            /* Ambient background glows — kept within viewport to avoid overflow */
-            .ns-how-combined::before,
-            .ns-how-combined::after {
-                content: "";
-                position: absolute;
-                inset: auto auto 10% 50%;
-                width: clamp(320px, 90vw, 720px);
-                height: clamp(320px, 90vw, 720px);
-                transform: translateX(-50%);
-                background:
-                    radial-gradient(40% 40% at 30% 35%, color-mix(in oklab, var(--hw-brand) 18%, #fff) 0%, transparent 60%),
-                    radial-gradient(30% 30% at 70% 60%, color-mix(in oklab, var(--hw-brand) 12%, #fff) 0%, transparent 65%);
-                filter: blur(30px);
-                opacity: .35;
-                pointer-events: none;
-                z-index: 0;
-            }
-
-            .ns-how-combined::after {
-                inset: auto 10% 5% auto;
-                transform: none;
-                width: clamp(280px, 60vw, 520px);
-                height: clamp(280px, 60vw, 520px);
-                opacity: .25
-            }
-
-            /* Local reset (scoped) */
-            .ns-how-combined :where(*, *::before, *::after) {
-                box-sizing: border-box
-            }
-
-            .ns-how-combined :where(h1, h2, h3, h4, p, ul, ol) {
-                margin: 0
-            }
-
-            .ns-how-combined :where(a, button) {
-                color: inherit;
-                font: inherit;
-                text-decoration: none;
-                background: none;
-                border: 0;
-                cursor: pointer
-            }
-
-            .ns-how-combined :where(:focus-visible) {
-                outline: 2px solid var(--hw-brand);
-                outline-offset: 2px;
-                border-radius: 10px
-            }
-
-            .ns-how-combined :where(img, svg) {
-                display: block;
-                max-width: 100%
-            }
-
-            /* Wrapper */
-            .ns-how-combined .wrap {
-                position: relative;
-                z-index: 1;
-                max-width: var(--hw-max);
-                margin-inline: auto;
-                padding: calc(var(--hw-space)*1.8) 16px;
-                container-type: inline-size;
-            }
-
-            /* ===== Unified title (EXACT match to Value Stack) ===== */
-            .ns-how-combined .head {
-                text-align: center;
-                display: grid;
-                justify-items: center;
-                gap: .6rem;
-                margin-bottom: clamp(1.2rem, 4vw, 2.2rem)
-            }
-
-            .ns-how-combined .title {
-                display: grid;
-                justify-items: center;
-                gap: .7rem
-            }
-
-            .ns-how-combined .kicker {
-                font-size: .875rem;
-                /* 14px minimum for mobile readability */
-                font-weight: 900;
-                letter-spacing: .14em;
-                text-transform: uppercase;
-                color: #0b1c0e;
-                background: color-mix(in oklab, var(--hw-brand) 12%, #fff);
-                border: 1px solid color-mix(in oklab, var(--hw-brand) 38%, var(--hw-hair));
-                border-radius: 999px;
-                padding: .32rem .6rem;
-                width: max-content
-            }
-
-            .ns-how-combined h2 {
-                font-size: var(--t-xl);
-                /* matches Value Stack */
-                font-weight: 900;
-                letter-spacing: -.005em;
-                line-height: 1.15;
-                max-width: 34ch
-            }
-
-            .ns-how-combined .hl {
-                box-decoration-break: clone;
-                -webkit-box-decoration-break: clone;
-                padding: .05em .15em;
-                box-shadow: inset 0 -.45em 0 color-mix(in oklab, var(--hw-brand) 18%, #eaf7ee);
-                border-radius: 6px
-            }
-
-            .ns-how-combined .bar {
-                height: 4px;
-                width: 90px;
-                border-radius: 999px;
-                background: linear-gradient(90deg, var(--hw-brand), color-mix(in oklab, var(--hw-brand) 40%, #cfe8d4));
-                margin-top: .4rem;
-            }
-
-            .ns-how-combined .nowrap {
-                white-space: nowrap
-            }
-
-            .ns-how-combined .sub {
-                font-size: var(--t-md);
-                /* matches Value Stack */
-                color: var(--hw-muted);
-                max-width: 62ch;
-                margin: .95rem auto clamp(1.6rem, 3vw, 2rem);
-            }
-
-            /* ===== End unified title ===== */
-
-            /* Progress (subtle, sticky on mobile for context) */
-            .ns-how-combined .progress {
-                position: sticky;
-                top: 76px;
-                /* Offset to clear the sticky header */
-                z-index: 2;
-                height: 4px;
-                border-radius: 999px;
-                background: var(--hw-hair);
-                margin-bottom: calc(var(--hw-gap)*.8);
-                box-shadow: inset 0 1px 0 #fff;
-                /* Ensure it doesn't stick when scrolling past section */
-            }
-
-            .ns-how-combined .progress__fill {
-                position: absolute;
-                inset: 0 auto 0 0;
-                width: 0%;
-                border-radius: 999px;
-                background: linear-gradient(90deg, var(--hw-brand), color-mix(in oklab, var(--hw-brand) 40%, #cfe8d4));
-                transition: width .2s ease
-            }
-
-            /* Rail wraps the scroller */
-            .ns-how-combined .rail {
-                position: relative
-            }
-
-            /* Mobile: horizontal snap */
-            .ns-how-combined .scroller {
-                display: flex;
-                gap: var(--hw-gap);
-                overflow-x: auto;
-                scroll-snap-type: x mandatory;
-                -webkit-overflow-scrolling: touch;
-                overscroll-behavior-x: contain;
-                padding-bottom: .25rem;
-                scrollbar-width: thin;
-                list-style: none;
-                padding-left: 0;
-                scroll-padding-inline: 16px;
-                mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
-            }
-
-            /* Cards */
-            .ns-how-combined .step {
-                position: relative;
-                scroll-snap-align: start;
-                flex: 0 0 86%;
-                background: var(--hw-card);
-                border: 1px solid var(--hw-hair);
-                border-radius: var(--hw-radius);
-                padding: clamp(1rem, 2.4vw, 1.3rem);
-                display: grid;
-                gap: .7rem;
-                text-align: left;
-                box-shadow: 0 1px 0 rgba(17, 19, 22, .03);
-                transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
-            }
-
-            .ns-how-combined .step::before {
-                content: "";
-                position: absolute;
-                inset: 0 0 auto 0;
-                height: 3px;
-                border-top-left-radius: inherit;
-                border-top-right-radius: inherit;
-                background: linear-gradient(90deg, color-mix(in oklab, var(--hw-brand) 70%, #59e06a), color-mix(in oklab, var(--hw-brand) 35%, #9ee8aa));
-                opacity: .35;
-                transition: opacity .18s ease, height .18s ease;
-            }
-
-            .ns-how-combined .step::after {
-                content: "";
-                position: absolute;
-                right: 4px;
-                top: 4px;
-                width: 110px;
-                height: 110px;
-                border-radius: 50%;
-                background: radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--hw-brand) 18%, #fff) 0%, transparent 70%);
-                opacity: .18;
-                filter: blur(6px);
-                pointer-events: none;
-            }
-
-            .ns-how-combined .step:where(:hover, :focus-within) {
-                transform: translateY(-3px);
-                box-shadow: var(--hw-shadow);
-                border-color: color-mix(in oklab, var(--hw-brand) 28%, var(--hw-hair));
-                background: color-mix(in oklab, #fff 96%, var(--hw-brand) 4%);
-            }
-
-            .ns-how-combined .step:where(:hover, :focus-within)::before {
-                opacity: .6;
-                height: 4px
-            }
-
-            .ns-how-combined .step-head {
-                display: flex;
-                align-items: center;
-                gap: .8rem
-            }
-
-            .ns-how-combined .num {
-                width: 32px;
-                height: 32px;
-                border-radius: 999px;
-                display: grid;
-                place-items: center;
-                font-weight: 900;
-                font-size: .95rem;
-                line-height: 1;
-                color: #0b1517;
-                background: color-mix(in oklab, var(--hw-brand) 16%, #fff);
-                border: 1px solid color-mix(in oklab, var(--hw-brand) 40%, var(--hw-hair));
-                flex: 0 0 32px;
-            }
-
-            .ns-how-combined h3 {
-                font-size: clamp(1.06rem, 2vw, 1.2rem);
-                font-weight: 800;
-                line-height: 1.25;
-                letter-spacing: -.005em
-            }
-
-            .ns-how-combined .desc {
-                font-size: var(--t-md);
-                color: var(--hw-muted);
-                line-height: 1.65
-            }
-
-            .ns-how-combined .meta {
-                display: flex;
-                gap: .5rem;
-                flex-wrap: wrap;
-                margin-top: .1rem;
-                font-size: var(--t-sm);
-                color: var(--hw-muted)
-            }
-
-            .ns-how-combined .chip {
-                position: relative;
-                display: inline-flex;
-                align-items: center;
-                gap: .4rem;
-                padding: .28rem .6rem .28rem .5rem;
-                border-radius: 999px;
-                border: 1px solid var(--hw-hair);
-                background: #fff
-            }
-
-            .ns-how-combined .dots {
-                display: flex;
-                justify-content: center;
-                gap: .45rem;
-                margin: .6rem 0
-            }
-
-            .ns-how-combined .dot {
-                width: 8px;
-                height: 8px;
-                border-radius: 999px;
-                background: var(--hw-hair)
-            }
-
-            .ns-how-combined .dot[aria-current="true"] {
-                background: var(--hw-brand)
-            }
-
-            .ns-how-combined .nav {
-                display: flex;
-                justify-content: space-between;
-                gap: .5rem;
-                margin-top: .6rem
-            }
-
-            .ns-how-combined .nav button {
-                flex: 1;
-                padding: .8rem .9rem;
-                min-height: 44px;
-                border: 1px solid var(--hw-hair);
-                border-radius: 12px;
-                background: #fff;
-                font-weight: 800;
-                transition: background .15s ease, border-color .15s ease, transform .15s ease
-            }
-
-            .ns-how-combined .nav button:hover {
-                transform: translateY(-1px);
-                border-color: color-mix(in oklab, var(--hw-brand) 28%, var(--hw-hair))
-            }
-
-            .ns-how-combined .nav button:disabled {
-                opacity: .5;
-                cursor: not-allowed
-            }
-
-            .ns-how-combined .nav .prev::before {
-                content: "← "
-            }
-
-            .ns-how-combined .nav .next::after {
-                content: " →"
-            }
-
-            @media (min-width:920px) {
-                .ns-how-combined .scroller {
-                    display: grid;
-                    grid-template-columns: repeat(5, 1fr);
-                    gap: var(--hw-gap);
-                    overflow: visible;
-                    mask: none
-                }
-
-                .ns-how-combined .step {
-                    flex: auto;
-                    transform: none
-                }
-
-                .ns-how-combined .progress,
-                .ns-how-combined .nav {
-                    display: none
-                }
-            }
-
-            @media (max-width: 767px) {
-                .ns-how-combined .wrap {
-                    padding: 24px 16px;
-                    /* reduced mobile padding */
-                }
-            }
-
-            @media (prefers-reduced-motion: reduce) {
-                .ns-how-combined * {
-                    transition: none !important;
-                    animation: none !important
-                }
-            }
-        </style>
-
-        <div class="wrap">
-            <header class="head" role="presentation">
-                <div class="title">
-                    <p class="kicker">How It Works</p>
-                    <h2 id="how-combined-title">
-                        <span class="hl">The Pre-Sold Network™</span> <span class="nowrap">in Five Tight Steps</span>
-                    </h2>
-                    <div class="bar" aria-hidden="true"></div>
-                </div>
-                <p class="sub">We filter for fit, set expectations early, and hand you conversations ready to move — not
-                    cold leads.</p>
-            </header>
-
-            <div class="progress" aria-hidden="true">
-                <div class="progress__fill" data-fill></div>
-            </div>
-
-            <div class="rail">
-                <ol class="scroller" aria-label="Steps to get pre-sold jobs" data-scroller>
-                    <li class="step" aria-current="true">
-                        <div class="step-head"><span class="num" aria-hidden="true">1</span>
-                            <h3>Targeted Ads & Check Area</h3>
-                        </div>
-                        <p class="desc">Ads that qualify, not just attract. Radius, job types, and a pricing floor — so
-                            we
-                            only chase work that's worth the drive and stop paying for the wrong clicks.</p>
-                        <div class="meta" aria-hidden="true"><span class="chip">Market & ICP</span><span
-                                class="chip">Budget Signals</span></div>
-                    </li>
-
-                    <li class="step">
-                        <div class="step-head"><span class="num" aria-hidden="true">2</span>
-                            <h3>Build the Conversion Path</h3>
-                        </div>
-                        <p class="desc">Straightforward landing + short form + proof. Price ranges, real work photos,
-                            scope,
-                            and process laid out up front so homeowners know what to expect.</p>
-                        <div class="meta" aria-hidden="true"><span class="chip">Pre-sell Page</span><span
-                                class="chip">Social Proof</span></div>
-                    </li>
-
-                    <li class="step">
-                        <div class="step-head"><span class="num" aria-hidden="true">3</span>
-                            <h3>Call Fast + Simple Follow-ups</h3>
-                        </div>
-                        <p class="desc">We call in minutes to confirm basics and answer big questions while interest is
-                            high.
-                            Campaigns tuned to your radius and filters, not broad bait.</p>
-                        <div class="meta" aria-hidden="true"><span class="chip">Paid</span><span class="chip">Intent
-                                Signals</span></div>
-                    </li>
-
-                    <li class="step">
-                        <div class="step-head"><span class="num" aria-hidden="true">4</span>
-                            <h3>Budget & Timing Confirmed</h3>
-                        </div>
-                        <p class="desc">Budget and timing confirmed before you drive. If they're not ready or below your
-                            pricing floor, they don't get booked—no wasted truck rolls.</p>
-                        <div class="meta" aria-hidden="true"><span class="chip">Screening</span><span
-                                class="chip">Qualification</span></div>
-                    </li>
-
-                    <li class="step">
-                        <div class="step-head"><span class="num" aria-hidden="true">5</span>
-                            <h3>Booked Handoff with Context</h3>
-                        </div>
-                        <p class="desc">Qualified slot on your calendar with address, job type, and notes — fewer
-                            re-quotes,
-                            better show rate. Budget & timing confirmed upfront.</p>
-                        <div class="meta" aria-hidden="true"><span class="chip">Calendar Sync</span><span
-                                class="chip">Context Packet</span></div>
-                    </li>
-                </ol>
-            </div>
-
-            <div class="dots" data-dots aria-hidden="true"></div>
-
-            <div class="nav" aria-hidden="true">
-                <button class="prev" type="button" data-nav="prev">Prev</button>
-                <button class="next" type="button" data-nav="next">Next</button>
-            </div>
-        </div>
-
-        <script>
-            (() => {
-                const root = document.currentScript.closest('section.ns-how-combined') || document.querySelector('.ns-how-combined');
-                if (!root) return;
-                const scroller = root.querySelector('[data-scroller]');
-                const steps = Array.from(scroller.querySelectorAll('.step'));
-                const fill = root.querySelector('[data-fill]');
-                const dotsWrap = root.querySelector('[data-dots]');
-                const prevBtn = root.querySelector('[data-nav="prev"]');
-                const nextBtn = root.querySelector('[data-nav="next"]');
-                const prefersReduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-                const behavior = prefersReduced ? 'auto' : 'smooth';
-                const getGap = () => parseFloat(getComputedStyle(scroller).columnGap || getComputedStyle(scroller).gap || 16);
-                const clamp = (n, min, max) => Math.max(min, Math.min(n, max));
-
-                /* Build dots */
-                if (dotsWrap) {
-                    dotsWrap.innerHTML = '';
-                    steps.forEach((_, i) => {
-                        const d = document.createElement('button');
-                        d.type = 'button'; d.className = 'dot'; d.setAttribute('aria-label', `Go to step ${i + 1}`);
-                        d.addEventListener('click', () => goTo(i));
-                        dotsWrap.appendChild(d);
-                    });
-                }
-
-                function cardWidth() { return steps[0]?.getBoundingClientRect().width || 0 }
-
-                function indexFromScroll() {
-                    const w = cardWidth();
-                    if (!w) return 0;
-                    return clamp(Math.round(scroller.scrollLeft / (w + getGap())), 0, steps.length - 1);
-                }
-
-                function setState(i) {
-                    steps.forEach((s, idx) => s.toggleAttribute('aria-current', idx === i));
-                    const dots = dotsWrap ? Array.from(dotsWrap.children) : [];
-                    dots.forEach((d, idx) => d.setAttribute('aria-current', String(idx === i)));
-                    prevBtn?.toggleAttribute('disabled', i === 0);
-                    nextBtn?.toggleAttribute('disabled', i === steps.length - 1);
-
-                    // Smooth, continuous progress on mobile; hidden on desktop via CSS
-                    if (fill) {
-                        const max = scroller.scrollWidth - scroller.clientWidth;
-                        const pct = max > 0 ? (scroller.scrollLeft / max) * 100 : (i / (steps.length - 1)) * 100;
-                        fill.style.width = `${pct}%`;
-                    }
-                }
-
-                function goTo(i) {
-                    const left = i * (cardWidth() + getGap());
-                    scroller.scrollTo({ left, behavior });
-                    setState(clamp(i, 0, steps.length - 1));
-                }
-
-                /* Nav buttons */
-                prevBtn?.addEventListener('click', () => goTo(indexFromScroll() - 1));
-                nextBtn?.addEventListener('click', () => goTo(indexFromScroll() + 1));
-
-                /* Sync progress & dots on scroll/resize */
-                scroller.addEventListener('scroll', () => setState(indexFromScroll()), { passive: true });
-                window.addEventListener('resize', () => setState(indexFromScroll()), { passive: true });
-
-                /* Init (no auto-scroll or URL writes) */
-                setState(0);
-            })();
-        </script>
-    </section>
 
     <!-- Section: Value Stack (Refined + standout title) | Namespace: ns-value-f2d7 -->
     <section class="ns-value-f2d7" id="value" data-section="value" aria-labelledby="value-f2d7-title">
@@ -1458,31 +782,31 @@
             <div class="title">
                 <p class="kicker">Value Stack</p>
                 <h2 id="value-f2d7-title">
-                    <span class="hl">Here's How The Pre-Sold Network™</span> <span class="nowrap">Changes
-                        Everything</span>
+                    <span class="hl">Here's How Our Systems</span> <span class="nowrap">Change Everything</span>
                 </h2>
                 <div class="bar" aria-hidden="true"></div>
             </div>
 
-            <p class="sub">We handle the hard part. You focus on what you do best.</p>
+            <p class="sub">We do the hunting. You do the closing.</p>
 
             <div class="grid" role="list">
                 <article class="card" role="listitem">
                     <span class="pill">Step 1</span>
-                    <h3>Pre-Qualified Prospects</h3>
-                    <p>We only send you leads who have been vetted and shown genuine interest in your services.</p>
+                    <h3>Pre-Qualified Opportunities</h3>
+                    <p>No more wasting hours on quotes that go nowhere. Every lead we send is vetted and ready to buy.
+                    </p>
                 </article>
                 <article class="card" role="listitem">
                     <span class="pill">Step 2</span>
-                    <h3>Warm Intro</h3>
-                    <p>Every lead comes with context and a warm handoff, making your first call more effective.</p>
+                    <h3>Warm Handoff</h3>
+                    <p>They already know who you are and what you do before you reach out. You're not starting from
+                        zero.</p>
                 </article>
                 <article class="card" role="listitem">
                     <span class="pill">Step 3</span>
-                    <h3>Higher Conversion</h3>
-                    <p>Because they're pre-sold, you close deals at a much higher rate than cold prospects.</p>
+                    <h3>Higher Win Rate</h3>
+                    <p>When you're talking to the right people, getting the job is way easier.</p>
                 </article>
-                <!-- Continue Steps 4–10 as needed -->
             </div>
         </div>
     </section>
@@ -2016,11 +1340,12 @@
             <header class="head">
                 <div class="title">
                     <p class="kicker">Customer Stories</p>
-                    <h2 id="ns-proof-cc12-title">What Contractors Say About <span class="hl">The Pre-Sold
-                            Network™</span></h2>
+                    <h2 id="ns-proof-cc12-title">
+                        <span class="hl">What Contractors Say About Us</span>
+                    </h2>
                     <div class="bar" aria-hidden="true"></div>
                 </div>
-                <p class="sub">Booked jobs, fewer no-shows, healthier margins — across trades.</p>
+                <p class="sub">Consistent pipeline, bigger tickets, less chasing.</p>
             </header>
 
             <!-- Filter bar (order: Roofing • Concrete Coating • HVAC • Landscaping) -->
@@ -2279,7 +1604,7 @@
                         <div class="gc-avatar">NR</div>
                         <div class="gc-user-info">
                             <div class="gc-name">Nate R.</div>
-                            <div class="gc-meta">Prime Coat Garage • FL</div>
+                            <div class="gc-meta">Prime Commercial Coatings • FL</div>
                         </div>
                         <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
                             <path
@@ -2326,8 +1651,8 @@
                         <span class="gc-date">7 months ago</span>
                     </div>
                     <div class="gc-body">
-                        Garage flake systems sell themselves when price & prep are clear. 12
-                        installs in 30 days off fewer leads.
+                        Commercial epoxy coatings sell themselves when scope & pricing are clear. 12
+                        warehouse projects in 30 days off fewer leads.
 
                     </div>
                 </li>
@@ -2444,7 +1769,7 @@
                         <span class="gc-date">2 years ago</span>
                     </div>
                     <div class="gc-body">
-                        Stopped chasing $2K jobs. Now we're doing $6K–8K garage floors and people
+                        Stopped chasing small jobs. Now we're doing $15K–$25K facility floors and clients
                         already expect that price range.
 
                     </div>
@@ -2456,7 +1781,7 @@
                         <div class="gc-avatar">KC</div>
                         <div class="gc-user-info">
                             <div class="gc-name">Kyle C.</div>
-                            <div class="gc-meta">Garage Armor • TX</div>
+                            <div class="gc-meta">Industrial Shield Coatings • TX</div>
                         </div>
                         <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
                             <path
@@ -2834,7 +2159,7 @@
     "@context":"https://schema.org",
     "@type":"ItemList",
     "itemListElement":[
-      {"@type":"Review","author":{"@type":"Person","name":"Nate R."},"itemReviewed":{"@type":"LocalBusiness","name":"Prime Coat Garage"},"reviewRating":{"@type":"Rating","ratingValue":"5","bestRating":"5"},"reviewBody":"Garage flake systems sell themselves when price and prep are clear. 12 installs in 30 days off fewer leads."},
+      {"@type":"Review","author":{"@type":"Person","name":"Nate R."},"itemReviewed":{"@type":"LocalBusiness","name":"Prime Commercial Coatings"},"reviewRating":{"@type":"Rating","ratingValue":"5","bestRating":"5"},"reviewBody":"Commercial epoxy coatings sell themselves when scope and pricing are clear. 12 warehouse projects in 30 days off fewer leads."},
       {"@type":"Review","author":{"@type":"Person","name":"Olivia S."},"itemReviewed":{"@type":"LocalBusiness","name":"StoneShield Coatings"},"reviewRating":{"@type":"Rating","ratingValue":"5","bestRating":"5"},"reviewBody":"Pre-sold jobs = fewer tire-kickers. Avg ticket +28% with metallic epoxy upsell and 2-day installs."},
       {"@type":"Review","author":{"@type":"Person","name":"Scott T."},"itemReviewed":{"@type":"LocalBusiness","name":"Elite Roofing Solutions"},"reviewRating":{"@type":"Rating","ratingValue":"5","bestRating":"5"},"reviewBody":"Lead flow is steady and not junk. We’re booking 3–4 estimates/week and they already know ballpark pricing."},
       {"@type":"Review","author":{"@type":"Person","name":"Brianna K."},"itemReviewed":{"@type":"LocalBusiness","name":"Apex Roofing"},"reviewRating":{"@type":"Rating","ratingValue":"5","bestRating":"5"},"reviewBody":"Price bands on the page stopped the tire-kickers. First 10 jobs in 45 days and fewer re-quotes."},
@@ -3087,8 +2412,9 @@
                 <path d="m9.5 12.5 2 2 3.5-3.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
 
-            <h2 id="ns-guarantee-a94c-title">Our No-Risk Guarantee</h2>
-            <p class="sub">Try us for 10 days with <strong>no service fee</strong> — you only cover your ad spend.</p>
+            <h2 id="ns-guarantee-a94c-title">Our Partnership Guarantee</h2>
+            <p class="sub">Start with <strong>no long-term commitment</strong> — transparent pricing, month-to-month
+                flexibility.</p>
 
             <ul class="list" role="list">
                 <li class="item" role="listitem">
@@ -3098,8 +2424,9 @@
                         </svg>
                     </span>
                     <div class="txt">
-                        <strong>10-Day Trial.</strong> Keep everything we build and continue only if quality meets your
-                        bar.
+                        <strong>Quick Onboarding.</strong> We build your assets and launch fast—continue only if results
+                        meet your
+                        standards.
                     </div>
                 </li>
 
@@ -3110,8 +2437,8 @@
                         </svg>
                     </span>
                     <div class="txt">
-                        <strong>You Only Cover Ad Spend.</strong> Media costs are yours; our service fee is waived
-                        during the trial.
+                        <strong>Transparent Cost Structure.</strong> No hidden fees. You know exactly what you're paying
+                        for media and service.
                     </div>
                 </li>
 
@@ -3143,17 +2470,16 @@
             <div class="chips" aria-hidden="true">
                 <span class="chip">Own your assets</span>
                 <span class="chip">Brand-safe builds</span>
-                <span class="chip">Fast setup</span>
             </div>
 
             <!-- Optional CTA -->
             <div class="actions">
-                <a class="btn" href="#book" data-action="open-booking" aria-label="Start your 10-day trial">
+                <a class="btn" href="#book" data-action="open-booking" aria-label="Book your strategy call">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M10 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
-                    <span>Start 10-Day Trial</span>
+                    <span>Book Strategy Call</span>
                 </a>
             </div>
         </div>
@@ -3492,8 +2818,8 @@
             </span>
 
             <div class="copy" aria-live="polite">
-                <p class="h">Book Your Free Call</p>
-                <p class="s">10-day trial · no service fee</p>
+                <p class="h">Book Your Strategy Call</p>
+                <p class="s">Free consultation · no obligation</p>
             </div>
 
             <a class="cta" data-bb="cta" href="#book" aria-label="Book now">
@@ -4247,7 +3573,7 @@
             const loader = modal.querySelector('.bb-loading');
             const closeBtn = modal.querySelector('.bb-close');
             const backdrop = modal.querySelector('.bb-backdrop');
-            const LC_URL = 'https://api.leadconnectorhq.com/widget/booking/nOMClTp7ZuRHxOzIpm1U';
+            const LC_URL = 'https://api.leadconnectorhq.com/widget/booking/Hu8WXmbOgfry6dguZGta';
             let isLoaded = false;
             let lastFocused;
 
