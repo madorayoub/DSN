@@ -52,11 +52,3 @@ if (offenders.length > 0) {
   }
   process.exit(1);
 }
-
-const termsPage = resolve(repoRoot, "app", "terms-of-service", "page.tsx");
-const termsContent = readFileSync(termsPage, "utf8");
-
-if (/Placeholder\./.test(termsContent)) {
-  console.error("app/terms-of-service/page.tsx still contains placeholder text.");
-  process.exit(1);
-}

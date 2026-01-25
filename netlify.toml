@@ -1,0 +1,14 @@
+# Netlify configuration for clean URLs
+
+[build]
+  publish = "docs"
+
+# Enable clean URLs (remove .html extension)
+[[redirects]]
+  from = "/*"
+  to = "/:splat.html"
+  status = 200
+  force = false
+  
+# This tells Netlify to serve .html files when accessing URLs without extension
+# Example: /trial/offer → serves /trial/offer.html

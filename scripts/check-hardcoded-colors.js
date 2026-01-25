@@ -9,7 +9,6 @@ const skipFiles = new Set(["docs/tokens.css"]);
 const fileAllowances = [
   { file: "docs/index.html", allow: (line) => line.includes("theme-color") },
   { file: "docs/industries.html", allow: (line) => line.includes("theme-color") },
-  { file: "app/layout.tsx", allow: (line) => line.includes("themeColor:") },
 ];
 
 const patterns = [

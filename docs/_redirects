@@ -1,4 +1,11 @@
 https://www.directsales.network/*  https://directsales.network/:splat  301!
-/services.html                    /services-and-solutions.html       301
-/solutions.html                   /services-and-solutions.html       301
 
+# Specific redirects (must come BEFORE catch-all patterns)
+/services.html   /services-and-solutions.html  301
+/solutions.html  /services-and-solutions.html  301
+
+# Clean URL support - serve .html files when accessing without extension
+/*  /:splat.html  200
+
+# Legacy redirect - if .html accessed directly, redirect to clean URL (comes LAST)
+/*.html  /:splat  301!

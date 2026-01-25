@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Call Confirmed | Direct Sales Network (DSN)</title>
+    <meta name="description" content="Your strategy call is confirmed - See you on Zoom!" />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- Performance: Resource Hints -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+
+    <!-- Favicon -->
+    <link rel="icon" href="https://res.cloudinary.com/diptffkzh/image/upload/v1764782206/favicon_j6wusj.png" />
+    <meta name="theme-color" content="#2fcc41" />
+
+    <style>
+        /* Global Reset */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Section: Header (dark bar) | Namespace: ns-header-8c3a -->
+    <section class="ns-header-8c3a" data-section="header" aria-label="Site Header">
+        <style>
+            .ns-header-8c3a {
+                /* changed: header bg set to #0a1416 to match logo color */
+                --hdr-bg: #0a1416;
+                --hdr-ink: #fefefe;
+                --hdr-accent: #2fcc41;
+                --hdr-radius: 12px;
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+                color: var(--hdr-ink);
+                background: var(--hdr-bg);
+            }
+
+            .ns-header-8c3a :where(*, *::before, *::after) {
+                box-sizing: border-box
+            }
+
+            .ns-header-8c3a :where(h1, h2, h3, p) {
+                margin: 0
+            }
+
+            .ns-header-8c3a :where(img, svg) {
+                display: block;
+                max-width: 100%
+            }
+
+            .ns-header-8c3a :where(a) {
+                color: inherit;
+                text-decoration: none
+            }
+
+            .ns-header-8c3a :where(button) {
+                font: inherit;
+                color: inherit;
+                background: none;
+                border: none;
+                cursor: pointer
+            }
+
+            .ns-header-8c3a :where(:focus-visible) {
+                outline: 2px solid var(--hdr-accent);
+                outline-offset: 2px;
+                border-radius: 8px
+            }
+
+            .ns-header-8c3a .wrap {
+                max-width: 1100px;
+                margin-inline: auto;
+                padding: 10px 16px;
+                /* grid kept symmetric so center column stays centered on all breakpoints */
+                display: grid;
+                grid-template-columns: 1fr auto 1fr;
+                align-items: center;
+                min-height: 64px;
+            }
+
+            /* center brand on all viewports */
+            .ns-header-8c3a .brand {
+                justify-self: center;
+                display: flex;
+                align-items: center;
+                gap: 12px
+            }
+
+            .ns-header-8c3a .logo {
+                height: 56px;
+                width: auto;
+                border-radius: 8px;
+                background: #0b1517;
+                padding: 4px;
+                box-shadow: 0 1px 0 rgba(255, 255, 255, .08) inset
+            }
+
+            .ns-header-8c3a .actions {
+                justify-self: end;
+                display: none;
+                gap: 10px
+            }
+
+            @media (min-width:768px) {
+
+                /* keep 1fr auto 1fr so the logo remains centered on desktop */
+                .ns-header-8c3a .wrap {
+                    grid-template-columns: 1fr auto 1fr
+                }
+
+                /* removed previous justify-self:start to keep logo centered on desktop */
+                .ns-header-8c3a .logo {
+                    height: 64px
+                }
+
+                .ns-header-8c3a .actions {
+                    display: flex
+                }
+            }
+        </style>
+
+        <div class="wrap">
+            <span></span>
+            <a class="brand" href="/" aria-label="Direct Sales Network Home">
+                <img class="logo"
+                    src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                    alt="Direct Sales Network logo">
+            </a>
+            <div class="actions"></div>
+        </div>
+    </section>
+
+    <!-- Section: Thank You Content | Namespace: ns-thankyou -->
+    <section class="ns-thankyou" data-section="thankyou" aria-label="Thank you page">
+        <style>
+            /* === ns-thankyou : theme knobs === */
+            .ns-thankyou {
+                --ty-bg: #f8fafc;
+                --ty-ink: #111316;
+                --ty-muted: #515a67;
+                --ty-accent: #2fcc41;
+                --ty-card: #ffffff;
+                --ty-hair: #e6ebf0;
+                --ty-radius: 16px;
+                --ty-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+                /* Softer shadow */
+
+                /* Mobile optimized padding */
+                --ty-pad: clamp(1.25rem, 4vw, 2.5rem);
+
+                color: var(--ty-ink);
+                background: var(--ty-bg);
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+                line-height: 1.45;
+                min-height: calc(100vh - 64px);
+                /* account for header */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px 0;
+            }
+
+            /* Local reset */
+            .ns-thankyou :where(*, *::before, *::after) {
+                box-sizing: border-box;
+            }
+
+            .ns-thankyou :where(h1, h2, h3, h4, p, ul, ol, figure) {
+                margin: 0;
+            }
+
+            .ns-thankyou :where(img, svg, video, iframe) {
+                display: block;
+                max-width: 100%;
+            }
+
+            .ns-thankyou :where(button, a) {
+                font: inherit;
+                color: inherit;
+                text-decoration: none;
+                background: none;
+                border: none;
+                cursor: pointer;
+            }
+
+            .ns-thankyou .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: var(--ty-pad) 20px;
+                text-align: center;
+            }
+
+            /* Mobile padding optimization */
+            @media (max-width: 767px) {
+                .ns-thankyou {
+                    padding: 16px 0;
+                }
+
+                .ns-thankyou .container {
+                    padding: 1rem 16px;
+                }
+            }
+
+            /* === IMPROVED TOP PART (Mobile Focused) === */
+
+            /* Sleeker, Smaller Icon */
+            .ns-thankyou .success-icon {
+                width: clamp(50px, 10vw, 80px);
+                height: clamp(50px, 10vw, 80px);
+                margin: 0 auto 1rem;
+                background: rgba(47, 204, 65, 0.1);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--ty-accent);
+                animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            }
+
+            .ns-thankyou .success-icon svg {
+                width: clamp(24px, 5vw, 40px);
+                height: clamp(24px, 5vw, 40px);
+                stroke: currentColor;
+                stroke-width: 3;
+                fill: none;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                stroke-dasharray: 100;
+                stroke-dashoffset: 100;
+                animation: drawCheck 0.6s 0.3s ease forwards;
+            }
+
+            @keyframes popIn {
+                0% {
+                    opacity: 0;
+                    transform: scale(0.5);
+                }
+
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            @keyframes drawCheck {
+                to {
+                    stroke-dashoffset: 0;
+                }
+            }
+
+            /* Tighter, Sharper Title */
+            .ns-thankyou .thank-you-title {
+                font-weight: 800;
+                font-size: clamp(1.5rem, 5vw, 2.5rem);
+                line-height: 1.2;
+                margin-bottom: 0.5rem;
+                color: var(--ty-ink);
+                letter-spacing: -0.02em;
+            }
+
+            .ns-thankyou .thank-you-subtitle {
+                font-size: clamp(1rem, 2.5vw, 1.2rem);
+                color: var(--ty-muted);
+                margin-bottom: 1.5rem;
+                /* reduced from 2rem */
+                font-weight: 400;
+            }
+
+            /* === END TOP PART === */
+
+
+            /* Info Cards */
+            .ns-thankyou .info-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+                /* reduced from 2rem */
+            }
+
+            @media (min-width: 768px) {
+                .ns-thankyou .info-grid {
+                    grid-template-columns: 1fr 1fr;
+                    gap: 1.5rem;
+                }
+            }
+
+            .ns-thankyou .info-card {
+                background: var(--ty-card);
+                border-radius: var(--ty-radius);
+                padding: 1.25rem;
+                box-shadow: var(--ty-shadow);
+                border: 1px solid var(--ty-hair);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                text-align: left;
+            }
+
+            .ns-thankyou .info-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 25px rgba(17, 19, 22, .08);
+            }
+
+            .ns-thankyou .info-icon {
+                width: 36px;
+                height: 36px;
+                background: rgba(47, 204, 65, 0.1);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--ty-accent);
+                font-size: 1.1rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .ns-thankyou .info-title {
+                font-weight: 700;
+                font-size: 1rem;
+                margin-bottom: 0.25rem;
+                color: var(--ty-ink);
+            }
+
+            .ns-thankyou .info-text {
+                color: var(--ty-muted);
+                font-size: 0.875rem;
+                /* increased to 14px minimum */
+                line-height: 1.5;
+            }
+
+            /* Next Steps Section */
+            .ns-thankyou .next-steps {
+                background: var(--ty-card);
+                border-radius: var(--ty-radius);
+                padding: 1.5rem;
+                box-shadow: var(--ty-shadow);
+                border: 1px solid var(--ty-hair);
+            }
+
+            .ns-thankyou .next-steps-title {
+                font-weight: 800;
+                font-size: 1.1rem;
+                margin-bottom: 0.5rem;
+                color: var(--ty-ink);
+            }
+
+            .ns-thankyou .next-steps-text {
+                color: var(--ty-muted);
+                line-height: 1.6;
+                font-size: 0.875rem;
+                /* increased to 14px minimum */
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .ns-thankyou * {
+                    transition: none !important;
+                    animation: none !important;
+                }
+            }
+        </style>
+
+        <div class="container">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 6L9 17l-5-5" />
+                </svg>
+            </div>
+
+            <h1 class="thank-you-title">Confirmed — see you on Zoom</h1>
+            <p class="thank-you-subtitle">Thanks for confirming.</p>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-icon">📅</div>
+                    <h3 class="info-title">Invite + link sent</h3>
+                    <p class="info-text">Check your email for the calendar invite. Zoom link inside. Not there? Check
+                        spam or search our name.</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">📱</div>
+                    <h3 class="info-title">15 min text reminder</h3>
+                    <p class="info-text">We'll text the meeting link 15 minutes before your slot. Keep your phone
+                        nearby.</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">⏱️</div>
+                    <h3 class="info-title">What to have ready</h3>
+                    <p class="info-text">Computer for screen-share. Decision-maker on. Your pricing floor and service
+                        radius.</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">🎯</div>
+                    <h3 class="info-title">What we'll cover</h3>
+                    <p class="info-text">Set your rules. Show how we pre-sell and filter tire-kickers. Share example
+                        numbers. Decide next step. No hard sell.</p>
+                </div>
+            </div>
+
+            <div class="next-steps">
+                <h2 class="next-steps-title">What's next</h2>
+                <p class="next-steps-text">
+                    We'll review your form and draft your filters. On the call we lock your rules, walk you through the
+                    system, and share clear numbers. If it's a fit, start a 10-Day Trial — no service fee; you cover ad
+                    spend. Miss the targets we agree on? We add 2 extra weeks at no cost. Month-to-month. Need to
+                    change time? Use the link in your calendar invite.
+                </p>
+            </div>
+        </div>
+
+        <script>
+            /* Thank you page enhancements */
+            (function () {
+                const root = document.currentScript.closest('section.ns-thankyou');
+                if (!root) return;
+                document.addEventListener('DOMContentLoaded', function () {
+                    console.log('Thank you page loaded successfully');
+                });
+            })();
+        </script>
+    </section>
+
+    <!-- Section: Footer | Namespace: ns-footer-5d1e -->
+    <section class="ns-footer-5d1e" data-section="footer" aria-label="Site Footer">
+        <style>
+            .ns-footer-5d1e {
+                --bg: #f8fafc;
+                --ink: #122023;
+                --muted: #515a67;
+                --hair: #e6ebf0;
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+                color: var(--muted);
+                background: var(--bg);
+                border-top: 1px solid var(--hair);
+            }
+
+            .ns-footer-5d1e :where(*, *::before, *::after) {
+                box-sizing: border-box
+            }
+
+            .ns-footer-5d1e :where(p) {
+                margin: 0
+            }
+
+            .ns-footer-5d1e :where(a) {
+                color: inherit;
+                text-decoration: underline;
+                text-underline-offset: 2px
+            }
+
+            .ns-footer-5d1e .wrap {
+                max-width: 1100px;
+                margin-inline: auto;
+                padding: 18px 16px 28px;
+                text-align: center;
+                font-size: .86rem
+            }
+        </style>
+
+        <div class="wrap">
+            <p>© <span data-year></span> Direct Sales Network · All rights reserved</p>
+        </div>
+
+        <script>
+            (function () {
+                const root = document.currentScript.closest('section.ns-footer-5d1e'); if (!root) return;
+                const y = root.querySelector('[data-year]'); if (y) y.textContent = new Date().getFullYear();
+            })();
+        </script>
+    </section>
+
+</body>
+
+</html>

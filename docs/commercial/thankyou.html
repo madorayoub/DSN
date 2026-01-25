@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>You're Booked! | Direct Sales Network (DSN)</title>
+    <meta name="description" content="Your call is booked - Watch the prep video and add to your calendar." />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- Performance: Resource Hints -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin />
+    <link rel="dns-prefetch" href="https://go.directsales.network" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="https://res.cloudinary.com/diptffkzh/image/upload/v1764782206/favicon_j6wusj.png" />
+    <meta name="theme-color" content="#2fcc41" />
+
+    <style>
+        /* Global Reset */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Section: Header (dark bar) | Namespace: ns-header-8c3a -->
+    <section class="ns-header-8c3a" data-section="header" aria-label="Site Header">
+        <style>
+            .ns-header-8c3a {
+                /* changed: header bg set to #0a1416 to match logo color */
+                --hdr-bg: #0a1416;
+                --hdr-ink: #fefefe;
+                --hdr-accent: #2fcc41;
+                --hdr-radius: 12px;
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+                color: var(--hdr-ink);
+                background: var(--hdr-bg);
+            }
+
+            .ns-header-8c3a :where(*, *::before, *::after) {
+                box-sizing: border-box
+            }
+
+            .ns-header-8c3a :where(h1, h2, h3, p) {
+                margin: 0
+            }
+
+            .ns-header-8c3a :where(img, svg) {
+                display: block;
+                max-width: 100%
+            }
+
+            .ns-header-8c3a :where(a) {
+                color: inherit;
+                text-decoration: none
+            }
+
+            .ns-header-8c3a :where(button) {
+                font: inherit;
+                color: inherit;
+                background: none;
+                border: none;
+                cursor: pointer
+            }
+
+            .ns-header-8c3a :where(:focus-visible) {
+                outline: 2px solid var(--hdr-accent);
+                outline-offset: 2px;
+                border-radius: 8px
+            }
+
+            .ns-header-8c3a .wrap {
+                max-width: 1100px;
+                margin-inline: auto;
+                padding: 10px 16px;
+                /* grid kept symmetric so center column stays centered on all breakpoints */
+                display: grid;
+                grid-template-columns: 1fr auto 1fr;
+                align-items: center;
+                min-height: 64px;
+            }
+
+            /* center brand on all viewports */
+            .ns-header-8c3a .brand {
+                justify-self: center;
+                display: flex;
+                align-items: center;
+                gap: 12px
+            }
+
+            .ns-header-8c3a .logo {
+                height: 56px;
+                width: auto;
+                border-radius: 8px;
+                background: #0b1517;
+                padding: 4px;
+                box-shadow: 0 1px 0 rgba(255, 255, 255, .08) inset
+            }
+
+            .ns-header-8c3a .actions {
+                justify-self: end;
+                display: none;
+                gap: 10px
+            }
+
+            @media (min-width:768px) {
+
+                /* keep 1fr auto 1fr so the logo remains centered on desktop */
+                .ns-header-8c3a .wrap {
+                    grid-template-columns: 1fr auto 1fr
+                }
+
+                /* removed previous justify-self:start to keep logo centered on desktop */
+                .ns-header-8c3a .logo {
+                    height: 64px
+                }
+
+                .ns-header-8c3a .actions {
+                    display: flex
+                }
+            }
+        </style>
+
+        <div class="wrap">
+            <span></span>
+            <a class="brand" href="/" aria-label="Direct Sales Network Home">
+                <img class="logo"
+                    src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                    alt="Direct Sales Network logo">
+            </a>
+            <div class="actions"></div>
+        </div>
+    </section>
+
+    <!-- Section: Thank You Content | Namespace: ns-ty-final -->
+    <section class="ns-ty-final" data-section="thankyou" aria-label="Thank you page">
+        <style>
+            /* === ns-ty-final : theme knobs === */
+            .ns-ty-final {
+                --ty-bg: #f8fafc;
+                --ty-ink: #111316;
+                --ty-muted: #515a67;
+                --ty-accent: #2fcc41;
+                --ty-card: #ffffff;
+                --ty-hair: #e6ebf0;
+                --ty-radius: 12px;
+                --ty-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+                color: var(--ty-ink);
+                background: var(--ty-bg);
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+                line-height: 1.45;
+
+                width: 100%;
+                max-width: 100vw;
+                overflow-x: hidden;
+                padding: 20px 0;
+            }
+
+            /* Local Reset */
+            .ns-ty-final :where(*, *::before, *::after) {
+                box-sizing: border-box;
+            }
+
+            .ns-ty-final :where(h1, h2, h3, p, ul, ol) {
+                margin: 0;
+            }
+
+            .ns-ty-final :where(button, a) {
+                font: inherit;
+                color: inherit;
+                text-decoration: none;
+                background: none;
+                border: none;
+                cursor: pointer;
+            }
+
+            .ns-ty-final .wrap {
+                width: 100%;
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 0 16px;
+            }
+
+            /* Mobile padding optimization */
+            @media (max-width: 767px) {
+                .ns-ty-final {
+                    padding: 16px 0;
+                }
+            }
+
+            /* === HEADER === */
+            .ns-ty-final header {
+                text-align: center;
+                margin-bottom: 1.5rem;
+            }
+
+            /* Animated Success Icon */
+            .ns-ty-final .success-icon {
+                width: 50px;
+                height: 50px;
+                margin: 0 auto 0.75rem;
+                background: rgba(47, 204, 65, 0.15);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--ty-accent);
+                animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            }
+
+            .ns-ty-final .success-icon svg {
+                width: 24px;
+                height: 24px;
+                stroke: currentColor;
+                stroke-width: 3;
+                fill: none;
+            }
+
+            .ns-ty-final h1 {
+                font-weight: 900;
+                font-size: 1.5rem;
+                margin-bottom: 0.25rem;
+                color: var(--ty-ink);
+            }
+
+            .ns-ty-final .sub {
+                color: var(--ty-muted);
+                font-size: 0.95rem;
+                max-width: 500px;
+                margin: 0 auto;
+            }
+
+            @keyframes popIn {
+                0% {
+                    transform: scale(0);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            /* === LAYOUT GRID === */
+            .ns-ty-final .grid {
+                display: grid;
+                gap: 1rem;
+            }
+
+            @media (min-width: 900px) {
+                .ns-ty-final .grid {
+                    grid-template-columns: 1.6fr 1fr;
+                    align-items: start;
+                    gap: 2rem;
+                }
+            }
+
+            /* === VIDEO CARD === */
+            .ns-ty-final .vid-card {
+                background: #000;
+                border-radius: var(--ty-radius);
+                overflow: hidden;
+                box-shadow: var(--ty-shadow);
+                aspect-ratio: 16/9;
+                position: relative;
+            }
+
+            .ns-ty-final .vid-card iframe {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                border: 0;
+            }
+
+            /* === STEPS CARD === */
+            .ns-ty-final .steps-card {
+                background: var(--ty-card);
+                border-radius: var(--ty-radius);
+                padding: 1.25rem;
+                border: 1px solid var(--ty-hair);
+                box-shadow: var(--ty-shadow);
+                border-top: 4px solid var(--ty-accent);
+            }
+
+            .ns-ty-final .card-title {
+                font-weight: 800;
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            /* Step List */
+            .ns-ty-final .step-list {
+                list-style: none;
+                padding: 0;
+                display: grid;
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .ns-ty-final .step-item {
+                display: flex;
+                gap: 0.75rem;
+                align-items: flex-start;
+                padding: 0.6rem;
+                border-radius: 8px;
+                transition: background 0.2s;
+            }
+
+            .ns-ty-final .step-item:hover {
+                background: #f8fafc;
+            }
+
+            .ns-ty-final .step-num {
+                flex-shrink: 0;
+                width: 24px;
+                height: 24px;
+                background: var(--ty-accent);
+                color: #fff;
+                font-weight: 700;
+                font-size: 0.8rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-top: 2px;
+            }
+
+            .ns-ty-final .step-content strong {
+                display: block;
+                font-size: 0.95rem;
+                color: var(--ty-ink);
+                margin-bottom: 2px;
+            }
+
+            .ns-ty-final .step-content span {
+                display: block;
+                font-size: 0.875rem;
+                /* 14px minimum */
+                color: var(--ty-muted);
+                line-height: 1.3;
+            }
+
+            /* === ACTIONS === */
+            .ns-ty-final .actions {
+                display: grid;
+                gap: 0.5rem;
+            }
+
+            .ns-ty-final .btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                padding: 0.85rem;
+                /* increased for 44px touch target */
+                min-height: 44px;
+                border-radius: 8px;
+                font-weight: 700;
+                font-size: 0.9rem;
+                width: 100%;
+                transition: transform 0.1s;
+            }
+
+            .ns-ty-final .btn:active {
+                transform: scale(0.98);
+            }
+
+            .ns-ty-final .btn-primary {
+                background: var(--ty-accent);
+                color: #0b1517;
+                box-shadow: 0 4px 12px rgba(47, 204, 65, 0.25);
+            }
+
+            .ns-ty-final .btn-outline {
+                background: #fff;
+                border: 1px solid var(--ty-hair);
+                color: var(--ty-muted);
+            }
+
+            .ns-ty-final .btn-outline:hover {
+                border-color: var(--ty-muted);
+                color: var(--ty-ink);
+            }
+
+            /* Calendar Dropdown */
+            .ns-ty-final .cal-wrapper {
+                position: relative;
+                width: 100%;
+            }
+
+            .ns-ty-final .cal-menu {
+                position: absolute;
+                bottom: 100%;
+                left: 0;
+                right: 0;
+                margin-bottom: 6px;
+                background: #fff;
+                border: 1px solid var(--ty-hair);
+                border-radius: 8px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                padding: 0.5rem;
+                display: none;
+                z-index: 10;
+            }
+
+            .ns-ty-final .cal-menu.show {
+                display: block;
+                animation: fadeUp 0.2s ease;
+            }
+
+            .ns-ty-final .cal-menu a {
+                display: block;
+                padding: 0.6rem;
+                border-radius: 6px;
+                font-size: 0.875rem;
+                /* 14px minimum */
+                text-align: left;
+                min-height: 44px;
+                /* touch target */
+                display: flex;
+                align-items: center;
+            }
+
+            .ns-ty-final .cal-menu a:hover {
+                background: #f1f5f9;
+            }
+
+            @keyframes fadeUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(5px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Footnotes */
+            .ns-ty-final .notes {
+                margin-top: 1rem;
+                border-top: 1px solid var(--ty-hair);
+                padding-top: 1rem;
+            }
+
+            .ns-ty-final .notes p {
+                font-size: 0.875rem;
+                /* increased to 14px */
+                color: var(--ty-muted);
+                line-height: 1.4;
+                margin-bottom: 0.5rem;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .ns-ty-final * {
+                    transition: none !important;
+                    animation: none !important;
+                }
+            }
+        </style>
+
+        <div class="wrap">
+
+            <header>
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 6L9 17l-5-5" />
+                    </svg>
+                </div>
+                <h1>You're Booked — Thanks!</h1>
+                <p class="sub">Watch this 4-min prep before your call. It keeps things tight.</p>
+            </header>
+
+            <div class="grid">
+
+                <div class="vid-card">
+                    <iframe id="yt-player"
+                        src="https://www.youtube-nocookie.com/embed/F18f4f8NpEE?controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1"
+                        title="Prep Video"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+
+                <aside class="steps-card">
+                    <h2 class="card-title">Next Steps</h2>
+
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-num">1</div>
+                            <div class="step-content">
+                                <strong>Add to calendar</strong>
+                                <span>Reminders = fewer no-shows.</span>
+                            </div>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-num">2</div>
+                            <div class="step-content">
+                                <strong>Be by your phone</strong>
+                                <span>We'll call the number you provided.</span>
+                            </div>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-num">3</div>
+                            <div class="step-content">
+                                <strong>Bring notes/photos</strong>
+                                <span>Helps us give you a precise plan.</span>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <div class="actions">
+                        <div class="cal-wrapper" data-title="Strategy Call" data-start="2025-10-10T15:00"
+                            data-end="2025-10-10T15:30" data-desc="Brief prep call. Bring notes/photos.">
+
+                            <button class="btn btn-primary" id="cal-trigger">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" style="margin-right:4px">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                                    <path d="M8 2v4M16 2v4M3 10h18" />
+                                </svg>
+                                Add to Calendar
+                            </button>
+
+                            <div class="cal-menu" id="cal-menu">
+                                <a href="#" data-type="google">Google Calendar</a>
+                                <a href="#" data-type="apple">Apple Calendar (.ics)</a>
+                                <a href="#" data-type="outlook">Outlook (.ics)</a>
+                            </div>
+                        </div>
+
+                        <a href="tel:+15615567182" class="btn btn-outline">Call Now</a>
+                        <a href="reschedule" class="btn btn-outline"
+                            style="border:none; font-weight:normal; font-size:0.85rem">Need to reschedule?</a>
+                    </div>
+
+                    <div class="notes">
+                        <p>Didn't get the email? Check spam.</p>
+                        <p>Already booked? Our team will call to confirm shortly.</p>
+                    </div>
+                </aside>
+
+            </div>
+        </div>
+
+        <script>
+            (function () {
+                /* 1. Video Autoplay Logic */
+                const iframe = document.getElementById('yt-player');
+                if (iframe) {
+                    const url = new URL(iframe.src);
+                    url.searchParams.set('autoplay', '1');
+                    url.searchParams.set('mute', '0');
+                    iframe.src = url.toString();
+                }
+
+                /* 2. Calendar Logic */
+                const trigger = document.getElementById('cal-trigger');
+                const menu = document.getElementById('cal-menu');
+                const wrapper = document.querySelector('.cal-wrapper');
+
+                if (trigger && menu && wrapper) {
+                    // Toggle Menu
+                    trigger.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        menu.classList.toggle('show');
+                    });
+
+                    // Close on click outside
+                    document.addEventListener('click', () => menu.classList.remove('show'));
+
+                    // Generate Links
+                    const title = wrapper.dataset.title;
+                    const start = wrapper.dataset.start.replace(/[-:]/g, '');
+                    const end = wrapper.dataset.end.replace(/[-:]/g, '');
+                    const desc = wrapper.dataset.desc;
+
+                    // Google
+                    const gUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(desc)}`;
+                    wrapper.querySelector('[data-type="google"]').href = gUrl;
+
+                    // ICS (Apple/Outlook)
+                    const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDTSTART:${start}\nDTEND:${end}\nDESCRIPTION:${desc}\nEND:VEVENT\nEND:VCALENDAR`;
+                    const blob = new Blob([icsContent], { type: 'text/calendar' });
+                    const icsUrl = URL.createObjectURL(blob);
+
+                    wrapper.querySelectorAll('[data-type="apple"], [data-type="outlook"]').forEach(el => {
+                        el.href = icsUrl;
+                        el.download = 'event.ics';
+                    });
+                }
+            })();
+        </script>
+    </section>
+
+    <!-- Section: Footer | Namespace: ns-footer-5d1e -->
+    <section class="ns-footer-5d1e" data-section="footer" aria-label="Site Footer">
+        <style>
+            .ns-footer-5d1e {
+                --bg: #f8fafc;
+                --ink: #122023;
+                --muted: #515a67;
+                --hair: #e6ebf0;
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+                color: var(--muted);
+                background: var(--bg);
+                border-top: 1px solid var(--hair);
+            }
+
+            .ns-footer-5d1e :where(*, *::before, *::after) {
+                box-sizing: border-box
+            }
+
+            .ns-footer-5d1e :where(p) {
+                margin: 0
+            }
+
+            .ns-footer-5d1e :where(a) {
+                color: inherit;
+                text-decoration: underline;
+                text-underline-offset: 2px
+            }
+
+            .ns-footer-5d1e .wrap {
+                max-width: 1100px;
+                margin-inline: auto;
+                padding: 18px 16px 28px;
+                text-align: center;
+                font-size: .86rem
+            }
+        </style>
+
+        <div class="wrap">
+            <p>© <span data-year></span> Direct Sales Network · All rights reserved</p>
+        </div>
+
+        <script>
+            (function () {
+                const root = document.currentScript.closest('section.ns-footer-5d1e'); if (!root) return;
+                const y = root.querySelector('[data-year]'); if (y) y.textContent = new Date().getFullYear();
+            })();
+        </script>
+    </section>
+
+</body>
+
+</html>
