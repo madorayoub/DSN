@@ -18,11 +18,32 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://directsales.network/funnel" />
 
+    <!-- Performance: Resource Hints -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="dns-prefetch" href="https://api.leadconnectorhq.com" />
+    <link rel="dns-prefetch" href="https://link.msgsndr.com" />
+
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://rsms.me" crossorigin />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     <link rel="icon" href="https://res.cloudinary.com/diptffkzh/image/upload/v1764782206/favicon_j6wusj.png" />
     <meta name="theme-color" content="#19ad50" />
+    <style>
+        /* Global Reset */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 
 <body>
@@ -179,10 +200,10 @@
                 <picture>
                     <!-- Mobile logo -->
                     <source media="(max-width: 767px)"
-                        srcset="https://res.cloudinary.com/diptffkzh/image/upload/v1759298298/2d235155-6742-4f37-9224-b610afa086b9_1_umlo20.png">
+                        srcset="https://res.cloudinary.com/diptffkzh/image/upload/f_auto,q_auto,w_350/v1759298298/2d235155-6742-4f37-9224-b610afa086b9_1_umlo20.png">
                     <!-- Desktop logo -->
                     <img class="logo"
-                        src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                        src="https://res.cloudinary.com/diptffkzh/image/upload/f_auto,q_auto/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
                         alt="Direct Sales Network logo" width="320" height="80" decoding="async" loading="eager"
                         fetchpriority="high">
                 </picture>
@@ -228,7 +249,7 @@
                 --pro12-accent-glow: color-mix(in oklab, var(--pro12-accent) 20%, white);
 
                 --pro12-radius: 14px;
-                --pro12-space: clamp(18px, 2.6vw, 28px);
+                --pro12-space: clamp(14px, 2.2vw, 28px);
 
                 /* unified type scale */
                 --fs-eyebrow: .82rem;
@@ -335,8 +356,8 @@
                 display: inline-flex;
                 align-items: center;
                 gap: .45rem;
-                padding: .52rem .92rem;
-                min-height: 36px;
+                padding: .65rem .92rem;
+                min-height: 44px;
                 border-radius: 999px;
                 background:
                     linear-gradient(180deg, var(--pro12-accent-strong), var(--pro12-accent));
@@ -372,8 +393,8 @@
                 display: inline-flex;
                 align-items: center;
                 gap: .42rem;
-                padding: .44rem .82rem;
-                min-height: 34px;
+                padding: .6rem .82rem;
+                min-height: 44px;
                 border-radius: 999px;
                 border: 1px solid var(--pro12-hair);
                 background: var(--pro12-card);
@@ -410,6 +431,14 @@
                 .ns-hero-pro12 * {
                     transition: none !important;
                     animation: none !important
+                }
+            }
+
+            /* Mobile padding optimization */
+            @media (max-width: 767px) {
+                .ns-hero-pro12 .wrap {
+                    padding: 24px 16px;
+                    /* reduced from calc(var(--pro12-space)*2) for mobile */
                 }
             }
         </style>
@@ -469,7 +498,7 @@
                 --pb-hair: #e6ebf0;
                 /* hairline */
 
-                --pb-space: clamp(1.25rem, 3.5vw, 2.5rem);
+                --pb-space: clamp(1rem, 3vw, 2.5rem);
                 --pb-radius: 14px;
 
                 /* type scale (consistent across elements) */
@@ -561,15 +590,20 @@
                 padding: .85rem 1rem;
             }
 
-            .ns-problem-c413b .dot {
-                margin-top: .25rem;
+            .ns-problem-c413b .icon-box {
+                width: 28px;
+                height: 28px;
+                border-radius: 8px;
+                display: grid;
+                place-items: center;
+                background: color-mix(in oklab, var(--pb-accent) 12%, transparent);
+                color: var(--pb-accent);
+                flex: 0 0 28px;
+            }
+
+            .ns-problem-c413b .icon-box svg {
                 width: 18px;
                 height: 18px;
-                border-radius: 999px;
-                background: color-mix(in oklab, var(--pb-accent) 18%, transparent);
-                outline: 2px solid var(--pb-accent);
-                outline-offset: -6px;
-                flex: 0 0 18px;
             }
 
             .ns-problem-c413b .item p {
@@ -590,6 +624,20 @@
                 color: var(--pb-muted);
             }
 
+            @media (min-width: 768px) {
+                .ns-problem-c413b .list {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 1rem;
+                }
+            }
+
+            @media (max-width: 767px) {
+                .ns-problem-c413b .wrap {
+                    padding: 24px 16px;
+                    /* reduced mobile padding */
+                }
+            }
+
             @media (prefers-reduced-motion: reduce) {
                 .ns-problem-c413b * {
                     animation: none !important;
@@ -607,20 +655,52 @@
 
                 <ul class="list" role="list">
                     <li class="item" role="listitem">
-                        <span class="dot" aria-hidden="true"></span>
-                        <p>Burning gas on tire-kickers: miles driven, hours gone, calendar still light.</p>
+                        <div class="icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                aria-hidden="true">
+                                <path d="M12 2v20M2 12h20" clip-rule="evenodd" />
+                                <path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2z"
+                                    opacity="0.2" />
+                                <path d="M12 6v6l4 2" />
+                            </svg>
+                        </div>
+                        <p><strong>Burning gas on tire-kickers:</strong> miles driven, hours gone, calendar still light.
+                        </p>
                     </li>
                     <li class="item" role="listitem">
-                        <span class="dot" aria-hidden="true"></span>
-                        <p>Estimates that stall: you measure and price it—then weeks of "checking around."</p>
+                        <div class="icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                aria-hidden="true">
+                                <path d="M9 17h6" />
+                                <path d="M9 13h6" />
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
+                            </svg>
+                        </div>
+                        <p><strong>Estimates that stall:</strong> you measure and price it — then weeks of "checking
+                            around."</p>
                     </li>
                     <li class="item" role="listitem">
-                        <span class="dot" aria-hidden="true"></span>
-                        <p>On-site estimates with non-buyers or intent to buy.</p>
+                        <div class="icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                            </svg>
+                        </div>
+                        <p><strong>On-site estimates</strong> with non-buyers or no intent to buy.</p>
                     </li>
                     <li class="item" role="listitem">
-                        <span class="dot" aria-hidden="true"></span>
-                        <p>Price shoppers chasing the cheapest bid, not the best result.</p>
+                        <div class="icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                aria-hidden="true">
+                                <path
+                                    d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                                <line x1="7" y1="7" x2="7.01" y2="7" />
+                            </svg>
+                        </div>
+                        <p><strong>Price shoppers</strong> chasing the cheapest bid, not the best result.</p>
                     </li>
                 </ul>
 
@@ -648,7 +728,7 @@
                 --hw-card: #ffffff;
                 --hw-hair: #e6ebf0;
                 --hw-radius: 16px;
-                --hw-space: clamp(1.2rem, 3.2vw, 2.4rem);
+                --hw-space: clamp(1rem, 3vw, 2.4rem);
                 --hw-gap: clamp(.9rem, 2.2vw, 1.25rem);
                 --hw-max: 1120px;
                 /* Typography tokens aligned to Value Stack */
@@ -750,8 +830,8 @@
             }
 
             .ns-how-combined .kicker {
-                font-size: calc(var(--t-xs) - .05rem);
-                /* matches Value Stack */
+                font-size: .875rem;
+                /* 14px minimum for mobile readability */
                 font-weight: 900;
                 letter-spacing: .14em;
                 text-transform: uppercase;
@@ -981,7 +1061,8 @@
 
             .ns-how-combined .nav button {
                 flex: 1;
-                padding: .7rem .9rem;
+                padding: .8rem .9rem;
+                min-height: 44px;
                 border: 1px solid var(--hw-hair);
                 border-radius: 12px;
                 background: #fff;
@@ -1024,6 +1105,13 @@
                 .ns-how-combined .progress,
                 .ns-how-combined .nav {
                     display: none
+                }
+            }
+
+            @media (max-width: 767px) {
+                .ns-how-combined .wrap {
+                    padding: 24px 16px;
+                    /* reduced mobile padding */
                 }
             }
 
@@ -1199,9 +1287,9 @@
                 --val-hair: #e6ebf0;
                 --val-radius: 12px;
                 --val-shadow: 0 6px 18px rgba(17, 19, 22, .05);
-                --val-space: clamp(1.25rem, 3vw, 2rem);
+                --val-space: clamp(1rem, 3vw, 2rem);
                 --val-gap: clamp(.8rem, 2.2vw, 1.1rem);
-                --val-max: 1024px;
+                --val-max: 1120px;
                 --t-xs: .875rem;
                 --t-sm: .95rem;
                 --t-md: 1rem;
@@ -1247,7 +1335,8 @@
             }
 
             .ns-value-f2d7 .kicker {
-                font-size: calc(var(--t-xs) - .05rem);
+                font-size: .875rem;
+                /* 14px minimum for mobile */
                 font-weight: 900;
                 letter-spacing: .14em;
                 text-transform: uppercase;
@@ -1412,7 +1501,7 @@
                 --pf-brand: #2fcc41;
                 --pf-card: #ffffff;
                 --pf-hair: #e6ebf0;
-                --pf-space: clamp(1.2rem, 3.4vw, 2.2rem);
+                --pf-space: clamp(1rem, 3vw, 2.2rem);
                 --pf-gap: clamp(1rem, 2.2vw, 1.25rem);
                 --pf-radius: 14px;
 
@@ -1475,6 +1564,13 @@
                 container-type: inline-size
             }
 
+            @media (min-width: 1200px) {
+                .ns-proof-cc12 .container {
+                    max-width: 1200px;
+                    padding: calc(var(--pf-space)*2) 24px;
+                }
+            }
+
             /* ===== Unified header (matches Value Stack) + improved vertical rhythm ===== */
             .ns-proof-cc12 .head {
                 text-align: center;
@@ -1492,7 +1588,8 @@
 
             /* more air between kicker/heading/bar */
             .ns-proof-cc12 .kicker {
-                font-size: calc(var(--t-xs) - .05rem);
+                font-size: .875rem;
+                /* 14px minimum for mobile */
                 font-weight: 900;
                 letter-spacing: .14em;
                 text-transform: uppercase;
@@ -1565,6 +1662,7 @@
             .ns-proof-cc12 .filters {
                 display: flex;
                 align-items: center;
+                justify-content: center;
                 gap: .5rem;
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
@@ -1589,7 +1687,8 @@
             .ns-proof-cc12 .filter-btn {
                 flex: 0 0 auto;
                 scroll-snap-align: center;
-                padding: .48rem .78rem;
+                padding: .6rem .9rem;
+                min-height: 44px;
                 border: 1px solid var(--pf-hair);
                 border-radius: 999px;
                 background: #fff;
@@ -1652,110 +1751,211 @@
             .ns-proof-cc12 .tcard {
                 scroll-snap-align: start;
                 flex: 0 0 86%;
-                background: var(--pf-card);
-                border: 1px solid var(--pf-hair);
-                border-radius: var(--pf-radius);
-                padding: clamp(1rem, 2.4vw, 1.25rem);
-                display: grid;
-                gap: .85rem;
                 min-height: 100%;
-                box-shadow: 0 1px 0 rgba(17, 19, 22, .02);
-                transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+                /* Reset display to allow google-card flex to take over */
+                display: flex;
+                flex-direction: column;
+                /* Remove old styles */
+                background: transparent;
+                border: none;
+                padding: 0;
+                box-shadow: none;
             }
 
-            .ns-proof-cc12 .tcard:where(:hover, :focus-within) {
-                transform: translateY(-3px);
-                box-shadow: 0 10px 24px rgba(17, 19, 22, .06);
-                border-color: color-mix(in oklab, var(--pf-brand) 28%, var(--pf-hair));
-            }
-
-            @media (min-width:980px) {
+            @media (min-width:768px) {
                 .ns-proof-cc12 .grid {
                     display: grid;
-                    grid-template-columns: repeat(4, 1fr);
+                    grid-template-columns: repeat(2, 1fr);
                     gap: var(--pf-gap);
                     overflow: visible
                 }
 
                 .ns-proof-cc12 .tcard {
-                    flex: auto
+                    flex: auto;
+                }
+
+                /* Hide mobile scroll fades on desktop grid */
+                .ns-proof-cc12 .grid::before,
+                .ns-proof-cc12 .grid::after {
+                    display: none;
                 }
             }
 
-            /* Card head */
-            .ns-proof-cc12 .row {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: .75rem
+            @media (min-width:900px) {
+                .ns-proof-cc12 .grid {
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: clamp(1rem, 2.2vw, 1.3rem);
+                }
             }
 
-            .ns-proof-cc12 .tag {
-                display: inline-grid;
-                place-items: center;
-                padding: .28rem .65rem;
-                border-radius: 999px;
-                font-size: .82rem;
-                font-weight: 800;
-                line-height: 1;
-                color: #0b1517;
-                background: color-mix(in oklab, var(--pf-brand) 12%, #fff);
-                border: 1px solid color-mix(in oklab, var(--pf-brand) 36%, var(--pf-hair));
+            @media (min-width:950px) {
+                .ns-proof-cc12 .grid {
+                    grid-template-columns: repeat(4, 1fr);
+                }
+            }
+
+            /* ========== GOOGLE REVIEW CARD STYLES (Authoritative) ========== */
+            .ns-proof-cc12 .google-card {
+                background: #fff !important;
+                border-radius: 8px !important;
+                padding: 16px !important;
+                /* Official Google Card Shadow */
+                box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15) !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                height: 100%;
+                font-family: 'Roboto', Arial, sans-serif;
+                color: #3c4043;
+                transition: box-shadow 0.2s;
+                text-align: left;
+                border: 1px solid transparent !important;
+                /* Prevents layout shift on hover if border changes */
+            }
+
+            /* Fix for filter visibility - ensure hidden attribute works */
+            .ns-proof-cc12 .google-card[hidden] {
+                display: none !important;
+            }
+
+            .ns-proof-cc12 .google-card:hover {
+                /* Slightly lifted state */
+                box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15) !important;
+            }
+
+            .ns-proof-cc12 .gc-header {
+                display: flex;
+                align-items: flex-start;
+                /* Align to top to handle multi-line names */
+                gap: 16px;
+                /* 16px gap is standard */
+                position: relative;
+            }
+
+            .ns-proof-cc12 .gc-avatar {
+                width: 40px !important;
+                height: 40px !important;
+                min-width: 40px !important;
+                min-height: 40px !important;
+                border-radius: 50%;
+                background-color: #7b1fa2;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                /* Standard avatar letter size */
+                font-weight: 400;
+                /* Regular weight usually */
+                flex-shrink: 0;
+                text-transform: uppercase;
+            }
+
+            .ns-proof-cc12 .google-card:nth-child(2n) .gc-avatar {
+                background-color: #d32f2f;
+            }
+
+            .ns-proof-cc12 .google-card:nth-child(3n) .gc-avatar {
+                background-color: #1976d2;
+            }
+
+            .ns-proof-cc12 .google-card:nth-child(4n) .gc-avatar {
+                background-color: #e65100;
+            }
+
+            .ns-proof-cc12 .gc-user-info {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                overflow: hidden;
+                /* For truncation */
+            }
+
+            .ns-proof-cc12 .gc-name {
+                font-weight: 700;
+                font-size: 14px;
+                color: #202124;
+                line-height: 1.4;
+                margin-bottom: 2px;
+            }
+
+            .ns-proof-cc12 .gc-meta {
+                font-size: 14px;
+                /* increased from 12px for mobile readability */
+                color: #70757a;
+                line-height: 1.4;
+                text-overflow: ellipsis;
                 white-space: nowrap;
+                overflow: hidden;
             }
 
-            .ns-proof-cc12 .rating {
+            .ns-proof-cc12 .gc-icon {
+                width: 22px !important;
+                height: 22px !important;
+                min-width: 22px !important;
+                min-height: 22px !important;
+                flex-shrink: 0 !important;
+                margin-left: auto;
+                /* Push to right if needed, though flex handles it */
+            }
+
+            /* Three dots menu icon */
+            .ns-proof-cc12 .gc-menu {
+                width: 20px;
+                height: 20px;
+                fill: #70757a;
+                cursor: pointer;
+                flex-shrink: 0;
+                margin-left: 0px;
+                /* Aligned with grid */
+            }
+
+            .ns-proof-cc12 .gc-rating {
                 display: flex;
                 align-items: center;
-                gap: .35rem
+                gap: 8px;
+                margin-top: -4px;
             }
 
-            .ns-proof-cc12 .stars {
-                display: inline-flex;
-                gap: 2px;
-                color: var(--pf-brand)
-            }
-
-            .ns-proof-cc12 .stars svg {
-                width: 18px;
-                height: 18px
-            }
-
-            /* Quote + pills (limited to two) */
-            .ns-proof-cc12 blockquote {
-                margin: 0
-            }
-
-            .ns-proof-cc12 .quote {
-                font-size: var(--t-md);
-                line-height: 1.55;
-                color: var(--pf-ink)
-            }
-
-            .ns-proof-cc12 .pull {
+            .ns-proof-cc12 .gc-stars {
                 display: flex;
-                flex-wrap: wrap;
-                gap: .4rem;
-                margin-top: .2rem
+                gap: 1px;
             }
 
-            .ns-proof-cc12 .pill {
-                font-size: .82rem;
-                font-weight: 800;
-                border-radius: 999px;
-                padding: .28rem .6rem;
-                background: #fff;
-                border: 1px dashed var(--pf-hair);
-                color: #0b1517
+            .ns-proof-cc12 .gc-stars svg {
+                width: 14px !important;
+                height: 14px !important;
+                fill: #fbbc04 !important;
+                /* Official Google Star Yellow */
             }
 
-            /* Footer (author) */
-            .ns-proof-cc12 .author {
-                display: flex;
-                align-items: center;
-                gap: .75rem;
-                border-top: 1px solid var(--pf-hair);
-                padding-top: .85rem
+            .ns-proof-cc12 .gc-date {
+                font-size: 14px;
+                /* increased from 12px for readability */
+                color: #70757a;
+            }
+
+            .ns-proof-cc12 .gc-body {
+                font-size: 14px;
+                line-height: 1.5;
+                /* Good reading height */
+                color: #3c4043;
+                /* Dark grey for body text */
+                margin: 0;
+            }
+
+            /* Mobile optimizations */
+            @media (max-width: 767px) {
+                .ns-proof-cc12 .google-card {
+                    padding: 12px !important;
+                    gap: 12px !important;
+                }
+
+                .ns-proof-cc12 .container {
+                    padding: 24px 16px;
+                    /* reduced mobile padding */
+                }
             }
 
             .ns-proof-cc12 .avatar {
@@ -1831,322 +2031,781 @@
                     <button class="filter-btn" type="button" data-filter="concrete" aria-pressed="true">Concrete
                         Coating</button>
                     <button class="filter-btn" type="button" data-filter="hvac" aria-pressed="false">HVAC</button>
-                    <button class="filter-btn" type="button" data-filter="landscaping"
-                        aria-pressed="false">Landscaping</button>
                 </div>
             </div>
+
 
             <!-- Cards (2 per industry) — initial paint shows Concrete Coating only -->
             <ol class="grid" role="list">
                 <!-- Roofing #1 -->
-                <li class="tcard" role="listitem" data-cat="roofing" hidden>
-                    <div class="row">
-                        <span class="tag">Roofing</span>
-                        <div class="rating" aria-label="Rated 5 out of 5"><span class="stars" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                            </span></div>
-                    </div>
-                    <blockquote class="quote">“Lead flow is steady and not junk. We’re booking 3–4 estimates/week and
-                        they already know ballpark pricing.”</blockquote>
-                    <div class="pull" aria-hidden="true"><span class="pill">+18 booked / 60 days</span><span
-                            class="pill">No-shows ↓ 33%</span></div>
-                    <div class="author">
-                        <div class="avatar" aria-hidden="true">ST</div>
-                        <div>
-                            <div class="name">Scott T.</div>
-                            <div class="muted">Elite Roofing Solutions • OH</div>
+                <li class="tcard google-card" role="listitem" data-cat="roofing" hidden>
+                    <div class="gc-header">
+                        <div class="gc-avatar">ST</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Scott T.</div>
+                            <div class="gc-meta">Elite Roofing Solutions • OH</div>
                         </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">5 months ago</span>
+                    </div>
+                    <div class="gc-body">
+                        Lead flow is steady and not junk. We’re booking 3–4 estimates/week and
+                        they already know ballpark pricing.
+
                     </div>
                 </li>
 
                 <!-- Roofing #2 -->
-                <li class="tcard" role="listitem" data-cat="roofing" hidden>
-                    <div class="row">
-                        <span class="tag">Roofing</span>
-                        <div class="rating" aria-label="Rated 5 out of 5"><span class="stars" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                            </span></div>
-                    </div>
-                    <blockquote class="quote">“Price bands on the page stopped the tire-kickers. First 10 jobs in 45
-                        days and fewer re-quotes.”</blockquote>
-                    <div class="pull" aria-hidden="true"><span class="pill">Re-quotes ↓ 40%</span><span class="pill">Avg
-                            margin +15%</span></div>
-                    <div class="author">
-                        <div class="avatar" aria-hidden="true">BK</div>
-                        <div>
-                            <div class="name">Brianna K.</div>
-                            <div class="muted">Apex Roofing • MI</div>
+                <li class="tcard google-card" role="listitem" data-cat="roofing" hidden>
+                    <div class="gc-header">
+                        <div class="gc-avatar">BK</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Brianna K.</div>
+                            <div class="gc-meta">Apex Roofing • MI</div>
                         </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">5 months ago</span>
+                    </div>
+                    <div class="gc-body">
+                        Price bands on the page stopped the tire-kickers. First 10 jobs in 45
+                        days and fewer re-quotes.
+
+                    </div>
+                </li>
+
+                <!-- Roofing #3 -->
+                <li class="tcard google-card" role="listitem" data-cat="roofing" hidden>
+                    <div class="gc-header">
+                        <div class="gc-avatar">JH</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Jake H.</div>
+                            <div class="gc-meta">Summit Roofing • GA</div>
+                        </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">3 months ago</span>
+                    </div>
+                    <div class="gc-body">
+                        Finally getting calls from people who actually have money. Used to waste
+                        half my day on free estimates that went nowhere.
+
+                    </div>
+                </li>
+
+                <!-- Roofing #4 -->
+                <li class="tcard google-card" role="listitem" data-cat="roofing" hidden>
+                    <div class="gc-header">
+                        <div class="gc-avatar">MP</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Marcus P.</div>
+                            <div class="gc-meta">Ironclad Roofing • TN</div>
+                        </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">4 months ago</span>
+                    </div>
+                    <div class="gc-body">
+                        We're booked 3 weeks out now. People calling already know what it costs
+                        and they're ready to schedule.
+
                     </div>
                 </li>
 
                 <!-- Concrete Coating #1 (5★) -->
-                <li class="tcard" role="listitem" data-cat="concrete">
-                    <div class="row">
-                        <span class="tag">Concrete Coating</span>
-                        <div class="rating" aria-label="Rated 5 out of 5"><span class="stars" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3 6 6 1-4.5 4.4 1.1 6.7L12 16.9 6.4 20l1.1-6.7L3 9l6-1 3-6z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3 6 6 1-4.5 4.4 1.1 6.7L12 16.9 6.4 20l1.1-6.7L3 9l6-1 3-6z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3 6 6 1-4.5 4.4 1.1 6.7L12 16.9 6.4 20l1.1-6.7L3 9l6-1 3-6z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3 6 6 1-4.5 4.4 1.1 6.7L12 16.9 6.4 20l1.1-6.7L3 9l6-1 3-6z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3 6 6 1-4.5 4.4 1.1 6.7L12 16.9 6.4 20l1.1-6.7L3 9l6-1 3-6z" />
-                                </svg>
-                            </span></div>
-                    </div>
-                    <blockquote class="quote">“Garage flake systems sell themselves when price & prep are clear. 12
-                        installs in 30 days off fewer leads.”</blockquote>
-                    <div class="pull" aria-hidden="true"><span class="pill">+12 installs / 30 days</span><span
-                            class="pill">Fewer callbacks</span></div>
-                    <div class="author">
-                        <div class="avatar" aria-hidden="true">NR</div>
-                        <div>
-                            <div class="name">Nate R.</div>
-                            <div class="muted">Prime Coat Garage • FL</div>
+                <li class="tcard google-card" role="listitem" data-cat="concrete">
+                    <div class="gc-header">
+                        <div class="gc-avatar">NR</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Nate R.</div>
+                            <div class="gc-meta">Prime Coat Garage • FL</div>
                         </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">7 months ago</span>
+                    </div>
+                    <div class="gc-body">
+                        Garage flake systems sell themselves when price & prep are clear. 12
+                        installs in 30 days off fewer leads.
+
                     </div>
                 </li>
 
                 <!-- Concrete Coating #2 (5★) -->
-                <li class="tcard" role="listitem" data-cat="concrete">
-                    <div class="row">
-                        <span class="tag">Concrete Coating</span>
-                        <div class="rating" aria-label="Rated 5 out of 5"><span class="stars" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3 6 6 1-4.5 4.4 1.1 6.7L12 16.9 6.4 20l1.1-6.7L3 9l6-1 3-6z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3 6 6 1-4.5 4.4 1.1 6.7L12 16.9 6.4 20l1.1-6.7L3 9l6-1 3-6z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3 6 6 1-4.5 4.4 1.1 6.7L12 16.9 6.4 20l1.1-6.7L3 9l6-1 3-6z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3 6 6 1-4.5 4.4 1.1 6.7L12 16.9 6.4 20l1.1-6.7L3 9l6-1 3-6z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3 6 6 1-4.5 4.4 1.1 6.7L12 16.9 6.4 20l1.1-6.7L3 9l6-1 3-6z" />
-                                </svg>
-                            </span></div>
-                    </div>
-                    <blockquote class="quote">“Pre-sold jobs = fewer tire-kickers. Avg ticket +28% with metallic epoxy
-                        upsell & 2-day installs.”</blockquote>
-                    <div class="pull" aria-hidden="true"><span class="pill">Avg ticket +28%</span><span
-                            class="pill">2-day installs</span></div>
-                    <div class="author">
-                        <div class="avatar" aria-hidden="true">OS</div>
-                        <div>
-                            <div class="name">Olivia S.</div>
-                            <div class="muted">StoneShield Coatings • CO</div>
+                <li class="tcard google-card" role="listitem" data-cat="concrete">
+                    <div class="gc-header">
+                        <div class="gc-avatar">OS</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Olivia S.</div>
+                            <div class="gc-meta">StoneShield Coatings • CO</div>
                         </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">7 months ago</span>
+                    </div>
+                    <div class="gc-body">
+                        Pre-sold jobs = fewer tire-kickers. Avg ticket +28% with metallic epoxy
+                        upsell & 2-day installs.
+
+                    </div>
+                </li>
+
+                <!-- Concrete Coating #3 -->
+                <li class="tcard google-card" role="listitem" data-cat="concrete">
+                    <div class="gc-header">
+                        <div class="gc-avatar">TR</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Tony R.</div>
+                            <div class="gc-meta">DuraCoat Systems • AZ</div>
+                        </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">2 years ago</span>
+                    </div>
+                    <div class="gc-body">
+                        Stopped chasing $2K jobs. Now we're doing $6K–8K garage floors and people
+                        already expect that price range.
+
+                    </div>
+                </li>
+
+                <!-- Concrete Coating #4 -->
+                <li class="tcard google-card" role="listitem" data-cat="concrete">
+                    <div class="gc-header">
+                        <div class="gc-avatar">KC</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Kyle C.</div>
+                            <div class="gc-meta">Garage Armor • TX</div>
+                        </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">2 years ago</span>
+                    </div>
+                    <div class="gc-body">
+                        The leads know what to expect before I show up. Cut my estimate time in
+                        half and installs run smoother.
+
                     </div>
                 </li>
 
                 <!-- HVAC #1 -->
-                <li class="tcard" role="listitem" data-cat="hvac" hidden>
-                    <div class="row">
-                        <span class="tag">HVAC</span>
-                        <div class="rating" aria-label="Rated 5 out of 5"><span class="stars" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                            </span></div>
-                    </div>
-                    <blockquote class="quote">“No more ‘just shopping’ calls. We show up to people ready to buy. Close
-                        rate is up and callbacks are way down.”</blockquote>
-                    <div class="pull" aria-hidden="true"><span class="pill">Close rate +19%</span><span
-                            class="pill">Faster quotes</span></div>
-                    <div class="author">
-                        <div class="avatar" aria-hidden="true">AP</div>
-                        <div>
-                            <div class="name">Angela P.</div>
-                            <div class="muted">Polar Air • NC</div>
+                <li class="tcard google-card" role="listitem" data-cat="hvac" hidden>
+                    <div class="gc-header">
+                        <div class="gc-avatar">AP</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Angela P.</div>
+                            <div class="gc-meta">Polar Air • NC</div>
                         </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">2 years ago</span>
+                    </div>
+                    <div class="gc-body">
+                        No more ‘just shopping’ calls. We show up to people ready to buy. Close rate is up and
+                        callbacks are way down.
+
                     </div>
                 </li>
 
                 <!-- HVAC #2 -->
-                <li class="tcard" role="listitem" data-cat="hvac" hidden>
-                    <div class="row">
-                        <span class="tag">HVAC</span>
-                        <div class="rating" aria-label="Rated 5 out of 5"><span class="stars" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="m12 2 3.09 6.26L22 9.27l-5 4.9 1.18 6.86L12 17.77 5.82 22 7 14.17 2 9.27l6.91-1.01z" />
-                                </svg>
-                            </span></div>
-                    </div>
-                    <blockquote class="quote">“Context in every booking lets techs prep parts ahead. First-visit fixes
-                        are up and ticket size +17%.”</blockquote>
-                    <div class="pull" aria-hidden="true"><span class="pill">First-visit fix ↑</span><span
-                            class="pill">Ticket +17%</span></div>
-                    <div class="author">
-                        <div class="avatar" aria-hidden="true">DC</div>
-                        <div>
-                            <div class="name">Dylan C.</div>
-                            <div class="muted">Comfort Pros • AZ</div>
+                <li class="tcard google-card" role="listitem" data-cat="hvac" hidden>
+                    <div class="gc-header">
+                        <div class="gc-avatar">DC</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Dylan C.</div>
+                            <div class="gc-meta">Comfort Pros • AZ</div>
                         </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">11 months ago</span>
+                    </div>
+                    <div class="gc-body">
+                        Context in every booking lets techs prep parts ahead. First-visit fixes are up and ticket size
+                        +17%.
+
+                    </div>
+                </li>
+
+                <!-- HVAC #3 -->
+                <li class="tcard google-card" role="listitem" data-cat="hvac" hidden>
+                    <div class="gc-header">
+                        <div class="gc-avatar">RT</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Robert T.</div>
+                            <div class="gc-meta">Precision HVAC • FL</div>
+                        </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">7 months ago</span>
+                    </div>
+                    <div class="gc-body">
+                        We run full replacements now, not service calls. Budget's confirmed before we roll out, saves
+                        time and headaches.
+
+                    </div>
+                </li>
+
+                <!-- HVAC #4 -->
+                <li class="tcard google-card" role="listitem" data-cat="hvac" hidden>
+                    <div class="gc-header">
+                        <div class="gc-avatar">MW</div>
+                        <div class="gc-user-info">
+                            <div class="gc-name">Mike W.</div>
+                            <div class="gc-meta">Climate Masters • TX</div>
+                        </div>
+                        <svg class="gc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M21.35,11.1H12v3.3h5.25c-0.23,1.2-0.9,2.26-1.95,3l-0.02,0.01l3.05,2.4l0.21-0.11c2.05-1.9,3.23-4.7,3.23-8.1 c0-0.79-0.07-1.54-0.2-2.26L21.35,11.1z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12,21c2.6,0,4.8-0.88,6.4-2.4l-3.04-2.41c-0.86,0.59-1.96,0.94-3.36,0.94c-2.6,0-4.8-1.76-5.59-4.12l-0.02,0.02 l-3.15,2.46l-0.11,0.08C4.94,18.52,8.23,21,12,21z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M6.43,12.98c-0.2-0.6-0.31-1.24-0.31-1.9s0.11-1.3,0.31-1.9l-0.01-0.02l-3.2-2.49l-0.1,0.05 C2.46,7.99,2,9.93,2,12s0.46,4.01,1.11,5.27L6.43,12.98z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12,5.38c1.42,0,2.69,0.49,3.69,1.44l2.74-2.73C16.8,2.44,14.6,1.4,12,1.4c-3.77,0-7.06,2.48-8.89,5.55 l3.17,2.47C7.2,7.14,9.4,5.38,12,5.38z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <svg class="gc-menu" viewBox="0 0 24 24">
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="gc-rating">
+                        <div class="gc-stars">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </div>
+                        <span class="gc-date">a year ago</span>
+                    </div>
+                    <div class="gc-body">
+                        No more driving across town for a $200 service call. These people are ready for full installs
+                        or nothing.
+
                     </div>
                 </li>
 
                 <!-- Landscaping #1 (the single 4★) -->
-                <li class="tcard" role="listitem" data-cat="landscaping" hidden>
-                    <div class="row">
-                        <span class="tag">Landscaping</span>
-                        <div class="rating" aria-label="Rated 4 out of 5"><span class="stars" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3.1 6.3 6 .9-4.5 4.9 1.2 6.9L12 17.8 5.8 22 7 14.1 2 9.3l6.9-1z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3.1 6.3 6 .9-4.5 4.9 1.2 6.9L12 17.8 5.8 22 7 14.1 2 9.3l6.9-1z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3.1 6.3 6 .9-4.5 4.9 1.2 6.9L12 17.8 5.8 22 7 14.1 2 9.3l6.9-1z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3.1 6.3 6 .9-4.5 4.9 1.2 6.9L12 17.8 5.8 22 7 14.1 2 9.3l6.9-1z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m12 2 3.1 6.3 6 .9-4.5 4.9 1.2 6.9L12 17.8 5.8 22 7 14.1 2 9.3l6.9-1z" />
-                                </svg>
-                            </span></div>
-                    </div>
-                    <blockquote class="quote">“We cut out tire-kickers. People book after seeing scope & price ranges.
-                        Crew stays busy without extra drive time.”</blockquote>
-                    <div class="pull" aria-hidden="true"><span class="pill">Fewer re-quotes</span><span
-                            class="pill">Better margins</span></div>
-                    <div class="author">
-                        <div class="avatar" aria-hidden="true">LM</div>
-                        <div>
-                            <div class="name">Luis M.</div>
-                            <div class="muted">GreenCut Landscaping • TX</div>
-                        </div>
-                    </div>
-                </li>
-
                 <!-- Landscaping #2 (5★) -->
-                <li class="tcard" role="listitem" data-cat="landscaping" hidden>
-                    <div class="row">
-                        <span class="tag">Landscaping</span>
-                        <div class="rating" aria-label="Rated 5 out of 5"><span class="stars" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3.1 6.3 6 .9-4.5 4.9 1.2 6.9L12 17.8 5.8 22 7 14.1 2 9.3l6.9-1z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3.1 6.3 6 .9-4.5 4.9 1.2 6.9L12 17.8 5.8 22 7 14.1 2 9.3l6.9-1z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3.1 6.3 6 .9-4.5 4.9 1.2 6.9L12 17.8 5.8 22 7 14.1 2 9.3l6.9-1z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3.1 6.3 6 .9-4.5 4.9 1.2 6.9L12 17.8 5.8 22 7 14.1 2 9.3l6.9-1z" />
-                                </svg>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="m12 2 3.1 6.3 6 .9-4.5 4.9 1.2 6.9L12 17.8 5.8 22 7 14.1 2 9.3l6.9-1z" />
-                                </svg>
-                            </span></div>
-                    </div>
-                    <blockquote class="quote">“Pre-sold inquiries mean fewer site visits that go nowhere. 8
-                        design-builds signed last month from context-ready leads.”</blockquote>
-                    <div class="pull" aria-hidden="true"><span class="pill">Travel time ↓ 25%</span><span
-                            class="pill">Design-build focus</span></div>
-                    <div class="author">
-                        <div class="avatar" aria-hidden="true">SR</div>
-                        <div>
-                            <div class="name">Samir R.</div>
-                            <div class="muted">Cedar &amp; Stone • WA</div>
-                        </div>
-                    </div>
-                </li>
+                <!-- Landscaping #3 -->
+                <!-- Landscaping #4 -->
             </ol>
 
             <!-- Video (direct YouTube iframe; controls visible; no autoplay; no overlay text) -->
-            <figure class="video">
+            <!-- Video Facade (Lazy Load) -->
+            <figure class="video reveal-on-scroll">
+                <style>
+                    .ns-proof-cc12 .video-facade {
+                        position: relative;
+                        width: 100%;
+                        max-width: 800px;
+                        margin-inline: auto;
+                        height: 100%;
+                        background-size: cover;
+                        background-position: center;
+                        background-color: #000;
+                        cursor: pointer;
+                        display: grid;
+                        place-items: center;
+                        aspect-ratio: 16 / 9;
+                    }
+
+                    .ns-proof-cc12 .play-btn {
+                        width: 64px;
+                        height: 64px;
+                        background: rgba(255, 255, 255, 0.9);
+                        border-radius: 50%;
+                        display: grid;
+                        place-items: center;
+                        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+                        transition: transform 0.2s ease, scale 0.2s ease;
+                        z-index: 2;
+                        color: #0b1517;
+                    }
+
+                    .ns-proof-cc12 .video-facade:hover .play-btn {
+                        transform: scale(1.1);
+                        background: #fff;
+                    }
+
+                    .ns-proof-cc12 .play-btn svg {
+                        width: 24px;
+                        height: 24px;
+                        margin-left: 2px;
+                        /* optical adjustment */
+                        fill: currentColor;
+                    }
+                </style>
                 <div class="frame">
-                    <iframe src="https://www.youtube.com/embed/nJVDuU0gaRc?rel=0&modestbranding=1&controls=1&autoplay=0"
-                        title="Customer Stories — combined testimonials"
-                        allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                        allowfullscreen loading="lazy">
-                    </iframe>
+                    <div class="video-facade"
+                        style="background-image: url('https://img.youtube.com/vi/nJVDuU0gaRc/maxresdefault.jpg');"
+                        onclick="this.innerHTML='<iframe src=\'https://www.youtube.com/embed/nJVDuU0gaRc?rel=0&modestbranding=1&controls=1&autoplay=1&playsinline=1\' allow=\'accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture\' allowfullscreen style=\'position:absolute;inset:0;width:100%;height:100%;border:0;\'></iframe>'">
+                        <div class="play-btn" aria-label="Play Video">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             </figure>
         </div>
@@ -2165,7 +2824,7 @@
                     buttons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === key)));
                 }
                 buttons.forEach(btn => btn.addEventListener('click', () => applyFilter(btn.dataset.filter)));
-                applyFilter('concrete'); // preselect Concrete Coating
+                applyFilter('concrete'); // show concrete by default
             })();
         </script>
 
@@ -2208,7 +2867,7 @@
                 --g-card: #ffffff;
                 --g-hair: #e6ebf0;
 
-                --g-space: clamp(1.2rem, 3.2vw, 2.2rem);
+                --g-space: clamp(1rem, 3vw, 2.2rem);
                 --g-gap: clamp(1rem, 2.2vw, 1.25rem);
                 --g-radius: 14px;
 
@@ -2263,7 +2922,7 @@
 
             /* Layout */
             .ns-guarantee-a94c .container {
-                max-width: 920px;
+                max-width: 1120px;
                 margin-inline: auto;
                 padding: calc(var(--g-space)*1.8) 16px;
                 text-align: center;
@@ -2403,7 +3062,13 @@
 
             @media (min-width:760px) {
                 .ns-guarantee-a94c .list {
-                    grid-template-columns: 1fr 1fr 1fr
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @media (min-width: 1024px) {
+                .ns-guarantee-a94c .list {
+                    grid-template-columns: repeat(4, 1fr);
                 }
             }
 
@@ -2591,7 +3256,7 @@
 
             .ns-bookbar-c8f3 .s {
                 color: var(--bb-muted);
-                font-size: 13px;
+                font-size: 14px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis
@@ -2822,7 +3487,7 @@
 
         <div class="bar" role="region" aria-label="Quick booking">
             <span class="logo" aria-hidden="true">
-                <img src="https://res.cloudinary.com/diptffkzh/image/upload/v1758137988/direct_sales_logo_tqkkf2.png"
+                <img src="https://res.cloudinary.com/diptffkzh/image/upload/f_auto,q_auto,w_100/v1758137988/direct_sales_logo_tqkkf2.png"
                     alt="Direct Sales Network">
             </span>
 
@@ -2849,106 +3514,13 @@
             </svg>
         </a>
 
-        <!-- Popup modal (calendar) – functionality unchanged -->
-        <div class="bb-modal" data-bb="modal" aria-hidden="true">
-            <div class="bb-backdrop" data-bb="close" aria-hidden="true"></div>
-            <div class="bb-dialog" role="dialog" aria-modal="true" aria-label="Book your strategy call">
-                <button class="bb-close" type="button" data-bb="close" aria-label="Close booking">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 6l12 12M6 18L18 6" />
-                    </svg>
-                </button>
-                <div class="bb-scroll" tabindex="-1" data-bb="scroll">
-                    <div class="bb-loading" aria-hidden="true">
-                        <div class="bb-spinner" role="status" aria-label="Loading"></div>
-                    </div>
-                    <!-- ✅ REPLACED CALENDAR WITH YOUR NEW EMBED, KEEPING THE ORIGINAL ID -->
-                    <iframe class="bb-frame" id="msgsndr-calendar-bar"
-                        src="https://api.leadconnectorhq.com/widget/booking/nOMClTp7ZuRHxOzIpm1U"
-                        style="width: 100%;border:none;overflow: hidden;" scrolling="no" title="Booking Calendar"
-                        aria-label="Booking Calendar" loading="eager"></iframe><br>
-                    <script src="https://link.msgsndr.com/js/form_embed.js" type="text/javascript"></script>
-                </div>
-            </div>
-        </div>
+
 
         <script>
             /* JS unchanged (behavior preserved) */
             (function () {
                 const root = document.currentScript.closest('section.ns-bookbar-c8f3'); if (!root) return;
                 const bar = root.querySelector('.bar');
-                const cta = root.querySelector('[data-bb="cta"]');
-                const bubble = root.querySelector('[data-bb="bubble"]');
-                const modal = root.querySelector('[data-bb="modal"]');
-                const scrollWrap = root.querySelector('[data-bb="scroll"]');
-                const loader = scrollWrap ? scrollWrap.querySelector('.bb-loading') : null;
-                const frame = root.querySelector('#msgsndr-calendar-bar');
-                const closers = root.querySelectorAll('[data-bb="close"]');
-                const url = root.getAttribute('data-booking-url') || '#book';
-                const PRELOAD_DELAY = Number(root.getAttribute('data-preload-delay')) || 1200;
-                const LC_URL = 'https://api.leadconnectorhq.com/widget/booking/nOMClTp7ZuRHxOzIpm1U';
-
-                let lastActive = null;
-                let frameLoaded = false;
-
-                (function warmConnections() {
-                    const head = document.head || document.getElementsByTagName('head')[0];
-                    ['https://api.leadconnectorhq.com', 'https://link.msgsndr.com'].forEach(h => {
-                        try {
-                            const dns = document.createElement('link'); dns.rel = 'dns-prefetch'; dns.href = h; head.appendChild(dns);
-                            const pc = document.createElement('link'); pc.rel = 'preconnect'; pc.href = h; pc.crossOrigin = 'anonymous'; head.appendChild(pc);
-                        } catch (e) { }
-                    });
-                })();
-
-                try {
-                    const qs = window.location.search;
-                    let target = url;
-                    if (qs && url.indexOf('#') !== 0) {
-                        target += (url.includes('?') ? '&' : '?') + qs.replace(/^\?/, '');
-                    }
-                    if (cta) cta.setAttribute('href', target);
-                    if (bubble) bubble.setAttribute('href', target);
-                } catch (e) { }
-
-                function ensureLeadConnector() {
-                    if (!document.querySelector('script[src*="link.msgsndr.com/js/embed.js"]') &&
-                        !document.querySelector('script[src*="link.msgsndr.com/js/form_embed.js"]')) {
-                        const s = document.createElement('script');
-                        s.src = 'https://link.msgsndr.com/js/embed.js';
-                        s.async = true;
-                        s.onerror = function () {
-                            if (!document.querySelector('script[src*="link.msgsndr.com/js/form_embed.js"]')) {
-                                const f = document.createElement('script');
-                                f.src = 'https://link.msgsndr.com/js/form_embed.js';
-                                f.async = true;
-                                document.head.appendChild(f);
-                            }
-                        };
-                        document.head.appendChild(s);
-                    }
-                }
-
-                function preloadNow() {
-                    if (frame && frame.src === 'about:blank') {
-                        frame.src = LC_URL;
-                        ensureLeadConnector();
-                        if (scrollWrap) scrollWrap.removeAttribute('data-loaded');
-                    }
-                }
-                (function schedulePreload() {
-                    const start = () => setTimeout(preloadNow, PRELOAD_DELAY);
-                    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', start, { once: true }); }
-                    else { start(); }
-                    if ('requestIdleCallback' in window) { requestIdleCallback(() => preloadNow(), { timeout: PRELOAD_DELAY + 300 }); }
-                })();
-
-                if (frame) {
-                    frame.addEventListener('load', () => {
-                        frameLoaded = true;
-                        if (scrollWrap) scrollWrap.setAttribute('data-loaded', '1');
-                    });
-                }
 
                 function setupFooterObserver(footerEl) {
                     if (!footerEl || !bar) return;
@@ -2997,31 +3569,6 @@
                     window.addEventListener('resize', recomputeCompact);
                 }
                 recomputeCompact();
-
-                function openModal(ev) {
-                    if (ev) ev.preventDefault();
-                    const modal = root.querySelector('[data-bb="modal"]');
-                    const scrollWrap = root.querySelector('[data-bb="scroll"]');
-                    lastActive = document.activeElement;
-                    if (frame && frame.src === 'about:blank') { preloadNow(); }
-                    if (scrollWrap && !frameLoaded) { scrollWrap.removeAttribute('data-loaded'); }
-                    modal.setAttribute('open', ''); modal.removeAttribute('aria-hidden');
-                    document.body.style.overflow = 'hidden';
-                    if (scrollWrap) scrollWrap.focus({ preventScroll: true });
-                }
-                function closeModal() {
-                    const modal = root.querySelector('[data-bb="modal"]');
-                    modal.removeAttribute('open'); modal.setAttribute('aria-hidden', 'true');
-                    document.body.style.overflow = '';
-                    if (lastActive && typeof lastActive.focus === 'function') { lastActive.focus(); }
-                }
-
-                if (cta) cta.addEventListener('click', openModal);
-                if (bubble) bubble.addEventListener('click', openModal);
-                document.querySelectorAll('[data-action="open-booking"]').forEach(el => el.addEventListener('click', openModal));
-                closers.forEach(el => el.addEventListener('click', closeModal));
-                modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-                document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.hasAttribute('open')) closeModal(); });
             })();
         </script>
     </section>
@@ -3434,7 +3981,7 @@
                 <div>
                     <div class="ff-brand">
                         <div class="ff-logo-banner" aria-label="Direct Sales Network">
-                            <img src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                            <img src="https://res.cloudinary.com/diptffkzh/image/upload/f_auto,q_auto,w_400/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
                                 alt="Direct Sales Network — pre-sold jobs and booked appointments for contractors"
                                 width="640" height="160" decoding="async" loading="lazy" fetchpriority="low">
                         </div>
@@ -3489,91 +4036,266 @@
             </div>
         </div>
 
-        <!-- Booking modal -->
-        <div class="bb-modal" data-bb="modal" aria-hidden="true">
-            <div class="bb-backdrop" data-bb="close" aria-hidden="true"></div>
-            <div class="bb-dialog" role="dialog" aria-modal="true" aria-label="Book your strategy call">
-                <button class="bb-close" type="button" data-bb="close" aria-label="Close booking">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 6l12 12M6 18L18 6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                </button>
 
-                <div class="bb-scroll" tabindex="-1" data-bb="scroll">
-                    <div class="bb-loading" aria-hidden="true">
-                        <div class="bb-spinner" role="status" aria-label="Loading calendar"></div>
-                    </div>
 
-                    <iframe class="bb-frame" id="msgsndr-calendar-footer" src="about:blank" title="Booking Calendar"
-                        aria-label="Booking Calendar" loading="eager">
-                    </iframe>
+    </footer>
+
+    <!-- Global Scroll Animation Styles -->
+    <style>
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            will-change: opacity, transform;
+        }
+
+        .reveal-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .reveal-on-scroll {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
+        }
+    </style>
+
+    <!-- Global Booking Modal (Consolidated) -->
+    <div id="global-booking-modal" class="bb-modal" aria-hidden="true">
+        <style>
+            .bb-modal {
+                position: fixed;
+                inset: 0;
+                z-index: 10000;
+                display: none;
+            }
+
+            .bb-modal[open] {
+                display: grid;
+                place-items: center;
+            }
+
+            .bb-backdrop {
+                position: absolute;
+                inset: 0;
+                background: rgba(2, 6, 8, 0.85);
+                backdrop-filter: blur(4px);
+                animation: fadeIn 0.3s ease;
+            }
+
+            .bb-dialog {
+                position: relative;
+                width: min(960px, 94vw);
+                max-height: 92vh;
+                /* fallback for older browsers */
+                max-height: 92dvh;
+                background: #0b1517;
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                display: flex;
+                flex-direction: column;
+                animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            .bb-close {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 44px;
+                height: 44px;
+                border-radius: 999px;
+                background: #0b1517;
+                color: #fff;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                display: grid;
+                place-items: center;
+                z-index: 2;
+                transition: background 0.2s;
+                cursor: pointer;
+            }
+
+            .bb-close:hover {
+                background: #1c262a;
+            }
+
+            .bb-scroll {
+                position: relative;
+                flex: 1;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                background: #fff;
+                min-height: 400px;
+            }
+
+            .bb-loading {
+                position: absolute;
+                inset: 0;
+                display: grid;
+                place-items: center;
+                background: #fff;
+                transition: opacity 0.3s;
+                z-index: 1;
+            }
+
+            .bb-loading.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .bb-spinner {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 3px solid rgba(0, 0, 0, 0.1);
+                border-top-color: #2fcc41;
+                animation: spin 0.8s linear infinite;
+            }
+
+            .bb-frame {
+                display: block;
+                width: 100%;
+                border: none;
+                min-height: 700px;
+            }
+
+            /* Fix iframe height on small screens */
+            @media (max-height: 750px) {
+                .bb-frame {
+                    min-height: calc(100vh - 120px);
+                    min-height: calc(100dvh - 120px);
+                }
+            }
+
+            @media (max-width: 520px) {
+                .bb-dialog {
+                    width: 96vw;
+                    max-height: 92vh;
+                    max-height: 92dvh;
+                }
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+
+                to {
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+        <div class="bb-backdrop"></div>
+        <div class="bb-dialog" role="dialog" aria-modal="true" aria-label="Book your call">
+            <button class="bb-close" type="button" aria-label="Close">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+            <div class="bb-scroll">
+                <div class="bb-loading">
+                    <div class="bb-spinner"></div>
                 </div>
+                <iframe class="bb-frame" src="about:blank" title="Booking Calendar" loading="lazy"></iframe>
             </div>
         </div>
+    </div>
 
-        <script>
-            (function () {
-                const root = document.currentScript.closest('footer.ns-funnel-footer-9c12'); if (!root) return;
-                const book = root.querySelector('[data-cta="book-call"]');
-                const modal = root.querySelector('[data-bb="modal"]');
-                const scrollWrap = root.querySelector('[data-bb="scroll"]');
-                const frame = root.querySelector('.bb-frame');
-                const closers = root.querySelectorAll('[data-bb="close"]');
-                const url = root.getAttribute('data-booking-url') || '#book';
-                const LC_URL = 'https://api.leadconnectorhq.com/widget/booking/nOMClTp7ZuRHxOzIpm1U';
-                const PRELOAD_DELAY = Number(root.getAttribute('data-preload-delay')) || 1200;
+    <!-- Global Scripts: Modal & Animations -->
+    <script>
+        (function () {
+            // --- 1. Global Intersections (Animations) ---
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        e.target.classList.add('visible');
+                        observer.unobserve(e.target);
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
-                let lastActive = null;
-                let frameLoaded = false;
+            document.querySelectorAll('.reveal-on-scroll, section > .wrap, section > .container').forEach(el => {
+                el.classList.add('reveal-on-scroll');
+                observer.observe(el);
+            });
 
-                (function warmConnections() {
-                    const hosts = ['https://api.leadconnectorhq.com'];
-                    const head = document.head || document.getElementsByTagName('head')[0];
-                    hosts.forEach(h => {
-                        try {
-                            const dns = document.createElement('link'); dns.rel = 'dns-prefetch'; dns.href = h; head.appendChild(dns);
-                            const pc = document.createElement('link'); pc.rel = 'preconnect'; pc.href = h; pc.crossOrigin = 'anonymous'; head.appendChild(pc);
-                        } catch (e) { }
-                    });
-                })();
+            // --- 2. Global Modal Logic ---
+            const modal = document.getElementById('global-booking-modal');
+            const frame = modal.querySelector('iframe');
+            const loader = modal.querySelector('.bb-loading');
+            const closeBtn = modal.querySelector('.bb-close');
+            const backdrop = modal.querySelector('.bb-backdrop');
+            const LC_URL = 'https://api.leadconnectorhq.com/widget/booking/nOMClTp7ZuRHxOzIpm1U';
+            let isLoaded = false;
+            let lastFocused;
 
-                try {
-                    const qs = window.location.search;
-                    let target = url;
-                    if (qs && url.indexOf('#') !== 0) { target += (url.includes('?') ? '&' : '?') + qs.replace(/^\?/, ''); }
-                    if (book) book.setAttribute('href', target);
-                } catch (e) { }
-
-                function preloadFrameNow() { if (!frame || frame.src !== 'about:blank') return; frame.src = LC_URL; }
-                function schedulePreload() {
-                    const start = () => setTimeout(preloadFrameNow, PRELOAD_DELAY);
-                    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', start, { once: true }); } else { start(); }
-                    if ('requestIdleCallback' in window) { requestIdleCallback(() => preloadFrameNow(), { timeout: PRELOAD_DELAY + 300 }); }
+            function loadCalendar() {
+                if (isLoaded) return;
+                frame.src = LC_URL;
+                // Inject script if missing
+                if (!document.querySelector('script[src*="msgsndr.com"]')) {
+                    const s = document.createElement('script');
+                    s.src = 'https://link.msgsndr.com/js/form_embed.js';
+                    s.async = true;
+                    document.body.appendChild(s);
                 }
-                schedulePreload();
-
-                if (frame) { frame.addEventListener('load', () => { frameLoaded = true; scrollWrap && scrollWrap.setAttribute('data-loaded', '1'); }); }
-
-                function openModal(ev) {
-                    if (ev) ev.preventDefault();
-                    lastActive = document.activeElement;
-                    if (frame && frame.src === 'about:blank') { preloadFrameNow(); }
-                    if (scrollWrap && !frameLoaded) { scrollWrap.removeAttribute('data-loaded'); }
-                    modal.setAttribute('open', ''); modal.removeAttribute('aria-hidden');
-                    document.body.style.overflow = 'hidden'; scrollWrap && scrollWrap.focus({ preventScroll: true });
+                frame.onload = () => {
+                    loader.classList.add('hidden');
+                    isLoaded = true;
                 }
-                function closeModal() {
-                    modal.removeAttribute('open'); modal.setAttribute('aria-hidden', 'true');
-                    document.body.style.overflow = ''; if (lastActive && typeof lastActive.focus === 'function') { lastActive.focus(); }
-                }
+            }
 
-                book && book.addEventListener('click', openModal);
-                closers.forEach(el => el.addEventListener('click', closeModal));
-                modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-                document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.hasAttribute('open')) closeModal(); });
-            })();
-        </script>
-    </footer>
+            function openModal(e) {
+                e.preventDefault();
+                lastFocused = document.activeElement;
+                loadCalendar();
+                modal.removeAttribute('aria-hidden');
+                modal.setAttribute('open', '');
+                document.body.style.overflow = 'hidden';
+                closeBtn.focus();
+            }
+
+            function closeModal() {
+                modal.removeAttribute('open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                if (lastFocused) lastFocused.focus();
+            }
+
+            // Attach listeners
+            document.addEventListener('click', (e) => {
+                const trigger = e.target.closest('a[href="#book"], [data-action="open-booking"], [data-cta="book-call"], .cta[href="#book"]');
+                if (trigger) openModal(e);
+            });
+
+            [closeBtn, backdrop].forEach(el => el && el.addEventListener('click', closeModal));
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.hasAttribute('open')) closeModal();
+            });
+        })();
+    </script>
 </body>
 
 </html>

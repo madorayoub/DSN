@@ -6545,3 +6545,179 @@ caption {
         border: 1px solid #ddd;
     }
 }
+/* Google Review Card Style */
+.google-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    font-family: Roboto, Arial, sans-serif;
+    color: #3c4043;
+    transition: box-shadow 0.2s;
+    text-align: left;
+}
+
+.google-card:hover {
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+}
+
+.gc-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.gc-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #7b1fa2;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 500;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.google-card:nth-child(2n) .gc-avatar { background-color: #d32f2f; }
+.google-card:nth-child(3n) .gc-avatar { background-color: #1976d2; }
+.google-card:nth-child(4n) .gc-avatar { background-color: #388e3c; }
+
+.gc-user-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gc-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: #202124;
+    line-height: 1.4;
+}
+
+.gc-meta {
+    font-size: 12px;
+    color: #70757a;
+    line-height: 1.4;
+}
+
+.gc-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 1;
+}
+
+.gc-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: -4px;
+}
+
+.gc-stars {
+    display: flex;
+    color: #faaf00;
+    gap: 1px;
+}
+
+.gc-stars svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.gc-date {
+    font-size: 12px;
+    color: #70757a;
+}
+
+.gc-body {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #3c4043;
+    margin: 0;
+    font-style: normal;
+}
+
+.gc-body strong {
+    color: #202124;
+}
+
+/* FIX: Ensure specific sizing for Google Card icons to override any global/container defaults */
+.google-card .gc-icon {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px;
+}
+
+.google-card .gc-stars svg {
+    width: 16px !important;
+    height: 16px !important;
+    display: block;
+}
+
+.google-card .gc-stars {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+}
+
+/* Ensure the card flex layout works even if external styles try to enforce grid */
+.ns-proof-cc12 .tcard.google-card {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border: none;
+    gap: 12px;
+}
+
+/* CRITICAL FIX: Override ALL conflicting styles with maximum specificity */
+.ns-proof-cc12 .google-card,
+.ns-proof-cc12 .tcard.google-card {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    background: #fff !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24) !important;
+    border: none !important;
+}
+
+.ns-proof-cc12 .google-card .gc-icon,
+.ns-proof-cc12 .tcard.google-card .gc-icon {
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    flex-shrink: 0 !important;
+}
+
+.ns-proof-cc12 .google-card .gc-stars svg,
+.ns-proof-cc12 .tcard.google-card .gc-stars svg {
+    width: 14px !important;
+    height: 14px !important;
+    max-width: 14px !important;
+    max-height: 14px !important;
+    fill: #faaf00 !important;
+}
+
+.ns-proof-cc12 .google-card .gc-avatar,
+.ns-proof-cc12 .tcard.google-card .gc-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+}
