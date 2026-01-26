@@ -344,6 +344,10 @@
                 max-width: 62ch
             }
 
+            .ns-hero-pro12 .muted {
+                color: var(--pro12-muted);
+            }
+
             /* Actions – refined CTA sizes & color treatment */
             .ns-hero-pro12 .actions {
                 display: flex;
@@ -446,7 +450,7 @@
         <div class="wrap">
             <span class="eyebrow"><span class="dot" aria-hidden="true"></span>Pre‑Sold Network</span>
 
-            <h1 id="hero-pro12-title">Stop Chasing Work. Start <span class="accent">Getting Invited to It.</span></h1>
+            <h1 id="hero-pro12-title">Stop Chasing Work. <span class="accent">Start Getting Invited to It.</span></h1>
             <p class="lead">We put you in front of decision-makers with real projects. Spend less time hunting and more
                 time working.</p>
 
@@ -1120,21 +1124,18 @@
 
             /* ========== GOOGLE REVIEW CARD STYLES (Authoritative) ========== */
             .ns-proof-cc12 .google-card {
-                background: #fff !important;
-                border-radius: 8px !important;
-                padding: 16px !important;
-                /* Official Google Card Shadow */
-                box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15) !important;
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 12px !important;
+                background: #ffffff;
+                border-radius: 8px;
+                border: 1px solid #e0e0e0;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+                /* Gap handled by margins for precise control */
                 height: 100%;
-                font-family: 'Roboto', Arial, sans-serif;
-                color: #3c4043;
-                transition: box-shadow 0.2s;
-                text-align: left;
-                border: 1px solid transparent !important;
-                /* Prevents layout shift on hover if border changes */
+                position: relative;
+                box-shadow: none;
+                transition: box-shadow 0.2s ease, transform 0.2s ease;
             }
 
             /* Fix for filter visibility - ensure hidden attribute works */
@@ -1143,36 +1144,38 @@
             }
 
             .ns-proof-cc12 .google-card:hover {
-                /* Slightly lifted state */
-                box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15) !important;
+                box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+                transform: translateY(-1px);
+                z-index: 2;
+                border-color: transparent;
             }
 
             .ns-proof-cc12 .gc-header {
                 display: flex;
-                align-items: flex-start;
-                /* Align to top to handle multi-line names */
-                gap: 16px;
-                /* 16px gap is standard */
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 0;
+                /* Ultra-tight: stars go right below meta */
                 position: relative;
+                padding-right: 28px;
+                /* Space for G-icon */
             }
 
             .ns-proof-cc12 .gc-avatar {
                 width: 40px !important;
                 height: 40px !important;
                 min-width: 40px !important;
-                min-height: 40px !important;
                 border-radius: 50%;
-                background-color: #7b1fa2;
-                color: white;
+                background-color: #333;
+                /* Fallback */
+                color: #fff;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 18px;
-                /* Standard avatar letter size */
+                font-size: 20px;
                 font-weight: 400;
-                /* Regular weight usually */
-                flex-shrink: 0;
                 text-transform: uppercase;
+                flex-shrink: 0;
             }
 
             .ns-proof-cc12 .google-card:nth-child(2n) .gc-avatar {
@@ -1188,40 +1191,40 @@
             }
 
             .ns-proof-cc12 .gc-user-info {
-                flex: 1;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                overflow: hidden;
-                /* For truncation */
             }
 
             .ns-proof-cc12 .gc-name {
+                font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
                 font-weight: 700;
                 font-size: 14px;
                 color: #202124;
-                line-height: 1.4;
-                margin-bottom: 2px;
+                line-height: 18px;
+                margin-bottom: 0;
+                /* Zero gap */
             }
 
             .ns-proof-cc12 .gc-meta {
-                font-size: 14px;
-                /* increased from 12px for mobile readability */
+                font-family: Roboto, sans-serif;
+                font-size: 12px;
                 color: #70757a;
-                line-height: 1.4;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
+                line-height: 16px;
+                margin-bottom: 3px;
+                /* Tiny gap before stars */
             }
 
+            /* Absolute Positioned Google G Icon (Top Right) */
             .ns-proof-cc12 .gc-icon {
-                width: 22px !important;
-                height: 22px !important;
-                min-width: 22px !important;
-                min-height: 22px !important;
-                flex-shrink: 0 !important;
-                margin-left: auto;
-                /* Push to right if needed, though flex handles it */
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 20px !important;
+                /* Smaller to match screenshot */
+                height: 20px !important;
+                opacity: 1;
+                margin: 0 !important;
             }
 
             /* Three dots menu icon */
@@ -1238,8 +1241,10 @@
             .ns-proof-cc12 .gc-rating {
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                margin-top: -4px;
+                gap: 6px;
+                /* Tighter gap between stars and date */
+                margin-bottom: 6px;
+                /* Minimal gap before body text */
             }
 
             .ns-proof-cc12 .gc-stars {
@@ -1248,25 +1253,27 @@
             }
 
             .ns-proof-cc12 .gc-stars svg {
-                width: 14px !important;
-                height: 14px !important;
+                width: 13px !important;
+                /* Slightly smaller to match screenshot */
+                height: 13px !important;
                 fill: #fbbc04 !important;
-                /* Official Google Star Yellow */
             }
 
             .ns-proof-cc12 .gc-date {
-                font-size: 14px;
-                /* increased from 12px for readability */
+                font-family: Roboto, sans-serif;
+                font-size: 12px;
                 color: #70757a;
+                /* Separator dot logic handling */
             }
 
             .ns-proof-cc12 .gc-body {
+                font-family: Roboto, Arial, sans-serif;
                 font-size: 14px;
-                line-height: 1.5;
-                /* Good reading height */
+                line-height: 1.45;
                 color: #3c4043;
-                /* Dark grey for body text */
                 margin: 0;
+                /* Allow long words to break if necessary */
+                word-wrap: break-word;
             }
 
             /* Mobile optimizations */
@@ -2578,6 +2585,8 @@
                 font-size: 14px;
                 line-height: 1.25;
                 white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .ns-bookbar-c8f3 .s {
@@ -3314,8 +3323,8 @@
                         <span class="ff-name sr-only">Direct Sales Network</span>
                     </div>
                     <p class="ff-about">
-                        We generate pre-sold jobs for home-service contractors — booked appointments with budget &
-                        timing confirmed before you drive.
+                        Direct Sales Network helps commercial contractors build consistent pipelines by connecting them
+                        with pre-qualified opportunities and decision-makers across industries.
                     </p>
                 </div>
 
@@ -3544,7 +3553,7 @@
                 <div class="bb-loading">
                     <div class="bb-spinner"></div>
                 </div>
-                <iframe class="bb-frame" src="about:blank" title="Booking Calendar" loading="lazy"></iframe>
+                <iframe class="bb-frame" src="about:blank" title="Booking Calendar" loading="eager"></iframe>
             </div>
         </div>
     </div>
@@ -3575,10 +3584,12 @@
             const backdrop = modal.querySelector('.bb-backdrop');
             const LC_URL = 'https://api.leadconnectorhq.com/widget/booking/Hu8WXmbOgfry6dguZGta';
             let isLoaded = false;
+            let isLoading = false;
             let lastFocused;
 
             function loadCalendar() {
-                if (isLoaded) return;
+                if (isLoaded || isLoading) return;
+                isLoading = true;
                 frame.src = LC_URL;
                 // Inject script if missing
                 if (!document.querySelector('script[src*="msgsndr.com"]')) {
@@ -3590,6 +3601,7 @@
                 frame.onload = () => {
                     loader.classList.add('hidden');
                     isLoaded = true;
+                    isLoading = false;
                 }
             }
 
@@ -3611,9 +3623,24 @@
             }
 
             // Attach listeners
+            const triggers = document.querySelectorAll('a[href="#book"], [data-action="open-booking"], [data-cta="book-call"], .cta[href="#book"]');
+
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', openModal);
+            });
+
+            // Load calendar immediately when page finishes loading
+            window.addEventListener('load', () => {
+                // Short delay to prioritize critical render path
+                setTimeout(loadCalendar, 100);
+            });
+
             document.addEventListener('click', (e) => {
                 const trigger = e.target.closest('a[href="#book"], [data-action="open-booking"], [data-cta="book-call"], .cta[href="#book"]');
-                if (trigger) openModal(e);
+                if (trigger && !Array.from(triggers).includes(trigger)) {
+                    // Handle dynamically added triggers if any
+                    openModal(e);
+                }
             });
 
             [closeBtn, backdrop].forEach(el => el && el.addEventListener('click', closeModal));
