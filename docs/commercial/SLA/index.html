@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Direct Sales Network (DSN) | Service Level Agreement</title>
+    <meta name="description" content="Service Level Agreement for Direct Sales Network (DSN)." />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Direct Sales Network (DSN) | Service Level Agreement" />
+    <meta property="og:description" content="View our Service Level Agreement." />
+    <meta property="og:type" content="website" />
+
+    <!-- Performance: Resource Hints -->
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+    <link rel="dns-prefetch" href="https://api.leadconnectorhq.com" />
+    <link rel="dns-prefetch" href="https://link.msgsndr.com" />
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://rsms.me" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <link rel="icon" href="https://res.cloudinary.com/diptffkzh/image/upload/v1764782206/favicon_j6wusj.png" />
+    <meta name="theme-color" content="#19ad50" />
+    <style>
+        /* Global Reset */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #111316;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        /* SLA Section Styles - Optimized */
+        .ns-sla-container {
+            max-width: 1000px;
+            margin: clamp(20px, 4vw, 40px) auto;
+            padding: clamp(16px, 3vw, 20px);
+            min-height: 60vh;
+        }
+
+        .ns-sla-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: clamp(24px, 4vw, 32px);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .ns-sla-header h1 {
+            font-size: clamp(1.8rem, 5vw, 2.4rem);
+            font-weight: 800;
+            color: #111316;
+            margin: 0;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .ns-sla-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: #2fcc41;
+            color: #031807;
+            padding: 12px 24px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: transform 0.2s, filter 0.2s, background-color 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.95rem;
+            box-shadow: 0 4px 6px -1px rgba(47, 204, 65, 0.2);
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+            box-shadow: 0 6px 12px -1px rgba(47, 204, 65, 0.3);
+        }
+
+        .btn-download.secondary {
+            background-color: #ffffff;
+            color: #111316;
+            border-color: #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-download.secondary:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .pdf-viewer {
+            width: 100%;
+            height: 80vh;
+            min-height: 600px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .pdf-fallback {
+            text-align: center;
+            padding: 60px 20px;
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 640px) {
+            .ns-sla-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .ns-sla-actions {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn-download {
+                width: 100%;
+                padding: 14px 20px;
+                /* Larger touch target */
+                font-size: 1rem;
+            }
+
+            .pdf-viewer {
+                height: 70vh;
+                min-height: 400px;
+                border-radius: 12px;
+            }
+        }
+
+        /* Re-using Header Styles from offer.html */
+        .ns-header-e4b7 {
+            --hdr-bg: #111316;
+            --hdr-ink: #fefefe;
+            --hdr-muted: #a3b0b3;
+            --hdr-accent: #2fcc41;
+            --hdr-hair: color-mix(in oklab, var(--hdr-accent) 28%, transparent);
+            --logo-m: 44px;
+            /* Reduced for better spacing */
+            --logo-d: 52px;
+            /* Reduced to fit comfortably in 74px header */
+            --hdr-height: 74px;
+            font-family: system-ui, -apple-system, sans-serif;
+            color: var(--hdr-ink);
+            position: sticky;
+            top: 0;
+            z-index: 60;
+            background: color-mix(in oklab, var(--hdr-bg) 94%, transparent);
+            backdrop-filter: saturate(1.05) blur(8px);
+            border-bottom: 1px solid var(--hdr-hair);
+        }
+
+        /* ... properties of ns-header-e4b7 continued ... */
+        .ns-header-e4b7 .bar {
+            max-width: 1120px;
+            margin-inline: auto;
+            padding-inline: 16px;
+            height: var(--hdr-height);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ns-header-e4b7 .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ns-header-e4b7 .logo {
+            height: var(--logo-m);
+            width: auto;
+            border-radius: 10px;
+        }
+
+        @media (min-width:768px) {
+            .ns-header-e4b7 .logo {
+                height: var(--logo-d)
+            }
+        }
+
+        .ns-header-e4b7 .cta {
+            background: var(--hdr-accent);
+            color: #0b1517;
+            padding: .65rem 1.25rem;
+            border-radius: 999px;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            min-height: 44px;
+            text-decoration: none;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .ns-header-e4b7 .cta:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <section class="ns-header-e4b7" role="banner">
+        <div class="bar">
+            <a class="brand" href="/" aria-label="Direct Sales Network Home">
+                <picture>
+                    <source media="(max-width: 767px)"
+                        srcset="https://res.cloudinary.com/diptffkzh/image/upload/f_auto,q_auto,w_350/v1759298298/2d235155-6742-4f37-9224-b610afa086b9_1_umlo20.png">
+                    <img class="logo"
+                        src="https://res.cloudinary.com/diptffkzh/image/upload/f_auto,q_auto/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                        alt="Direct Sales Network logo" width="320" height="80">
+                </picture>
+            </a>
+            <span aria-hidden="true"></span>
+            <a href="#book" class="cta" data-action="open-booking">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <path d="M8 2v4M16 2v4M4 9h16M7 13h10M7 17h8M4 4h16v16H4z" />
+                </svg>
+                Book Now
+            </a>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="ns-sla-container">
+        <div class="ns-sla-header">
+            <h1>Service Level Agreement</h1>
+            <div class="ns-sla-actions">
+                <a href="DSN_SLA_2026_FINAL.pdf" download="DSN_SLA_2026_FINAL.pdf" class="btn-download">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Download PDF
+                </a>
+                <a href="DSN_SLA_2026_FINAL.docx" download="DSN_SLA_2026_FINAL.docx" class="btn-download secondary">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    Download DOCX
+                </a>
+            </div>
+        </div>
+
+        <object data="DSN_SLA_2026_FINAL.pdf" type="application/pdf" class="pdf-viewer">
+            <div class="pdf-fallback">
+                <p>Your browser does not support PDF preview.</p>
+                <a href="DSN_SLA_2026_FINAL.pdf" class="btn-download">Download PDF to view</a>
+            </div>
+        </object>
+    </main>
+
+    <!-- Footer -->
+    <footer class="ns-funnel-footer-9c12" role="contentinfo">
+        <style>
+            .ns-funnel-footer-9c12 {
+                --ff-brand: #2fcc41;
+                --ff-ink: #e7ecf3;
+                --ff-ink-sub: #b1bac8;
+                --ff-bg: #0d1720;
+                --ff-card: #0f1a22;
+                --ff-hair: #202631;
+                --ff-radius: 16px;
+                --ff-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+                color-scheme: dark;
+                font-family: system-ui, -apple-system, sans-serif;
+                background-color: var(--ff-bg);
+                color: var(--ff-ink);
+                padding: 40px 20px;
+            }
+
+            .ns-funnel-footer-9c12 .ff-wrap {
+                max-width: 1120px;
+                margin: 0 auto;
+            }
+
+            .ns-funnel-footer-9c12 .ff-top {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 40px;
+                justify-content: space-between;
+                margin-bottom: 40px;
+            }
+
+            .ns-funnel-footer-9c12 .ff-brand img {
+                height: 48px;
+                width: auto;
+                background: #0b1517;
+                padding: 5px;
+                border-radius: 8px;
+            }
+
+            .ns-funnel-footer-9c12 .ff-about {
+                max-width: 400px;
+                color: var(--ff-ink-sub);
+                line-height: 1.6;
+                margin-top: 16px;
+            }
+
+            .ns-funnel-footer-9c12 .ff-legal {
+                border-top: 1px solid var(--ff-hair);
+                padding-top: 20px;
+                color: var(--ff-ink-sub);
+                font-size: 0.9rem;
+            }
+
+            .ns-funnel-footer-9c12 a {
+                color: inherit;
+            }
+        </style>
+        <div class="ff-wrap">
+            <div class="ff-top">
+                <div>
+                    <div class="ff-brand">
+                        <img src="https://res.cloudinary.com/diptffkzh/image/upload/f_auto,q_auto,w_400/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                            alt="Direct Sales Network Logo">
+                    </div>
+                    <p class="ff-about">
+                        Direct Sales Network helps commercial contractors build consistent pipelines by connecting them
+                        with pre-qualified opportunities.
+                    </p>
+                </div>
+            </div>
+            <div class="ff-legal">
+                <p>© 2026 Direct Sales Network. All rights reserved.</p>
+                <p>
+                    <a href="/terms-of-service">Terms</a> · <a href="/privacy-policy">Privacy</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+    <!-- Global Booking Modal (Consolidated) -->
+    <div id="global-booking-modal" class="bb-modal" aria-hidden="true">
+        <style>
+            .bb-modal {
+                position: fixed;
+                inset: 0;
+                z-index: 10000;
+                display: none;
+            }
+
+            .bb-modal[open] {
+                display: grid;
+                place-items: center;
+            }
+
+            .bb-backdrop {
+                position: absolute;
+                inset: 0;
+                background: rgba(2, 6, 8, 0.85);
+                backdrop-filter: blur(4px);
+                animation: fadeIn 0.3s ease;
+            }
+
+            .bb-dialog {
+                position: relative;
+                width: min(960px, 94vw);
+                max-height: 92vh;
+                /* fallback for older browsers */
+                max-height: 92dvh;
+                background: #0b1517;
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                display: flex;
+                flex-direction: column;
+                animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            .bb-close {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 44px;
+                height: 44px;
+                border-radius: 999px;
+                background: #0b1517;
+                color: #fff;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                display: grid;
+                place-items: center;
+                z-index: 2;
+                transition: background 0.2s;
+                cursor: pointer;
+            }
+
+            .bb-close:hover {
+                background: #1c262a;
+            }
+
+            .bb-scroll {
+                position: relative;
+                flex: 1;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                background: #fff;
+                min-height: 400px;
+            }
+
+            .bb-loading {
+                position: absolute;
+                inset: 0;
+                display: grid;
+                place-items: center;
+                background: #fff;
+                transition: opacity 0.3s;
+                z-index: 1;
+            }
+
+            .bb-loading.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .bb-spinner {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 3px solid rgba(0, 0, 0, 0.1);
+                border-top-color: #2fcc41;
+                animation: spin 0.8s linear infinite;
+            }
+
+            .bb-frame {
+                display: block;
+                width: 100%;
+                border: none;
+                min-height: 700px;
+            }
+
+            /* Fix iframe height on small screens */
+            @media (max-height: 750px) {
+                .bb-frame {
+                    min-height: calc(100vh - 120px);
+                    min-height: calc(100dvh - 120px);
+                }
+            }
+
+            @media (max-width: 520px) {
+                .bb-dialog {
+                    width: 96vw;
+                    max-height: 92vh;
+                    max-height: 92dvh;
+                }
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+
+                to {
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+        <div class="bb-backdrop"></div>
+        <div class="bb-dialog" role="dialog" aria-modal="true" aria-label="Book your call">
+            <button class="bb-close" type="button" aria-label="Close">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+            <div class="bb-scroll">
+                <div class="bb-loading">
+                    <div class="bb-spinner"></div>
+                </div>
+                <iframe class="bb-frame" src="about:blank" title="Booking Calendar" loading="eager"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Scripts: Modal & Animations -->
+    <script>
+        (function () {
+            // --- 2. Global Modal Logic ---
+            const modal = document.getElementById('global-booking-modal');
+            const frame = modal.querySelector('iframe');
+            const loader = modal.querySelector('.bb-loading');
+            const closeBtn = modal.querySelector('.bb-close');
+            const backdrop = modal.querySelector('.bb-backdrop');
+            const LC_URL = 'https://api.leadconnectorhq.com/widget/booking/Hu8WXmbOgfry6dguZGta';
+            let isLoaded = false;
+            let isLoading = false;
+            let lastFocused;
+
+            function loadCalendar() {
+                if (isLoaded || isLoading) return;
+                isLoading = true;
+                frame.src = LC_URL;
+                // Inject script if missing
+                if (!document.querySelector('script[src*="msgsndr.com"]')) {
+                    const s = document.createElement('script');
+                    s.src = 'https://link.msgsndr.com/js/form_embed.js';
+                    s.async = true;
+                    document.body.appendChild(s);
+                }
+                frame.onload = () => {
+                    loader.classList.add('hidden');
+                    isLoaded = true;
+                    isLoading = false;
+                }
+            }
+
+            function openModal(e) {
+                e.preventDefault();
+                lastFocused = document.activeElement;
+                loadCalendar();
+                modal.removeAttribute('aria-hidden');
+                modal.setAttribute('open', '');
+                document.body.style.overflow = 'hidden';
+                closeBtn.focus();
+            }
+
+            function closeModal() {
+                modal.removeAttribute('open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                if (lastFocused) lastFocused.focus();
+            }
+
+            // Attach listeners
+            const triggers = document.querySelectorAll('a[href="#book"], [data-action="open-booking"], [data-cta="book-call"], .cta[href="#book"], .cta');
+
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', openModal);
+            });
+
+            // Load calendar immediately when page finishes loading
+            window.addEventListener('load', () => {
+                // Short delay to prioritize critical render path
+                setTimeout(loadCalendar, 100);
+            });
+
+            document.addEventListener('click', (e) => {
+                const trigger = e.target.closest('a[href="#book"], [data-action="open-booking"], [data-cta="book-call"], .cta[href="#book"], .cta');
+                if (trigger && !Array.from(triggers).includes(trigger)) {
+                    // Handle dynamically added triggers if any
+                    openModal(e);
+                }
+            });
+
+            [closeBtn, backdrop].forEach(el => el && el.addEventListener('click', closeModal));
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.hasAttribute('open')) closeModal();
+            });
+        })();
+    </script>
+</body>
+
+</html>
