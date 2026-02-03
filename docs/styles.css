@@ -6721,3 +6721,488 @@ caption {
     min-width: 40px !important;
     min-height: 40px !important;
 }
+
+/* ==========================================================================
+   Google Review Cards (Previously scoped to .ns-proof-cc12)
+   Moved from commercial/offer.html to be global
+   ========================================================================== */
+
+/* Wrapper class for the section - ensure partials use this or update selector */
+.ns-proof-cc12 {
+    --pf-bg: #f8fafc;
+    --pf-ink: #111316;
+    --pf-muted: #515a67;
+    --pf-brand: #2fcc41;
+    --pf-card: #ffffff;
+    --pf-hair: #e6ebf0;
+    --pf-space: clamp(1rem, 3vw, 2.2rem);
+    --pf-gap: clamp(1rem, 2.2vw, 1.25rem);
+    --pf-radius: 14px;
+
+    /* Header type (aligned to Value Stack) */
+    --t-xs: .875rem;
+    --t-sm: .95rem;
+    --t-md: 1rem;
+    --t-lg: clamp(1.125rem, 2.4vw, 1.25rem);
+    --t-xl: clamp(1.35rem, 3.2vw, 1.6rem);
+
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    color: var(--pf-ink);
+    isolation: isolate;
+    position: relative;
+    /* Prevent any accidental horizontal page scroll */
+    overflow-x: hidden;
+}
+
+/* Local reset (scoped) */
+.ns-proof-cc12 :where(*, *::before, *::after) {
+    box-sizing: border-box
+}
+
+.ns-proof-cc12 :where(h1, h2, h3, h4, p, ul, ol, figure) {
+    margin: 0
+}
+
+.ns-proof-cc12 :where(img, svg) {
+    display: block;
+    max-width: 100%;
+    height: auto
+}
+
+.ns-proof-cc12 :where(a, button) {
+    color: inherit;
+    font: inherit;
+    text-decoration: none;
+    background: none;
+    border: 0;
+    cursor: pointer
+}
+
+.ns-proof-cc12 :where(:focus-visible) {
+    outline: 2px solid var(--pf-brand);
+    outline-offset: 2px;
+    border-radius: 8px
+}
+
+.ns-proof-cc12 [hidden] {
+    display: none !important
+}
+
+/* Container */
+.ns-proof-cc12 .container {
+    max-width: 1100px;
+    margin-inline: auto;
+    padding: calc(var(--pf-space)*1.8) 16px;
+    container-type: inline-size
+}
+
+@media (min-width: 1200px) {
+    .ns-proof-cc12 .container {
+        max-width: 1200px;
+        padding: calc(var(--pf-space)*2) 24px;
+    }
+}
+
+/* ===== Unified header (matches Value Stack) + improved vertical rhythm ===== */
+.ns-proof-cc12 .head {
+    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: .55rem;
+    margin-bottom: clamp(1.6rem, 5vw, 2.8rem)
+}
+
+.ns-proof-cc12 .title {
+    display: grid;
+    justify-items: center;
+    gap: .85rem
+}
+
+/* more air between kicker/heading/bar */
+.ns-proof-cc12 .kicker {
+    font-size: .875rem;
+    /* 14px minimum for mobile */
+    font-weight: 900;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #0b1c0e;
+    background: color-mix(in oklab, var(--pf-brand) 12%, #fff);
+    border: 1px solid color-mix(in oklab, var(--pf-brand) 38%, var(--pf-hair));
+    border-radius: 999px;
+    padding: .32rem .6rem;
+    width: max-content
+}
+
+.ns-proof-cc12 h2 {
+    font-size: var(--t-xl);
+    font-weight: 900;
+    letter-spacing: -.005em;
+    line-height: 1.15;
+    max-width: 34ch
+}
+
+.ns-proof-cc12 .hl {
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    padding: .05em .15em;
+    border-radius: 6px;
+    box-shadow: inset 0 -.45em 0 color-mix(in oklab, var(--pf-brand) 18%, #eaf7ee);
+}
+
+.ns-proof-cc12 .bar {
+    height: 4px;
+    width: 90px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--pf-brand), color-mix(in oklab, var(--pf-brand) 40%, #cfe8d4));
+    margin-top: .6rem;
+    /* gentle space under heading before subhead */
+}
+
+.ns-proof-cc12 .sub {
+    font-size: var(--t-md);
+    color: var(--pf-muted);
+    max-width: 62ch;
+    margin-top: 1.1rem;
+    /* space between heading stack and subhead */
+}
+
+/* ===== End unified header ===== */
+
+/* Filter bar — one-line, scrollable on mobile (hide scrollbar) */
+.ns-proof-cc12 .filters-wrap {
+    position: relative;
+    margin: clamp(1.2rem, 3vw, 1.6rem) 0 calc(var(--pf-space)*1.25);
+    /* more space above & below filters */
+}
+
+.ns-proof-cc12 .filters-wrap::before,
+.ns-proof-cc12 .filters-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 22px;
+    pointer-events: none;
+    background: linear-gradient(90deg, var(--pf-bg), color-mix(in oklab, var(--pf-bg) 40%, transparent));
+}
+
+.ns-proof-cc12 .filters-wrap::after {
+    left: auto;
+    right: 0;
+    background: linear-gradient(270deg, var(--pf-bg), color-mix(in oklab, var(--pf-bg) 40%, transparent));
+}
+
+.ns-proof-cc12 .filters {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* Firefox hide */
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    scroll-snap-type: x proximity;
+    padding: .25rem 8px;
+    /* a touch of internal breathing room */
+    -ms-overflow-style: none;
+    /* IE/Edge legacy */
+}
+
+.ns-proof-cc12 .filters::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none
+}
+
+/* WebKit hide */
+.ns-proof-cc12 .filter-btn {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    padding: .6rem .9rem;
+    min-height: 44px;
+    border: 1px solid var(--pf-hair);
+    border-radius: 999px;
+    background: #fff;
+    font-size: .92rem;
+    font-weight: 800;
+    color: var(--pf-ink);
+    transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.ns-proof-cc12 .filter-btn[aria-pressed="true"] {
+    background: color-mix(in oklab, var(--pf-brand) 16%, #fff);
+    border-color: color-mix(in oklab, var(--pf-brand) 36%, var(--pf-hair));
+    transform: translateY(-1px);
+}
+
+/* Cards: mobile = horizontal snap; desktop = grid (hide scrollbar) */
+.ns-proof-cc12 .grid {
+    display: flex;
+    gap: var(--pf-gap);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: .25rem;
+    scrollbar-width: none;
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    scroll-padding-inline: 16px;
+    position: relative;
+    -ms-overflow-style: none;
+}
+
+.ns-proof-cc12 .grid::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none
+}
+
+.ns-proof-cc12 .grid::before,
+.ns-proof-cc12 .grid::after {
+    content: "";
+    position: sticky;
+    top: 0;
+    bottom: 0;
+    width: 18px;
+    pointer-events: none;
+    align-self: stretch;
+}
+
+.ns-proof-cc12 .grid::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--pf-bg), color-mix(in oklab, var(--pf-bg) 40%, transparent))
+}
+
+.ns-proof-cc12 .grid::after {
+    right: 0;
+    background: linear-gradient(270deg, var(--pf-bg), color-mix(in oklab, var(--pf-bg) 40%, transparent))
+}
+
+.ns-proof-cc12 .tcard {
+    scroll-snap-align: start;
+    flex: 0 0 86%;
+    min-height: 100%;
+    /* Reset display to allow google-card flex to take over */
+    display: flex;
+    flex-direction: column;
+    /* Remove old styles */
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+}
+
+@media (min-width:768px) {
+    .ns-proof-cc12 .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--pf-gap);
+        overflow: visible
+    }
+
+    .ns-proof-cc12 .tcard {
+        flex: auto;
+    }
+
+    /* Hide mobile scroll fades on desktop grid */
+    .ns-proof-cc12 .grid::before,
+    .ns-proof-cc12 .grid::after {
+        display: none;
+    }
+}
+
+@media (min-width:900px) {
+    .ns-proof-cc12 .grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: clamp(1rem, 2.2vw, 1.3rem);
+    }
+}
+
+@media (min-width:950px) {
+    .ns-proof-cc12 .grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ========== GOOGLE REVIEW CARD STYLES (Authoritative) ========== */
+.ns-proof-cc12 .google-card {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    /* Gap handled by margins for precise control */
+    height: 100%;
+    position: relative;
+    box-shadow: none;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Fix for filter visibility - ensure hidden attribute works */
+.ns-proof-cc12 .google-card[hidden] {
+    display: none !important;
+}
+
+.ns-proof-cc12 .google-card:hover {
+    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+    transform: translateY(-1px);
+    z-index: 2;
+    border-color: transparent;
+}
+
+.ns-proof-cc12 .gc-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0;
+    /* Ultra-tight: stars go right below meta */
+    position: relative;
+    padding-right: 28px;
+    /* Space for G-icon */
+}
+
+.ns-proof-cc12 .gc-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    border-radius: 50%;
+    background-color: #333;
+    /* Fallback */
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 400;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.ns-proof-cc12 .google-card:nth-child(2n) .gc-avatar {
+    background-color: #d32f2f;
+}
+
+.ns-proof-cc12 .google-card:nth-child(3n) .gc-avatar {
+    background-color: #1976d2;
+}
+
+.ns-proof-cc12 .google-card:nth-child(4n) .gc-avatar {
+    background-color: #e65100;
+}
+
+.ns-proof-cc12 .gc-user-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.ns-proof-cc12 .gc-name {
+    font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #202124;
+    line-height: 18px;
+    margin-bottom: 0;
+    /* Zero gap */
+}
+
+.ns-proof-cc12 .gc-meta {
+    font-family: Roboto, sans-serif;
+    font-size: 12px;
+    color: #70757a;
+    line-height: 16px;
+    margin-bottom: 3px;
+    /* Tiny gap before stars */
+}
+
+/* Absolute Positioned Google G Icon (Top Right) */
+.ns-proof-cc12 .gc-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px !important;
+    /* Smaller to match screenshot */
+    height: 20px !important;
+    opacity: 1;
+    margin: 0 !important;
+}
+
+/* Three dots menu icon */
+.ns-proof-cc12 .gc-menu {
+    width: 20px;
+    height: 20px;
+    fill: #70757a;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 0px;
+    /* Aligned with grid */
+}
+
+.ns-proof-cc12 .gc-rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    /* Tighter gap between stars and date */
+    margin-bottom: 6px;
+    /* Minimal gap before body text */
+}
+
+.ns-proof-cc12 .gc-stars {
+    display: flex;
+    gap: 1px;
+}
+
+.ns-proof-cc12 .gc-stars svg {
+    width: 13px !important;
+    /* Slightly smaller to match screenshot */
+    height: 13px !important;
+    fill: #fbbc04 !important;
+}
+
+.ns-proof-cc12 .gc-date {
+    font-family: Roboto, sans-serif;
+    font-size: 12px;
+    color: #70757a;
+    /* Separator dot logic handling */
+}
+
+.ns-proof-cc12 .gc-body {
+    font-family: Roboto, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #3c4043;
+    margin: 0;
+    /* Allow long words to break if necessary */
+    word-wrap: break-word;
+}
+
+.ns-proof-cc12 .gc-body.truncated {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.ns-proof-cc12 .see-more-btn {
+    background: none;
+    border: none;
+    color: #5f6368;
+    font-family: Roboto, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 0;
+    margin: 2px 0 0 0;
+    display: block;
+    transition: color 0.2s ease;
+    text-align: left;
+}
+
+.ns-proof-cc12 .see-more-btn:hover {
+    color: #202124;
+    text-decoration: underline;
+}
