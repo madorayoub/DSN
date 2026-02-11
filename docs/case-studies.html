@@ -68,6 +68,9 @@
                         var(--pro12-bg);
                     position: relative;
                     isolation: isolate;
+                    text-rendering: optimizeLegibility;
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;
                 }
 
                 .ns-hero-pro12 :where(*, *::before, *::after) {
@@ -175,7 +178,7 @@
 
                 @media (max-width: 767px) {
                     .ns-hero-pro12 .wrap {
-                        padding: 24px 16px;
+                        padding: 20px 16px 16px 16px;
                     }
                 }
             </style>
@@ -224,6 +227,7 @@
                     isolation: isolate;
                     position: relative;
                     overflow-x: hidden;
+                    scroll-behavior: smooth;
                 }
 
                 .ns-proof-cc12 :where(*, *::before, *::after) {
@@ -260,6 +264,12 @@
                     margin-inline: auto;
                     padding: calc(var(--pf-space)*1.8) 16px;
                     container-type: inline-size
+                }
+
+                @media (max-width: 767px) {
+                    .ns-proof-cc12 .container {
+                        padding: 1.5rem 16px;
+                    }
                 }
 
                 @media (min-width: 1200px) {
@@ -336,7 +346,8 @@
                     scroll-snap-type: x mandatory;
                     -webkit-overflow-scrolling: touch;
                     padding-bottom: .25rem;
-                    scrollbar-width: none;
+                    scrollbar-width: thin;
+                    scrollbar-color: rgba(47, 204, 65, 0.3) transparent;
                     list-style: none;
                     padding-left: 0;
                     margin: 0;
@@ -344,8 +355,41 @@
                     position: relative;
                 }
 
+                /* Scroll indicator for mobile */
+                @media (max-width: 767px) {
+                    .ns-proof-cc12 .grid::after {
+                        content: '';
+                        position: absolute;
+                        right: 0;
+                        top: 0;
+                        bottom: 0;
+                        width: 40px;
+                        background: linear-gradient(90deg, transparent, var(--pf-bg));
+                        pointer-events: none;
+                    }
+                }
+
                 .ns-proof-cc12 .grid::-webkit-scrollbar {
-                    display: none
+                    height: 4px;
+                }
+
+                .ns-proof-cc12 .grid::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+
+                .ns-proof-cc12 .grid::-webkit-scrollbar-thumb {
+                    background: rgba(47, 204, 65, 0.3);
+                    border-radius: 999px;
+                }
+
+                .ns-proof-cc12 .grid::-webkit-scrollbar-thumb:hover {
+                    background: rgba(47, 204, 65, 0.5);
+                }
+
+                @media (max-width: 767px) {
+                    .ns-proof-cc12 .grid::-webkit-scrollbar {
+                        display: none;
+                    }
                 }
 
                 .ns-proof-cc12 .tcard {
@@ -397,14 +441,24 @@
                     height: 100%;
                     position: relative;
                     box-shadow: none;
-                    transition: box-shadow 0.2s ease, transform 0.2s ease;
+                    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    cursor: default;
+                    will-change: transform;
                 }
 
-                .ns-proof-cc12 .google-card:hover {
-                    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 2px 6px 2px rgba(60, 64, 67, 0.15);
-                    transform: translateY(-1px);
-                    z-index: 2;
-                    border-color: transparent;
+                @media (hover: hover) and (pointer: fine) {
+                    .ns-proof-cc12 .google-card:hover {
+                        box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+                        transform: translateY(-2px);
+                        z-index: 2;
+                        border-color: transparent;
+                    }
+                }
+
+                .ns-proof-cc12 .google-card:focus-within {
+                    outline: 2px solid var(--pf-brand);
+                    outline-offset: 2px;
+                    border-radius: 10px;
                 }
 
                 .ns-proof-cc12 .gc-header {
@@ -1018,9 +1072,21 @@
                     padding: clamp(2rem, 5vw, 4rem) 16px;
                 }
 
+                @media (max-width: 767px) {
+                    .ns-video-grid {
+                        padding: 1.5rem 16px;
+                    }
+                }
+
                 .ns-video-grid .container {
                     max-width: 1100px;
                     margin-inline: auto;
+                }
+
+                @media (min-width: 1400px) {
+                    .ns-video-grid .container {
+                        max-width: 1300px;
+                    }
                 }
 
                 .ns-video-grid .head {
@@ -1042,7 +1108,7 @@
                 .ns-video-grid .v-grid {
                     display: grid;
                     grid-template-columns: 1fr;
-                    gap: 2rem;
+                    gap: clamp(1.5rem, 3vw, 2rem);
                 }
 
                 @media (min-width: 768px) {
@@ -1054,6 +1120,7 @@
                 @media (min-width: 1024px) {
                     .ns-video-grid .v-grid {
                         grid-template-columns: repeat(3, 1fr);
+                        gap: 2rem;
                     }
                 }
 
@@ -1062,6 +1129,19 @@
                     border: 1px solid #e6ebf0;
                     border-radius: 12px;
                     overflow: hidden;
+                    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                @media (hover: hover) and (pointer: fine) {
+                    .ns-video-grid .v-card:hover {
+                        transform: translateY(-4px);
+                        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+                    }
+                }
+
+                .ns-video-grid .v-card:focus-within {
+                    outline: 2px solid #2fcc41;
+                    outline-offset: 2px;
                 }
 
                 .ns-video-grid .v-thumb {
@@ -1070,6 +1150,16 @@
                     display: grid;
                     place-items: center;
                     position: relative;
+                    overflow: hidden;
+                }
+
+                .ns-video-grid .v-thumb iframe {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    border: none;
                 }
 
                 .ns-video-grid .play-icon {
