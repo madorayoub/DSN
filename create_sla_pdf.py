@@ -306,9 +306,45 @@ desired."""
     s2_3_content.extend(add_list_items(supporting_items))
     elements.append(KeepTogether(s2_3_content))
     
-    # TERRITORY PROTECTION
+    # 2.4 LEAD PRE-QUALIFICATION PROCESS
+    s2_4_content = []
+    s2_4_content.append(Paragraph("2.4 Lead Pre-Qualification Process", subsection_heading))
+    
+    preq_intro = """Prior to routing any lead or opportunity to Client, DSN performs a pre-qualification review to ensure the opportunity meets minimum quality standards."""
+    s2_4_content.append(Paragraph(preq_intro, body_style))
+    
+    s2_4_content.append(Paragraph("<b>For Residential Leads:</b>", body_style))
+    
+    residential_preq_items = [
+        "<b>Information Confirmation:</b> DSN contacts each prospect to confirm their contact details and project information are accurate.",
+        "<b>Interest Confirmation:</b> DSN verifies the prospect is genuinely interested in concrete coating services for their home and is actively looking to move forward.",
+        "<b>Project Validation:</b> DSN confirms the prospect has a real, upcoming project (e.g., garage floor, patio, driveway coating) and is not just casually browsing.",
+        "<b>Ballpark Pricing Awareness:</b> DSN provides the prospect with a general pricing range so they have a realistic expectation of cost before being connected to Client. Only prospects who are comfortable with the pricing range are forwarded.",
+        "<b>Geographic Fit:</b> DSN verifies the prospect is located within Client's designated service area.",
+        "<b>Prospect-to-Client Handoff:</b> Once pre-qualified, DSN facilitates the connection between the prospect and Client via SMS, email, or in select cases, a direct live transfer."
+    ]
+    s2_4_content.extend(add_list_items(residential_preq_items))
+    s2_4_content.append(Spacer(1, 4))
+    
+    s2_4_content.append(Paragraph("<b>For Commercial Leads &amp; Opportunities:</b>", body_style))
+    
+    commercial_preq_items = [
+        "<b>Information Confirmation:</b> DSN confirms company details and point-of-contact information are accurate before any outreach or routing.",
+        "<b>Opportunity Validation:</b> DSN verifies the prospect has an active or upcoming project, bid opportunity, or concrete coating need relevant to Client's commercial services.",
+        "<b>Stakeholder Identification:</b> DSN ensures the contact holds a relevant role in the project decision-making chain — such as a General Contractor, Facility Manager, Project Manager, or business owner — with direct influence over procurement or contractor selection.",
+        "<b>Scope &amp; Service Alignment:</b> DSN confirms the project scope and type align with Client's commercial service capabilities and capacity.",
+        "<b>Geographic Coverage:</b> DSN verifies the opportunity is within Client's operating footprint and service territory."
+    ]
+    s2_4_content.extend(add_list_items(commercial_preq_items))
+    s2_4_content.append(Spacer(1, 4))
+    
+    preq_closing = """Only leads and opportunities that pass this pre-qualification process are forwarded to Client, ensuring Client's time is focused on prospects who are genuinely interested, informed, and ready to engage."""
+    s2_4_content.append(Paragraph(preq_closing, body_style))
+    elements.append(KeepTogether(s2_4_content))
+    
+    # TERRITORY PROTECTION (renumbered to 2.5)
     tp_content = []
-    tp_content.append(Paragraph("2.4 Territory Protection", subsection_heading))
+    tp_content.append(Paragraph("2.5 Territory Protection", subsection_heading))
     
     territory_text = """DSN agrees not to service direct competitors within the Client's designated primary 
 service area during the term of this Agreement. This ensures Client maintains a 
