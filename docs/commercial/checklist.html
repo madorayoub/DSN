@@ -128,6 +128,80 @@
     <main style="padding: 40px 0; min-height: calc(100vh - 150px);">
         <style>
             /* Typography & Colors */
+
+            /* Coach Notes Dropdown */
+            .coach-notes {
+                margin-top: 1.25rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            .coach-notes summary {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1rem;
+                font-weight: 700;
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #475569;
+                background: #f8fafc;
+                cursor: pointer;
+                list-style: none;
+                user-select: none;
+            }
+
+            .coach-notes summary::-webkit-details-marker { display: none; }
+
+            .coach-notes summary .cn-arrow {
+                margin-left: auto;
+                transition: transform 0.2s ease;
+                font-style: normal;
+                font-size: 0.75rem;
+            }
+
+            .coach-notes[open] summary .cn-arrow {
+                transform: rotate(180deg);
+            }
+
+            .coach-notes[open] summary {
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .coach-notes-body {
+                padding: 1.25rem 1.25rem 1rem;
+                font-size: 0.92rem;
+                color: #334155;
+                line-height: 1.65;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .coach-notes-body h4 {
+                font-size: 0.85rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: #0f172a;
+                margin: 0 0 0.35rem;
+            }
+
+            .coach-notes-body p {
+                margin: 0;
+            }
+
+            .coach-notes-body .cn-warning {
+                background: #fef2f2;
+                border-left: 3px solid #ef4444;
+                padding: 0.75rem 1rem;
+                border-radius: 0 6px 6px 0;
+                color: #991b1b;
+                font-size: 0.88rem;
+            }
+
             :root {
                 --bg-card: #ffffff;
                 --text-main: #1e293b;
@@ -378,16 +452,7 @@
                 <h1
                     style="font-size: clamp(2rem, 5vw, 2.5rem); font-weight: 900; color: #0f172a; margin-bottom: 0.5rem;">
                     Live Sales Call Guide</h1>
-                <p style="color: #64748b; font-size: 1.1rem; font-weight: 600;">Follow This Every Time - Your 0% Close
-                    Rate Depends On It</p>
             </header>
-
-            <div class="stats-banner">
-                <span>CURRENT STATS:</span>
-                <span>Calls: 8</span>
-                <span>Closes: 0</span>
-                <span>Close Rate: 0%</span>
-            </div>
 
             <!-- Pre-Call -->
             <div class="card" style="border-left: 4px solid #3b82f6;">
@@ -421,6 +486,30 @@
                     "What was it about our ad that caught your attention?"
                 </div>
 
+                <!-- Coach Notes Dropdown -->
+                <details class="coach-notes">
+                    <summary>📖 Coach Notes &nbsp;<span class="cn-arrow">▼</span></summary>
+                    <div class="coach-notes-body">
+                        <div>
+                            <h4>The Only Goal Here</h4>
+                            <p>Make them feel like they're talking to a real person, not a salesperson. That's it. Nothing else matters in these first 3 minutes. Do not think about the pitch, do not think about the close. Your only job is to make them comfortable enough to open up.</p>
+                        </div>
+                        <div>
+                            <h4>How to Actually Build Connection</h4>
+                            <p>Start with where they are. You looked up their area code before the call — use it. A simple "I see you're based in [city], how's things over there?" is enough to break the ice and signal that you're paying attention.</p>
+                            <p style="margin-top:0.6rem">Then ask about their business in a curious, not interrogating, way. You want them talking about something they're proud of or comfortable with before you go anywhere near problems or money.</p>
+                            <p style="margin-top:0.6rem">When they share something — actually respond to it. Don't just say "great" and move to the next question. If they mention they've been running their business for 8 years, say <em>"8 years — that's a lot of hard work, what's kept you going?"</em> That one moment of genuine interest does more for trust than any script.</p>
+                        </div>
+                        <div>
+                            <h4>What Kills Trust Instantly</h4>
+                            <div class="cn-warning">Rushing past their answers to get to your next question. If they can feel you waiting to talk instead of actually listening, the trust is gone and it won't come back. Silence after they speak is fine — it shows you're processing, not just waiting for your turn.</div>
+                        </div>
+                        <div>
+                            <h4>What You Lose By Rushing This Phase</h4>
+                            <div class="cn-warning">If you skip rapport and go straight into discovery questions, you'll get short guarded answers. Short guarded answers mean you won't uncover the real pain. No real pain means your pitch won't land. The entire call falls apart — and it traces back to these first 3 minutes.</div>
+                        </div>
+                    </div>
+                </details>
 
             </div>
 
@@ -480,9 +569,65 @@
                     <div class="checklist-item"><input type="checkbox" id="c8"><label for="c8">WHY that goal matters
                             (emotional connection)</label></div>
 
-                    <div class="checklist-item"><input type="checkbox" id="c15"><label for="c15">Proof/results mentioned
-                            (build trust)</label></div>
+                    <div class="checklist-item" style="background: #f0fdf4; border-radius: 6px; padding: 0.5rem 0.75rem; border-left: 3px solid #2fcc41;">
+                        <input type="checkbox" id="c15">
+                        <label for="c15" style="font-weight: 700; color: #0f172a;">
+                            📌 Proof/results mentioned (build trust) — Testimonials — <a href="https://directsales.network/case-studies.html" target="_blank" style="color: #2fcc41; text-decoration: underline; font-weight: 600;">click here</a> <span style="font-weight: 400;">and pull them up on your screen (screen share them)</span>
+                        </label>
+                    </div>
                 </div>
+
+                <!-- Coach Notes Dropdown -->
+                <details class="coach-notes">
+                    <summary>📖 Coach Notes &nbsp;<span class="cn-arrow">▼</span></summary>
+                    <div class="coach-notes-body">
+                        <div>
+                            <h4>The Only Rule</h4>
+                            <p>70% them talking, 30% you. If you're doing more talking than that, stop and ask a question. Your entire goal here is to clearly separate two things in the prospect's mind: where they are now (their current pain) and where they want to be (their goal). That gap is what creates buying tension. No gap, no sale.</p>
+                        </div>
+                        <div>
+                            <h4>Why Rushing This Phase Loses You the Deal</h4>
+                            <div class="cn-warning">If you skip ahead to the pitch before you've fully uncovered their situation, your pitch will be generic. They'll feel it even if they can't name it. The close will feel forced because you haven't built the foundation. Every minute spent doing this properly is worth 10 minutes of pitching.</div>
+                        </div>
+                        <div>
+                            <h4>Start With the Problem First</h4>
+                            <p>Your prospect is an existing business — they know what's not working. So always start there.</p>
+                            <p style="margin-top:0.6rem">Ask: <em>"What's the biggest challenge right now — what's not working at the level it truly could be?"</em><br>Then stop. Let them answer. Once they give you something, put your shovel in the ground and start digging. Don't move on until you fully understand the problem.</p>
+                            <p style="margin-top:0.6rem">If the answer is vague, dig: <em>"Tell me more. When you say [X], what do you mean exactly?"</em></p>
+                        </div>
+                        <div>
+                            <h4>Current Situation — Get the Numbers</h4>
+                            <p>Ask: <em>"How many jobs are you doing per month, and what does that translate to in revenue roughly?"</em><br>If they say "it varies" — push: <em>"Best month vs worst month, what's the range?"</em> You need real numbers for the ROI conversation later.</p>
+                            <p style="margin-top:0.6rem">Ask: <em>"What are you currently doing to generate leads? What's your marketing spend per month?"</em><br>If they say "not much" — push: <em>"Like what specifically? Google, ads, word of mouth?"</em> You need to know what's already been tried.</p>
+                            <p style="margin-top:0.6rem">Ask: <em>"How many leads per month, how many are qualified, and how many do you close?"</em><br>If they only answer part of it — pull the rest out: <em>"And out of those, how many are actually worth your time?"</em></p>
+                            <p style="margin-top:0.6rem">Ask: <em>"Who else is involved when you make a decision like this?"</em><br>If there's a partner or spouse, you need to know now — not at the close when they become the reason they can't move forward.</p>
+                        </div>
+                        <div>
+                            <h4>Dig Into the Pain — Don't Accept Surface Answers</h4>
+                            <p>Ask: <em>"How has that impacted the business specifically?"</em><br>Then: <em>"How else has it impacted things?"</em><br>Then: <em>"How long has this been going on?"</em></p>
+                            <p style="margin-top:0.6rem">When they tell you — widen the gap: <em>"Three years of this... has that put you in a tough spot in other areas?"</em> Let them feel the weight of staying stuck. Don't rush past this moment. Silence after a heavy answer is fine — it shows you're taking it seriously.</p>
+                            <p style="margin-top:0.6rem">Ask: <em>"What's the worst part about it?"</em></p>
+                            <p style="margin-top:0.6rem">Ask: <em>"What happens to the business if nothing changes in the next 6–12 months?"</em><br>This is your most powerful question. It makes inaction feel costly. Let them sit with it.</p>
+                            <p style="margin-top:0.6rem">Ask: <em>"What have you already tried to fix this?"</em><br>This tells you what hasn't worked so you don't pitch something they've already dismissed — and it signals you're not going to waste their time.</p>
+                        </div>
+                        <div>
+                            <h4>Goals — Get Specific and Get Emotional</h4>
+                            <p>Ask: <em>"So if you could fix this — ultimately, what's the goal? Where do you want the business to be in 12 months?"</em><br>Push for a number: <em>"Like what would a great year look like in dollars?"</em></p>
+                            <p style="margin-top:0.6rem">Then ask: <em>"Why that number? Why is that the one?"</em><br>When they tell you — this is where trust deepens. If they say they want to hit $500k because they want to stop working weekends or finally take their family on a proper holiday — that's your emotional anchor. Write it down. You'll use it in the pitch and the close.</p>
+                            <p style="margin-top:0.6rem">Ask: <em>"Beyond the money — what do you personally want this business to give you?"</em></p>
+                        </div>
+                        <div>
+                            <h4>Tie Down Before You Move On</h4>
+                            <p>Before transitioning, close the loop: <em>"I feel like we've covered a lot of ground — is there anything you feel like we haven't touched on that I need to know?"</em></p>
+                            <p style="margin-top:0.6rem">If they say no, you're ready to transition. If they bring something new up — explore it. That's the real issue they were waiting to see if you were safe enough to share.</p>
+                        </div>
+                        <div>
+                            <h4>The Hard Rule</h4>
+                            <div class="cn-warning">Every box on the checklist must be checked before you move to Phase 3. Not most of them. All of them. A single unanswered box means a hole in your pitch — and the prospect will feel it even if they can't explain why they're not buying.</div>
+                        </div>
+                    </div>
+                </details>
+
             </div>
 
             <!-- Phase 3 -->
@@ -495,10 +640,48 @@
                 <div class="script-box">
                     <span class="script-label">Script</span>
                     "So if I understand: You're at [situation], you want to get to [goal], but [gap] is stopping you.
-                    Right?"<br>
-                    <em>(Get confirmation BEFORE pitching)</em><br><br>
+                    Right?"<br><br>
                     "Based on what you shared... here's specifically how we'd solve that for you..."
                 </div>
+
+                <!-- Coach Notes Dropdown -->
+                <details class="coach-notes">
+                    <summary>📖 Coach Notes &nbsp;<span class="cn-arrow">▼</span></summary>
+                    <div class="coach-notes-body">
+                        <div>
+                            <h4>Why It Matters More Than People Think</h4>
+                            <p>If you skip the transition or rush it, you get trust objections at the end of the call. The prospect will say things like <em>"I need to do more research"</em> or <em>"I don't really know you guys"</em> — and no amount of objection handling will save you at that point because the real issue was never handled. The transition is where you front-load proof and credibility so your pitch lands as truth, not as a sales pitch.</p>
+                            <p style="margin-top:0.6rem">It also does something critical — it pulls the prospect back into an emotional state right before the pitch. Discovery gets them emotional. But the moment you start pitching, most prospects shift into logical brain and start looking for reasons to say no. The transition keeps them anchored to their pain and their goal so the pitch hits harder.</p>
+                        </div>
+                        <div>
+                            <h4>Step 1 — Close Out Discovery First</h4>
+                            <p>Before anything else, ask:<br><em>"Look, I feel like we've covered a lot of ground here — is there anything at all that you feel like we haven't touched on that I need to know?"</em></p>
+                            <p style="margin-top:0.6rem">Let them answer fully. If they bring something new up, explore it — that's the real issue they were waiting to see if you were safe enough to share. If they say nothing, you're clear to move forward.</p>
+                        </div>
+                        <div>
+                            <h4>Step 2 — The Trust and Timing Check</h4>
+                            <p>Check two things before pitching:</p>
+                            <p style="margin-top:0.6rem"><strong>Timing:</strong> <em>"Let's just pretend for a moment that you did go ahead with something that could fix [their problem] — is that something you'd be willing and able to commit to right now?"</em><br>This tells you if there's a timing objection waiting to ambush you at the close. Handle it now, not later.</p>
+                            <p style="margin-top:0.6rem"><strong>Decision-maker:</strong> If a partner or spouse is involved and you haven't confirmed it — do it here. <em>"Would your partner potentially need to be involved in a decision like this?"</em> If yes, get them on the call now or reschedule. Do not pitch to half the decision-making team.</p>
+                        </div>
+                        <div>
+                            <h4>Step 3 — The Transition Script</h4>
+                            <p>Reflect back what you heard in their own words and earn the right to pitch:<br><em>"Based on everything you've shared with me — you're currently at [their situation], you want to get to [their goal], and [the specific problem they named] is what's been getting in the way. Is that right?"</em></p>
+                            <p style="margin-top:0.6rem">Pause. Let them confirm. If they say yes, they've just agreed the problem is real and worth solving — the close has already started.</p>
+                            <p style="margin-top:0.6rem">Then hand it to them:<br><em>"Based on what you told me, I think what we have going on here could be a really strong fit for you. I can walk you through exactly how we'd solve that for you A to Z if you'd like — but you tell me where you want to go."</em></p>
+                            <p style="margin-top:0.6rem">You're not pushing the pitch onto them, you're letting them ask for it. That shift in frame changes everything about how the pitch is received.</p>
+                        </div>
+                        <div>
+                            <h4>What a Bad Transition Sounds Like</h4>
+                            <div class="cn-warning">Rushing straight from the last discovery question into "so let me tell you about what we do." No reflection. No confirmation. No trust check. That's how you end up with a prospect who listens politely and then says they need to think about it — because they never felt understood enough to commit.</div>
+                        </div>
+                        <div>
+                            <h4>What You Lose By Skipping This</h4>
+                            <div class="cn-warning">You get uncertainty objections at the close that can't be handled — because the trust was never built. The pitch lands as generic. The prospect checks out emotionally and goes logical. You lose deals that should have been easy.</div>
+                        </div>
+                    </div>
+                </details>
+
             </div>
 
             <!-- Phase 4 -->
@@ -525,6 +708,56 @@
                     <div class="tip-title">⚠️ STOP SAYING</div>
                     "We have a three-pronged approach..." (Generic pitches kill deals)
                 </div>
+
+                <!-- Coach Notes Dropdown -->
+                <details class="coach-notes">
+                    <summary>📖 Coach Notes &nbsp;<span class="cn-arrow">▼</span></summary>
+                    <div class="coach-notes-body">
+                        <div>
+                            <h4>The Most Important Thing to Understand First</h4>
+                            <p>75% of the success or failure of any sales call comes down to the pitch itself. Not the close, not the objection handling — the pitch. The reason most closers lose deals they should win is that their pitch sounds exactly like everyone else's. Generic pitches create doubt. Doubt creates objections. Objections kill deals.</p>
+                            <p style="margin-top:0.6rem">The prospect doesn't buy your service. They buy the end result — the specific emotional destination they told you about in discovery. Your entire pitch must be built around connecting what you do to where they said they want to go.</p>
+                        </div>
+                        <div>
+                            <h4>Part 1 — The Promise (Hard Offer)</h4>
+                            <p>Start with the specific result you're committing to — not what you're going to do, but what they're going to get.</p>
+                            <p style="margin-top:0.6rem">❌ Wrong: <em>"We're going to run ads for you and manage your leads."</em></p>
+                            <p style="margin-top:0.4rem">✅ Right: <em>"This is a done-for-you system to get you 10–15 pre-qualified commercial leads per month so you're only talking to decision makers — and residential leads start within 7 days."</em></p>
+                            <p style="margin-top:0.6rem">The difference is specificity. Specificity creates certainty. Certainty is what gets people to say yes.</p>
+                        </div>
+                        <div>
+                            <h4>Part 2 — The Bridge</h4>
+                            <p>Walk them step by step from where they are now to where they want to be — using their own words. The format is always: <em>"Because you told me [their problem], here's what we do and why it solves that specifically."</em></p>
+                            <p style="margin-top:0.6rem">Example: <em>"You told me you're wasting time chasing leads that go nowhere. So the first thing we do is qualify every lead before it ever reaches you — meaning every conversation you have is with someone who already has a project, already has a budget, and is already looking for someone to hire."</em></p>
+                            <p style="margin-top:0.6rem">Do this for each pillar of your offer. Make it impossible for them to see a gap between their problem and your solution.</p>
+                            <p style="margin-top:0.6rem">Also use this moment to subtly anchor the cost of staying stuck — weave in what they told you is at stake if nothing changes. This creates internal pressure to act without you ever having to push.</p>
+                        </div>
+                        <div>
+                            <h4>Part 3 — Delivery</h4>
+                            <p>Explain how it's fulfilled and why it's done that way. Tie every delivery detail back to a benefit or an objection it eliminates.</p>
+                            <p style="margin-top:0.6rem">❌ Don't say: <em>"You get an onboarding call."</em></p>
+                            <p style="margin-top:0.4rem">✅ Say: <em>"We start with an onboarding call so we can set up your campaign around your specific service area and job types — which is why our leads are more qualified than what you'd get from a generic lead gen company."</em></p>
+                        </div>
+                        <div>
+                            <h4>The ROI Math</h4>
+                            <p>Do the math with them — not at them. Walk it out:</p>
+                            <p style="margin-top:0.6rem"><em>"You said you're doing around $X a month right now. You want to get to $Y. At your average job value, you'd need roughly Z more jobs a month to get there. If we bring you 10–15 qualified leads and you close even 30% of those — what does that look like for you?"</em></p>
+                            <p style="margin-top:0.6rem">Let them do the math out loud. When they say the number, it becomes real and it becomes theirs.</p>
+                        </div>
+                        <div>
+                            <h4>What to Never Do</h4>
+                            <div class="cn-warning" style="margin-bottom:0.6rem">Never list features without linking them to pain. Every feature you mention that isn't connected to something they told you in discovery is noise that kills momentum.</div>
+                            <div class="cn-warning" style="margin-bottom:0.6rem">Never say "we have a three-pronged approach" or any generic framing. The moment your pitch sounds like something they've heard before, you've lost the deal.</div>
+                            <div class="cn-warning">Never pitch price before they've verbally confirmed that what you've described is what they need. Get them to acknowledge they want it before any number is mentioned.</div>
+                        </div>
+                        <div>
+                            <h4>The Tie Down After Each Pillar</h4>
+                            <p>After each part of the pitch, pause and check in: <em>"Does that make sense?"</em> or <em>"Can you see how that would solve [their specific problem]?"</em></p>
+                            <p style="margin-top:0.6rem">This keeps them engaged, catches confusion early, and gets them saying yes multiple times before you ever reach the close. By the time you get to price, they've already agreed your solution is exactly what they need.</p>
+                        </div>
+                    </div>
+                </details>
+
             </div>
 
             <!-- Phase 5 -->
@@ -566,6 +799,52 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Coach Notes Dropdown -->
+                <details class="coach-notes">
+                    <summary>📖 Coach Notes &nbsp;<span class="cn-arrow">▼</span></summary>
+                    <div class="coach-notes-body">
+                        <div>
+                            <h4>What This Phase Actually Is</h4>
+                            <p>This is the phase after you finish the pitch and before you drop price. It has three parts — Temperature Check, Next Steps, Investment Drop — and they must happen in that exact order. The entire purpose is to eliminate uncertainty objections before the prospect ever hears the price. If you skip this and go straight to price, you'll get objections you can't handle because you never established certainty first.</p>
+                        </div>
+                        <div>
+                            <h4>Why This Order Matters</h4>
+                            <div class="cn-warning">Most closers pitch and then immediately drop price. That's backwards. If the prospect isn't certain the solution is right for them, the price becomes the thing they hide behind. You'll hear "let me think about it" or "that's a lot of money" — but those aren't real objections. They're symptoms of uncertainty that wasn't addressed before the number came out. Do the temp check first, every single time.</div>
+                        </div>
+                        <div>
+                            <h4>Step 1 — Temperature Check</h4>
+                            <p>After the pitch, open it up simply:<br><em>"Just curious — in terms of everything we just went through, how do you feel?"</em></p>
+                            <p style="margin-top:0.6rem">Listen to both their words and their tonality:</p>
+                            <p style="margin-top:0.4rem">✅ Certain and positive → move to Next Steps.</p>
+                            <p style="margin-top:0.4rem">⚠️ Uncertain or vague → use the alignment bit first:<br><em>"Just so you know, what's really important to me here is alignment. When we work with someone, we're all in — so it matters to me that you genuinely feel good about this. On a scale of 1 to 10, where 1 is 'this isn't for me at all' and 10 is 'this is exactly what I need' — where do you honestly fall on just the process itself?"</em></p>
+                            <p style="margin-top:0.6rem">If they say <strong>9 or 10</strong> with certainty → move to Next Steps.<br>If they say <strong>8 or below</strong> → do not move forward. Ask: <em>"I appreciate you being honest with me. What do you think is keeping you from being a 9 or 10?"</em> Then listen, handle what comes up, and re-temp before moving on.</p>
+                            <div class="cn-warning" style="margin-top:0.6rem">Do not drop price until they are at a 9 or 10 on the process. A prospect who isn't certain on the solution will always find a reason not to buy.</div>
+                        </div>
+                        <div>
+                            <h4>Step 2 — Next Steps</h4>
+                            <p>Once they're certain on the process, paint a clear picture of exactly what happens after they say yes — before you mention price. This makes the decision feel real and safe rather than abstract.</p>
+                            <p style="margin-top:0.6rem"><em>"Here's exactly what happens when you come on board: we'll book your onboarding call, you'll get your intake form, your campaign gets built around your specific service area and job types, and residential leads start coming in within 7 days. Commercial leads take 2 to 3 weeks to ramp properly. From there we're fully in the trenches with you."</em></p>
+                            <p style="margin-top:0.6rem">The more concrete the picture, the less the price feels like a leap into the unknown.</p>
+                        </div>
+                        <div>
+                            <h4>Step 3 — Investment Drop</h4>
+                            <p>Only now do you drop the price — and when you do, keep it simple and direct:</p>
+                            <p style="margin-top:0.6rem"><em>"To get you from [their current situation] to [their goal], the total monthly investment is $3,500 — that's $2,000 in management and $1,500 in ad spend."</em></p>
+                            <div class="cn-warning" style="margin-top:0.6rem">Then stop talking. Drop the price and shut up. Silence after the price is not awkward — it's necessary. The moment you fill that silence, you've weakened your position. Let them respond first.</div>
+                        </div>
+                        <div>
+                            <h4>How to Answer Questions During This Phase</h4>
+                            <p>If the prospect asks a question about your offer, don't just answer it directly. Respond with: <em>"Good question — just so I can answer that properly, can I ask why you're asking?"</em> or <em>"I'm curious, did you ask that for a reason?"</em></p>
+                            <p style="margin-top:0.6rem">Let them tell you what's behind the question. Nine times out of ten there's a past experience or a specific fear driving it — and once you know that, you can address the real concern instead of the surface one.</p>
+                        </div>
+                        <div>
+                            <h4>What You Lose By Skipping This Phase</h4>
+                            <div class="cn-warning">You get price objections that are actually uncertainty objections in disguise. The prospect doesn't know how to say "I'm not sure this will work" so they say "that's a lot of money" instead. By the time you realize that, it's too late to rebuild certainty — the call is over.</div>
+                        </div>
+                    </div>
+                </details>
+
             </div>
 
             <!-- Phase 6 -->
@@ -587,57 +866,15 @@
                     6. "Perfect. You'll get the agreement shortly. See you [day/time]."
                 </div>
 
-                <div class="tip-box">
-                    <div class="tip-title">⚠️ DO NOT GIVE THEM AGREEMENT TO 'REVIEW'</div>
-                    This is how you lose them!
-                </div>
-            </div>
-
-            <!-- Phase 7 -->
-            <div class="card">
-                <div class="phase-header">
-                    <div class="phase-title"><span class="phase-number">7</span> Handle Objections</div>
-                    <div class="phase-time">5 min</div>
+                <div class="tip-box" style="border-color: #dc2626; background: #fef2f2; margin-top: 1.25rem;">
+                    <div class="tip-title" style="color: #dc2626;">⚠️ CRITICAL — COLLECT CARD ON THIS CALL</div>
+                    <p style="margin: 0.4rem 0 0; color: #991b1b; font-size: 0.92rem;">
+                        Do <strong>not</strong> end this call with just an onboarding booking. Prospects who don't pay on the sales call rarely show up to the onboarding — and when they don't, the deal is dead.<br><br>
+                        <strong>The close is not done until you have card details in hand.</strong> Book the onboarding AND collect the card before you hang up. Always.
+                    </p>
                 </div>
 
-                <p style="margin-bottom: 1rem;">Use the <strong>L.A.E.R.</strong> Framework (Listen, Acknowledge,
-                    Explore, Respond).</p>
-
-                <table class="guide-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 25%;">OBJECTION</th>
-                            <th style="width: 35%;">DON'T SAY ✗</th>
-                            <th style="width: 40%;">DO SAY ✓</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>"Need to think"</td>
-                            <td class="bad">"How much time?"</td>
-                            <td class="good">"Is it the investment, timing, or you're not sure we can deliver?"</td>
-                        </tr>
-                        <tr>
-                            <td>"Talk to partner"</td>
-                            <td class="bad">"When can we follow up?"</td>
-                            <td class="good">"What will they want to know? Let me answer those NOW."</td>
-                        </tr>
-                        <tr>
-                            <td>"Been burned before"</td>
-                            <td class="bad">"We're different"</td>
-                            <td class="good">"Tell me what happened. Here's how we prevent that..."</td>
-                        </tr>
-                        <tr>
-                            <td>"See agreement?"</td>
-                            <td class="bad">"I'll send it"</td>
-                            <td class="good">"Let me make sure this is a fit first..." [more discovery]</td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
-
-
-
 
 
         </div>
