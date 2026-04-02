@@ -55,7 +55,7 @@
       <h1 class="legal-hero__title">Privacy Policy</h1>
       <p class="legal-hero__meta">
         <strong>Direct Sales Network</strong><br />
-        <strong>Last updated:</strong> April 7, 2025
+        <strong>Last updated:</strong> April 2, 2026
       </p>
     </div>
   </section>
@@ -114,8 +114,8 @@
           </li>
           <li>
             We use trusted <strong>service providers</strong> (for example, <strong>Postmark</strong> for email
-            delivery) under
-            contract, with appropriate data protection terms.
+            delivery and <strong>Stripe</strong> for payment processing) under contract, with appropriate data
+            protection terms.
           </li>
           <li>
             You may have rights to <strong>access, delete, correct, or restrict</strong> your data and to
@@ -129,7 +129,7 @@
     <section class="legal-section container" aria-labelledby="scope">
       <h2 id="scope" data-number="1">Scope</h2>
       <p>
-        This Privacy Policy explains how <strong>Direct Sales Network</strong> (“<strong>DSN</strong>,”
+        This Privacy Policy explains how <strong>Direct Sales Network LLC</strong> (“<strong>DSN</strong>,”
         “<strong>we</strong>,”
         “<strong>us</strong>,” or “<strong>our</strong>”) collects, uses, shares, and safeguards personal information
         when
@@ -199,8 +199,9 @@
           If we provide services to <strong>business clients</strong> who supply personal data to DSN so that we can
           perform
           processing on their behalf, DSN acts as a <strong>Processor/Service Provider</strong> under a separate
-          <strong>Data Processing Addendum (DPA)</strong>. In that case, we process data strictly per our client’s
-          instructions.
+          <strong>Data Processing Addendum (DPA)</strong>. In that case, we process data strictly per our client's
+          instructions. To request a copy of our Data Processing Addendum, contact
+          <a href="mailto:contact@directsales.network">contact@directsales.network</a>.
         </li>
       </ul>
       <p class="back-to-top"><a href="#table-of-contents">Back to top ↑</a></p>
@@ -250,7 +251,8 @@
       <ul>
         <li>Directly from <strong>you</strong> (web forms, email replies, phone if you call us).</li>
         <li><strong>Automatically</strong> through your interactions with the Services.</li>
-        <li>From <strong>service providers</strong> operating at our direction.</li>
+         <li>From <strong>service providers</strong> operating at our direction (such as scheduling and appointment
+          platforms, CRM tools, email delivery providers, and payment processors).</li>
         <li>From <strong>referring partners</strong> or <strong>public sources</strong>, as permitted by law.</li>
       </ul>
       <p class="back-to-top"><a href="#table-of-contents">Back to top ↑</a></p>
@@ -286,6 +288,11 @@
           product improvement.</li>
         <li><strong>Legal obligation</strong>: Where processing is required by law.</li>
       </ul>
+      <p>
+        <strong>EU/EEA Representative:</strong> Direct Sales Network LLC is a US-based entity. Where required under
+        GDPR Article 27, we will designate an EU representative upon request. For any GDPR-related inquiries,
+        please contact us at <a href="mailto:contact@directsales.network">contact@directsales.network</a>.
+      </p>
       <p class="back-to-top"><a href="#table-of-contents">Back to top ↑</a></p>
     </section>
 
@@ -295,14 +302,30 @@
       <ul>
         <li>
           <strong>Service providers / processors</strong>: Vendors performing services for us (email delivery,
-          scheduling, analytics, hosting, security). For
-          <strong>email</strong>, we use <strong>Postmark</strong>, which may process delivery events and related
-          metadata to send and monitor our emails.
+          scheduling, analytics, hosting, security, and payment processing).
+          <ul style="margin-top:0.5rem;">
+            <li>For <strong>email delivery</strong>, we use <strong>Postmark</strong>, which may process delivery
+              events and related metadata to send and monitor our emails.</li>
+            <li>For <strong>payment processing</strong>, we use <strong>Stripe, Inc.</strong> Stripe processes
+              payment card data on our behalf under PCI DSS compliance. Card data is transmitted directly to
+              Stripe's secure servers and is <strong>never stored on our systems</strong>. Stripe's privacy policy
+              is available at <a href="https://stripe.com/privacy" target="_blank"
+                rel="noopener noreferrer">stripe.com/privacy</a>.</li>
+          </ul>
         </li>
         <li><strong>Professional advisors &amp; authorities</strong>: As required by law, to protect rights, or for
           corporate transactions (e.g., merger, acquisition, financing).</li>
         <li><strong>Affiliates</strong>: Where they support the Services under equivalent protections.</li>
       </ul>
+      <h3>Payment Processing</h3>
+      <p>
+        When a payment is made in connection with our services, billing and card information is transmitted securely
+        to <strong>Stripe, Inc.</strong> ("Stripe"), our third-party payment processor. Stripe is certified as
+        PCI DSS Level 1 Service Provider compliant. We do <strong>not</strong> receive or store full payment card
+        numbers on our systems. By making a payment, you acknowledge that your payment data will be processed by
+        Stripe in accordance with their <a href="https://stripe.com/privacy" target="_blank"
+          rel="noopener noreferrer">Privacy Policy</a> and Terms of Service.
+      </p>
       <p>
         Where required, we execute <strong>data protection agreements</strong> (including <strong>Standard Contractual
           Clauses</strong> and, if applicable, the
@@ -614,6 +637,12 @@
               <td>Threat detection, incident response</td>
               <td><strong>6–24 months</strong> depending on risk and law</td>
             </tr>
+            <tr>
+              <td>Payment &amp; billing records</td>
+              <td>Legal obligation; Contract</td>
+              <td>Invoice processing, tax reporting, financial audits</td>
+              <td><strong>7 years</strong> (or as required by applicable tax and accounting law)</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -670,6 +699,13 @@
               <td>Email events (open/click/bounce) when permitted</td>
               <td><strong>Up to 13 months</strong></td>
               <td>Unsubscribe; email client settings; request deletion</td>
+            </tr>
+            <tr>
+              <td>Stripe.js / <code>__stripe_mid</code>, <code>__stripe_sid</code></td>
+              <td>Strictly necessary</td>
+              <td>Payment card tokenisation and fraud prevention when a payment form is active</td>
+              <td>Session / up to <strong>1 year</strong></td>
+              <td>Browser settings (required for secure payment processing; cannot be declined without disabling payments)</td>
             </tr>
           </tbody>
         </table>

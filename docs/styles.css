@@ -678,7 +678,17 @@ header.site-header,
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: clamp(2rem, 5vw, 2.5rem);
+  margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
+}
+
+.hero-disclaimer {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  opacity: 0.65;
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero-actions {
@@ -3592,6 +3602,14 @@ header.site-header,
 .footer-column__blurb {
   color: var(--color-muted);
   font-size: 0.98rem;
+}
+
+.footer-column__entity {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  opacity: 0.6;
+  margin-top: 0.5rem;
+  line-height: 1.5;
 }
 
 .footer-contact,
