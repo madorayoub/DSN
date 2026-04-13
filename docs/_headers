@@ -1,5 +1,7 @@
 /*.html
   Cache-Control: public, max-age=300
+/partials/*
+  Cache-Control: public, max-age=60
 /sitemap.xml
   Cache-Control: public, max-age=3600
 /assets/*
@@ -7,4 +9,4 @@
 /*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
+  X-Frame-Options: SAMEORIGIN

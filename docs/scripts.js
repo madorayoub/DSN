@@ -28,8 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
+    // Always show the fallback immediately to prevent layout shift / FOUC.
+    // If we're on file: protocol we stop here (no server to fetch from).
+    injectFallback();
+
     if (location.protocol === 'file:') {
-      injectFallback();
       return;
     }
 
@@ -43,11 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const html = await res.text();
-      const template = document.createElement('template');
-      template.innerHTML = html;
-      slot.replaceWith(template.content.cloneNode(true));
+      // Re-query the selector since injectFallback() replaced the original slot element
+      const currentSlot = document.querySelector(selector);
+      if (currentSlot) {
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        currentSlot.replaceWith(template.content.cloneNode(true));
+      }
     } catch {
-      injectFallback();
+      // Fallback already applied above — nothing more to do.
     }
   };
 

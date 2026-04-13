@@ -10,7 +10,8 @@
         content="Review Direct Sales Network (DSN) case studies to see how omnichannel outreach, SDR pods, and RevOps support consistently convert complex B2B buying committees." />
 
     <!-- Fonts & Icons -->
-    <link rel="preconnect" href="https://rsms.me" />
+    <link rel="preconnect" href="https://rsms.me" crossorigin />
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     <link rel="icon" href="https://res.cloudinary.com/diptffkzh/image/upload/v1764782206/favicon_j6wusj.png" />
     <meta name="theme-color" content="#19ad50" />
@@ -1260,6 +1261,94 @@
     </main>
 
     <footer data-fragment="footer"></footer>
+
+    <template id="header-fallback">
+      <a class="skip-link" href="#main-content">Skip to main content</a>
+      <header class="site-header">
+        <div class="container">
+          <nav class="main-nav" aria-label="Main navigation">
+            <a class="brand" href="index.html" data-root-href="index.html" aria-label="Direct Sales Network home">
+              <span class="brand-icon">
+                <picture class="brand-mark">
+                  <source media="(max-width: 420px)"
+                    srcset="https://res.cloudinary.com/diptffkzh/image/upload/v1759298298/2d235155-6742-4f37-9224-b610afa086b9_1_umlo20.png" />
+                  <img
+                    src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                    alt="Direct Sales Network logo" loading="eager" decoding="async" width="160" height="48" />
+                </picture>
+              </span>
+            </a>
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation"
+              aria-label="Toggle navigation">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+            <nav class="nav-links" id="primary-navigation" aria-label="Primary">
+              <a href="./services-and-solutions.html" data-root-href="services-and-solutions.html">Services &amp; solutions</a>
+              <a href="./industries.html" data-root-href="industries.html">Industries</a>
+              <a href="./about.html" data-root-href="about.html">About</a>
+              <a class="btn btn-primary" href="book-a-call.html" data-root-href="book-a-call.html">Talk to an expert</a>
+            </nav>
+          </nav>
+        </div>
+      </header>
+    </template>
+    <template id="footer-fallback">
+      <footer id="site-footer" class="site-footer" aria-labelledby="footer-heading">
+        <h2 id="footer-heading" class="sr-only">Site footer</h2>
+        <div class="site-footer__surface">
+          <div class="container">
+            <div class="footer-callout">
+              <div class="footer-callout__content">
+                <a class="brand brand--footer" href="index.html" data-root-href="index.html" aria-label="Direct Sales Network® home">
+                  <span class="brand-icon">
+                    <picture class="brand-mark">
+                      <source media="(max-width: 420px)" srcset="https://res.cloudinary.com/diptffkzh/image/upload/v1760372274/image_-_Edited_1_fq8ksy.png" />
+                      <img src="https://res.cloudinary.com/diptffkzh/image/upload/v1760372275/image_1_1_-_Edited_zx5rvw.png" alt="Direct Sales Network logo" loading="eager" decoding="async" width="160" height="48" />
+                    </picture>
+                  </span>
+                </a>
+                <p class="footer-callout__value">Revenue-focused outreach that keeps your sales pipeline growing.</p>
+              </div>
+              <a class="btn btn-primary footer-callout__cta" href="book-a-call.html" data-root-href="book-a-call.html">Talk to an expert</a>
+            </div>
+          </div>
+          <div class="container footer-main">
+            <div class="footer-grid">
+              <div class="footer-column footer-column--brand">
+                <p class="footer-column__blurb">Direct Sales Network® builds predictable revenue engines for ambitious B2B teams.</p>
+                <ul class="footer-contact">
+                  <li><a href="tel:+15615567182">+1 (561) 556-7182</a></li>
+                  <li><a href="mailto:contact@directsales.network">contact@directsales.network</a></li>
+                </ul>
+              </div>
+              <div class="footer-column">
+                <h3 class="footer-column__title">Company</h3>
+                <ul class="footer-links">
+                  <li><a href="about.html" data-root-href="about.html">About</a></li>
+                  <li><a href="careers.html" data-root-href="careers.html">Careers</a></li>
+                  <li><a href="contact.html" data-root-href="contact.html">Contact</a></li>
+                </ul>
+              </div>
+              <div class="footer-column">
+                <h3 class="footer-column__title">Resources</h3>
+                <ul class="footer-links">
+                  <li><a href="faq.html" data-root-href="faq.html">FAQ</a></li>
+                  <li><a href="/privacy-policy" data-root-href="/privacy-policy">Privacy Policy</a></li>
+                  <li><a href="/terms-of-service" data-root-href="/terms-of-service">Terms of Service</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="container">
+            <div class="footer-subfooter">
+              <p class="footer-subfooter__copy">© <span id="footer-year">2026</span> Direct Sales Network®. All rights reserved.</p>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </template>
 
     <script src="./scripts.js"></script>
     <script>

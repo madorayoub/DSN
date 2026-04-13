@@ -1,5 +1,8 @@
 https://www.directsales.network/*  https://directsales.network/:splat  301!
 
+# Pass partials through directly (must come before the *.html redirect rule)
+/partials/*  /partials/:splat  200
+
 # Specific redirects (must come BEFORE catch-all patterns)
 /services.html   /services-and-solutions.html  301
 /solutions.html  /services-and-solutions.html  301
