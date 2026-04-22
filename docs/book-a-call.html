@@ -382,8 +382,33 @@
     </footer>
   </template>
   <script src="./scripts.js" defer></script>
-  <!-- Meta CAPI Standard Event -->
-  <script>DSN.trackEvent('Lead', {});</script>
+  <!-- Meta CAPI: Lead fires only when the booking iframe confirms appointment -->
+  <script>
+  (function () {
+    var _leadFired = false;
+    window.addEventListener('message', function (event) {
+      // Only accept messages from GoHighLevel / LeadConnector origins
+      if (!event.origin || (
+        event.origin.indexOf('leadconnectorhq.com') === -1 &&
+        event.origin.indexOf('msgsndr.com') === -1 &&
+        event.origin.indexOf('gohighlevel.com') === -1
+      )) return;
+
+      var data = event.data || {};
+      // GHL booking widget fires { message: 'appointmentBooked' } on success
+      if (!_leadFired && (
+        data.message === 'appointmentBooked' ||
+        data.message === 'formSubmitted' ||
+        data.event  === 'appointmentBooked'
+      )) {
+        _leadFired = true; // prevent double-fire
+        if (window.DSN && typeof window.DSN.trackEvent === 'function') {
+          window.DSN.trackEvent('Lead', { content_name: 'Book a Call' });
+        }
+      }
+    });
+  })();
+  </script>
   <!-- End Meta CAPI Standard Event -->
 </body>
 

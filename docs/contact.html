@@ -96,6 +96,8 @@
   src="https://www.facebook.com/tr?id=1109170245610201&ev=PageView&noscript=1"
   /></noscript>
   <!-- End Meta Pixel Code -->
+  <!-- DSN pre-init queue: buffers DSN.trackEvent calls until capi-client.js (deferred) loads -->
+  <script>window.DSN=window.DSN||{};if(!window.DSN.trackEvent){window.DSN._q=window.DSN._q||[];window.DSN.trackEvent=function(){window.DSN._q.push(Array.prototype.slice.call(arguments));};}</script>
   <script src="assets/js/capi-client.js" defer></script>
 </head>
 
