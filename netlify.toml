@@ -2,6 +2,7 @@
 
 [build]
   publish = "docs"
+  functions = "netlify/functions"
 
 # Enable clean URLs (remove .html extension)
 [[redirects]]
