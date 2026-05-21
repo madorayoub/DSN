@@ -1,0 +1,18 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+
+[[deploy.cronJobs]]
+name = "zoom-morning-sync"
+schedule = "0 13 * * *"
+command = "curl -X POST http://localhost:$PORT/cron/zoom/run"
+
+[[deploy.cronJobs]]
+name = "zoom-evening-sync"
+schedule = "0 21 * * *"
+command = "curl -X POST http://localhost:$PORT/cron/zoom/run"
