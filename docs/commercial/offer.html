@@ -3279,256 +3279,506 @@
         }
     </style>
 
-    <!-- Global Booking Modal (Consolidated) -->
+    <!-- Global Booking Modal — native widget (no iframe) -->
     <div id="global-booking-modal" class="bb-modal" aria-hidden="true">
         <style>
-            .bb-modal {
-                position: fixed;
-                inset: 0;
-                z-index: 10000;
-                display: none;
-            }
-
-            .bb-modal[open] {
-                display: grid;
-                place-items: center;
-            }
-
-            .bb-backdrop {
-                position: absolute;
-                inset: 0;
-                background: rgba(2, 6, 8, 0.85);
-                backdrop-filter: blur(4px);
-                animation: fadeIn 0.3s ease;
-            }
-
+            /* ── Modal shell ──────────────────────────────────────── */
+            .bb-modal { position:fixed; inset:0; z-index:10000; display:none; }
+            .bb-modal[open] { display:grid; place-items:center; }
+            .bb-backdrop { position:absolute; inset:0; background:rgba(2,6,8,.85); backdrop-filter:blur(4px); animation:bbFadeIn .3s ease; }
             .bb-dialog {
-                position: relative;
-                width: min(960px, 94vw);
-                max-height: 92vh;
-                /* fallback for older browsers */
-                max-height: 92dvh;
-                background: #0b1517;
-                border-radius: 16px;
-                overflow: hidden;
-                box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                display: flex;
-                flex-direction: column;
-                animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                position:relative; width:min(560px,94vw); max-height:92vh; max-height:92dvh;
+                background:#fff; border-radius:16px; overflow:hidden;
+                box-shadow:0 24px 64px rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.08);
+                display:flex; flex-direction:column;
+                animation:bbSlideUp .4s cubic-bezier(.16,1,.3,1);
             }
-
             .bb-close {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                width: 44px;
-                height: 44px;
-                border-radius: 999px;
-                background: #0b1517;
-                color: #fff;
-                border: 1px solid rgba(255, 255, 255, 0.14);
-                display: grid;
-                place-items: center;
-                z-index: 2;
-                transition: background 0.2s;
-                cursor: pointer;
+                position:absolute; top:10px; right:10px; width:40px; height:40px;
+                border-radius:999px; background:rgba(17,19,22,.08); color:#111316;
+                border:1px solid rgba(17,19,22,.12); display:grid; place-items:center;
+                z-index:2; cursor:pointer; transition:background .15s;
+            }
+            .bb-close:hover { background:rgba(17,19,22,.14); }
+            .bb-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#fff; }
+            @media(max-width:520px){ .bb-dialog{ width:96vw; } }
+            @keyframes bbFadeIn  { from{opacity:0} to{opacity:1} }
+            @keyframes bbSlideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+            /* ── Booking widget ───────────────────────────────────── */
+            :root {
+                --dsn-green: #2fcc41;
+                --dsn-green-h: #28b839;
+                --dsn-ink: #111316;
+                --dsn-muted: #515a67;
+                --dsn-hair: #e6ebf0;
+                --dsn-surface: #f8fafc;
+                --dsn-glow: rgba(47,204,65,.18);
+            }
+            #dsn-bk { padding:1.5rem 1.25rem 2rem; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--dsn-ink); max-width:560px; margin:0 auto; }
+            #dsn-bk *,#dsn-bk *::before,#dsn-bk *::after { box-sizing:border-box; margin:0; padding:0; }
+            #dsn-bk h2 { font-size:1.2rem; font-weight:900; line-height:1.15; margin-bottom:.3rem; }
+            #dsn-bk .dsn-sub { font-size:.88rem; color:var(--dsn-muted); margin-bottom:1.25rem; }
+
+            /* progress */
+            .dsn-progress { display:flex; align-items:center; margin-bottom:1.5rem; }
+            .dsn-step { display:flex; align-items:center; gap:.4rem; flex:1; }
+            .dsn-dot {
+                width:24px; height:24px; border-radius:50%; border:2px solid var(--dsn-hair);
+                display:flex; align-items:center; justify-content:center;
+                font-size:.7rem; font-weight:800; color:var(--dsn-muted); flex-shrink:0; transition:all .2s;
+            }
+            .dsn-step.active .dsn-dot { border-color:var(--dsn-green); color:var(--dsn-green); }
+            .dsn-step.done .dsn-dot   { background:var(--dsn-green); border-color:var(--dsn-green); color:#fff; }
+            .dsn-step-lbl { font-size:.75rem; font-weight:700; color:var(--dsn-muted); white-space:nowrap; transition:color .2s; }
+            .dsn-step.active .dsn-step-lbl { color:var(--dsn-ink); }
+            .dsn-step.done .dsn-step-lbl   { color:var(--dsn-green); }
+            .dsn-line { flex:1; height:1px; background:var(--dsn-hair); margin:0 .4rem; transition:background .2s; }
+            .dsn-line.done { background:var(--dsn-green); }
+
+            /* panels */
+            .dsn-panel { display:none; }
+            .dsn-panel.active { display:block; }
+
+            /* date strip */
+            .dsn-dates { display:flex; gap:.5rem; overflow-x:auto; padding-bottom:.4rem; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+            .dsn-dates::-webkit-scrollbar { display:none; }
+            .dsn-date-btn {
+                flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:.15rem;
+                padding:.55rem .7rem; border-radius:10px; border:1px solid var(--dsn-hair);
+                background:#fff; cursor:pointer; transition:all .15s; min-width:48px;
+                -webkit-tap-highlight-color:transparent;
+            }
+            .dsn-date-btn:disabled { opacity:.35; cursor:not-allowed; }
+            .dsn-date-btn.sel, .dsn-date-btn:not(:disabled):active { border-color:var(--dsn-green); background:rgba(47,204,65,.08); }
+            .dsn-date-btn .dd { font-size:.65rem; font-weight:700; color:var(--dsn-muted); text-transform:uppercase; letter-spacing:.4px; }
+            .dsn-date-btn .dn { font-size:1rem; font-weight:900; color:var(--dsn-ink); line-height:1; }
+            .dsn-date-btn .dm { font-size:.65rem; color:var(--dsn-muted); }
+            .dsn-date-btn.sel .dd,.dsn-date-btn.sel .dn,.dsn-date-btn.sel .dm { color:var(--dsn-green); }
+
+            /* slots */
+            .dsn-grp-lbl { font-size:.75rem; font-weight:800; color:var(--dsn-muted); text-transform:uppercase; letter-spacing:.8px; margin:1.1rem 0 .45rem; }
+            .dsn-slots { display:flex; flex-direction:column; gap:.45rem; }
+            .dsn-slot-btn {
+                width:100%; padding:.85rem 1rem; border-radius:10px; border:1px solid var(--dsn-hair);
+                background:#fff; color:var(--dsn-ink); font-size:.97rem; font-weight:700;
+                cursor:pointer; text-align:left; display:flex; align-items:center; justify-content:space-between;
+                transition:all .15s; -webkit-tap-highlight-color:transparent; font-family:inherit;
+            }
+            .dsn-slot-btn:active,.dsn-slot-btn.sel { border-color:var(--dsn-green); background:rgba(47,204,65,.08); color:var(--dsn-green); }
+            .dsn-slot-chk { width:18px; height:18px; border-radius:50%; border:2px solid var(--dsn-hair); flex-shrink:0; transition:all .15s; }
+            .dsn-slot-btn.sel .dsn-slot-chk { background:var(--dsn-green); border-color:var(--dsn-green); background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%23fff' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E"); background-size:10px; background-repeat:no-repeat; background-position:center; }
+
+            /* spinner */
+            .dsn-spinner { width:28px; height:28px; border:3px solid var(--dsn-hair); border-top-color:var(--dsn-green); border-radius:50%; animation:dsnSpin .7s linear infinite; margin:1.5rem auto; display:block; }
+            @keyframes dsnSpin { to{transform:rotate(360deg)} }
+
+            /* confirm card */
+            .dsn-confirm-card { display:none; border:2px solid var(--dsn-green); border-radius:12px; background:rgba(47,204,65,.06); padding:1rem 1.1rem; margin-top:1.1rem; }
+            .dsn-confirm-card.vis { display:block; }
+            .dsn-confirm-time { font-size:1.3rem; font-weight:900; color:var(--dsn-ink); margin-bottom:.15rem; }
+            .dsn-confirm-date { font-size:.85rem; color:var(--dsn-muted); margin-bottom:.9rem; }
+            .dsn-confirm-actions { display:flex; flex-direction:column; gap:.5rem; }
+
+            /* empty / error */
+            .dsn-empty { color:var(--dsn-muted); font-size:.9rem; padding:1.1rem 0; text-align:center; line-height:1.6; }
+            .dsn-err { background:rgba(220,38,38,.08); border:1px solid rgba(220,38,38,.25); border-radius:10px; padding:.7rem 1rem; color:#b91c1c; font-size:.85rem; line-height:1.45; margin-top:.7rem; display:none; }
+            .dsn-err.vis { display:block; }
+
+            /* buttons */
+            .dsn-btn-primary {
+                width:100%; padding:.85rem; border-radius:999px; border:none;
+                background:linear-gradient(135deg,var(--dsn-green),var(--dsn-green-h));
+                color:#031807; font-weight:900; font-size:.97rem; cursor:pointer;
+                transition:transform .15s,box-shadow .15s; font-family:inherit;
+                box-shadow:0 6px 18px var(--dsn-glow);
+                -webkit-tap-highlight-color:transparent;
+            }
+            .dsn-btn-primary:active { transform:scale(.98); }
+            .dsn-btn-ghost {
+                background:none; border:none; color:var(--dsn-muted); font-size:.85rem; font-weight:700;
+                cursor:pointer; text-align:center; padding:.65rem 1rem; font-family:inherit;
+                text-decoration:underline; text-underline-offset:3px; -webkit-tap-highlight-color:transparent;
             }
 
-            .bb-close:hover {
-                background: #1c262a;
+            /* form */
+            .dsn-form { display:flex; flex-direction:column; gap:.85rem; }
+            .dsn-field { display:flex; flex-direction:column; gap:.3rem; }
+            .dsn-field label { font-size:.78rem; font-weight:700; color:var(--dsn-muted); }
+            .dsn-field input {
+                background:var(--dsn-surface); border:1px solid var(--dsn-hair); border-radius:10px;
+                padding:.7rem .9rem; color:var(--dsn-ink); font-size:.97rem; font-family:inherit;
+                outline:none; transition:border-color .15s; -webkit-appearance:none;
+            }
+            .dsn-field input:focus { border-color:var(--dsn-green); }
+            .dsn-field input::placeholder { color:#adb5bd; }
+
+            .dsn-slot-badge {
+                display:flex; align-items:center; gap:.45rem; background:rgba(47,204,65,.08);
+                border:1px solid rgba(47,204,65,.25); border-radius:10px; padding:.65rem .9rem;
+                color:var(--dsn-green); font-size:.85rem; font-weight:700; margin-bottom:.25rem;
+            }
+            .dsn-back-btn {
+                background:none; border:none; color:var(--dsn-muted); font-size:.82rem; font-weight:700;
+                cursor:pointer; display:flex; align-items:center; gap:.35rem; padding:0; margin-bottom:.9rem;
+                font-family:inherit; -webkit-tap-highlight-color:transparent;
             }
 
-            .bb-scroll {
-                position: relative;
-                flex: 1;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-                background: #fff;
-                min-height: 400px;
+            /* confirmed */
+            .dsn-confirmed { text-align:center; padding:1.25rem 0; }
+            .dsn-confirmed-icon {
+                width:60px; height:60px; border-radius:50%; background:rgba(47,204,65,.12);
+                border:2px solid var(--dsn-green); display:flex; align-items:center; justify-content:center;
+                margin:0 auto 1.1rem; color:var(--dsn-green);
             }
-
-            .bb-loading {
-                position: absolute;
-                inset: 0;
-                display: grid;
-                place-items: center;
-                background: #fff;
-                transition: opacity 0.3s;
-                z-index: 1;
-            }
-
-            .bb-loading.hidden {
-                opacity: 0;
-                pointer-events: none;
-            }
-
-            .bb-spinner {
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                border: 3px solid rgba(0, 0, 0, 0.1);
-                border-top-color: #2fcc41;
-                animation: spin 0.8s linear infinite;
-            }
-
-            .bb-frame {
-                display: block;
-                width: 100%;
-                border: none;
-                min-height: 700px;
-            }
-
-            /* Fix iframe height on small screens */
-            @media (max-height: 750px) {
-                .bb-frame {
-                    min-height: calc(100vh - 120px);
-                    min-height: calc(100dvh - 120px);
-                }
-            }
-
-            @media (max-width: 520px) {
-                .bb-dialog {
-                    width: 96vw;
-                    max-height: 92vh;
-                    max-height: 92dvh;
-                }
-            }
-
-            @keyframes spin {
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                }
-
-                to {
-                    opacity: 1;
-                }
-            }
-
-            @keyframes slideUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
+            .dsn-confirmed h3 { font-size:1.15rem; font-weight:900; color:var(--dsn-ink); margin-bottom:.4rem; }
+            .dsn-confirmed p  { color:var(--dsn-muted); font-size:.9rem; line-height:1.6; }
+            .dsn-confirmed-slot {
+                display:inline-flex; align-items:center; gap:.45rem; background:rgba(47,204,65,.08);
+                border:1px solid rgba(47,204,65,.25); border-radius:999px; padding:.45rem .9rem;
+                color:var(--dsn-green); font-size:.85rem; font-weight:800; margin:.85rem 0;
             }
         </style>
+
         <div class="bb-backdrop"></div>
-        <div class="bb-dialog" role="dialog" aria-modal="true" aria-label="Book your call">
-            <button class="bb-close" type="button" aria-label="Close">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+        <div class="bb-dialog" role="dialog" aria-modal="true" aria-label="Book your strategy call">
+            <button class="bb-close" type="button" aria-label="Close booking">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
             <div class="bb-scroll">
-                <div class="bb-loading">
-                    <div class="bb-spinner"></div>
+
+                <div id="dsn-bk">
+                    <h2>Book Your Strategy Call</h2>
+                    <p class="dsn-sub">Free consultation &middot; no obligation &middot; takes under a minute</p>
+
+                    <!-- Step progress -->
+                    <div class="dsn-progress" aria-label="Booking progress" role="group">
+                        <div class="dsn-step active" id="dsn-s1">
+                            <div class="dsn-dot">1</div>
+                            <div class="dsn-step-lbl">Date &amp; Time</div>
+                        </div>
+                        <div class="dsn-line" id="dsn-l1"></div>
+                        <div class="dsn-step" id="dsn-s2">
+                            <div class="dsn-dot">2</div>
+                            <div class="dsn-step-lbl">Your Info</div>
+                        </div>
+                        <div class="dsn-line" id="dsn-l2"></div>
+                        <div class="dsn-step" id="dsn-s3">
+                            <div class="dsn-dot">3</div>
+                            <div class="dsn-step-lbl">Confirmed</div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 1: Date + Time -->
+                    <div class="dsn-panel active" id="dsn-p1">
+                        <div class="dsn-dates" id="dsn-dates" role="group" aria-label="Select a date"></div>
+                        <div id="dsn-slots"></div>
+                        <div class="dsn-confirm-card" id="dsn-slot-card">
+                            <div class="dsn-confirm-time" id="dsn-ct"></div>
+                            <div class="dsn-confirm-date" id="dsn-cd"></div>
+                            <div class="dsn-confirm-actions">
+                                <button class="dsn-btn-primary" id="dsn-to-form">Confirm this time</button>
+                                <button class="dsn-btn-ghost" id="dsn-change">Change time</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 2: Contact form -->
+                    <div class="dsn-panel" id="dsn-p2">
+                        <button class="dsn-back-btn" id="dsn-back" type="button">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                            Back
+                        </button>
+                        <div class="dsn-slot-badge" id="dsn-slot-badge">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+                            <span id="dsn-slot-lbl"></span>
+                        </div>
+                        <form class="dsn-form" id="dsn-form" novalidate>
+                            <div class="dsn-field">
+                                <label for="dsn-name">Full name</label>
+                                <input type="text" id="dsn-name" name="name" placeholder="John Smith" autocomplete="name" required>
+                            </div>
+                            <div class="dsn-field">
+                                <label for="dsn-email">Email</label>
+                                <input type="email" id="dsn-email" name="email" placeholder="you@company.com" autocomplete="email" required>
+                            </div>
+                            <div class="dsn-field">
+                                <label for="dsn-phone">Phone number</label>
+                                <input type="tel" id="dsn-phone" name="phone" placeholder="(555) 000-0000" autocomplete="tel" required>
+                            </div>
+                            <div class="dsn-err" id="dsn-err" role="alert" aria-live="assertive"></div>
+                            <button type="submit" class="dsn-btn-primary" id="dsn-submit">Book My Strategy Call</button>
+                        </form>
+                    </div>
+
+                    <!-- Panel 3: Confirmed -->
+                    <div class="dsn-panel" id="dsn-p3">
+                        <div class="dsn-confirmed">
+                            <div class="dsn-confirmed-icon">
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </div>
+                            <h3>You're booked.</h3>
+                            <p>We'll call you at your scheduled time. Check your email for a confirmation.</p>
+                            <div class="dsn-confirmed-slot">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+                                <span id="dsn-conf-lbl"></span>
+                            </div>
+                            <p>We'll walk through your pipeline situation and show you exactly how DSN works.</p>
+                        </div>
+                    </div>
                 </div>
-                <iframe class="bb-frame" src="about:blank" title="Booking Calendar" loading="eager"></iframe>
-            </div>
-        </div>
-    </div>
 
-    <!-- Global Scripts: Modal & Animations -->
+            </div><!-- /bb-scroll -->
+        </div><!-- /bb-dialog -->
+    </div><!-- /bb-modal -->
+
+    <!-- Global Scripts: Animations + Native Booking Widget -->
     <script>
-        (function () {
-            // --- 1. Global Intersections (Animations) ---
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(e => {
-                    if (e.isIntersecting) {
-                        e.target.classList.add('visible');
-                        observer.unobserve(e.target);
-                    }
-                });
-            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    (function () {
+        'use strict';
 
-            document.querySelectorAll('.reveal-on-scroll, section > .wrap, section > .container').forEach(el => {
-                el.classList.add('reveal-on-scroll');
-                observer.observe(el);
+        // ── Scroll animations ─────────────────────────────────────
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); }
             });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+        document.querySelectorAll('.reveal-on-scroll, section > .wrap, section > .container').forEach(el => {
+            el.classList.add('reveal-on-scroll');
+            revealObserver.observe(el);
+        });
 
-            // --- 2. Global Modal Logic ---
-            const modal = document.getElementById('global-booking-modal');
-            const frame = modal.querySelector('iframe');
-            const loader = modal.querySelector('.bb-loading');
-            const closeBtn = modal.querySelector('.bb-close');
-            const backdrop = modal.querySelector('.bb-backdrop');
-            const LC_URL = 'https://api.leadconnectorhq.com/widget/booking/DXh5uGCZVjFLPQNeKRZu';
-            let isLoaded = false;
-            let isLoading = false;
-            let lastFocused;
+        // ── Modal open / close ────────────────────────────────────
+        var modal    = document.getElementById('global-booking-modal');
+        var closeBtn = modal.querySelector('.bb-close');
+        var backdrop = modal.querySelector('.bb-backdrop');
+        var lastFocused;
+        var widgetInitialised = false;
 
-            function loadCalendar() {
-                if (isLoaded || isLoading) return;
-                isLoading = true;
-                frame.src = LC_URL;
-                // Inject script if missing
-                if (!document.querySelector('script[src*="msgsndr.com"]')) {
-                    const s = document.createElement('script');
-                    s.src = 'https://link.msgsndr.com/js/form_embed.js';
-                    s.async = true;
-                    document.body.appendChild(s);
+        function openModal(e) {
+            e.preventDefault();
+            lastFocused = document.activeElement;
+            modal.removeAttribute('aria-hidden');
+            modal.setAttribute('open', '');
+            document.body.style.overflow = 'hidden';
+            closeBtn.focus();
+            if (!widgetInitialised) { initWidget(); widgetInitialised = true; }
+        }
+        function closeModal() {
+            modal.removeAttribute('open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            if (lastFocused) lastFocused.focus();
+        }
+
+        document.addEventListener('click', function (e) {
+            var t = e.target.closest('a[href="#book"],[data-action="open-booking"],[data-cta="book-call"],.cta[href="#book"]');
+            if (t) openModal(e);
+        });
+        [closeBtn, backdrop].forEach(function (el) { if (el) el.addEventListener('click', closeModal); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.hasAttribute('open')) closeModal();
+        });
+
+        // ── Native booking widget ─────────────────────────────────
+        function initWidget() {
+            var TZ         = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'America/Chicago';
+            var API        = '/.netlify/functions/booking';
+            var selDate    = null;
+            var selSlot    = null;
+            var step       = 1;
+            var cache      = {};
+
+            var $dates      = document.getElementById('dsn-dates');
+            var $slots      = document.getElementById('dsn-slots');
+            var $slotCard   = document.getElementById('dsn-slot-card');
+            var $ct         = document.getElementById('dsn-ct');
+            var $cd         = document.getElementById('dsn-cd');
+            var $toForm     = document.getElementById('dsn-to-form');
+            var $change     = document.getElementById('dsn-change');
+            var $back       = document.getElementById('dsn-back');
+            var $slotBadge  = document.getElementById('dsn-slot-badge');
+            var $slotLbl    = document.getElementById('dsn-slot-lbl');
+            var $form       = document.getElementById('dsn-form');
+            var $err        = document.getElementById('dsn-err');
+            var $submit     = document.getElementById('dsn-submit');
+            var $confLbl    = document.getElementById('dsn-conf-lbl');
+
+            function pad(n) { return String(n).padStart(2, '0'); }
+            function toYMD(d) { return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+            function slotHour(iso) { return parseInt(new Date(iso).toLocaleString('en-US', { hour:'2-digit', hour12:false, timeZone:TZ }), 10); }
+            function fmtSlot(iso) {
+                var d = new Date(iso);
+                return d.toLocaleDateString('en-US',{ weekday:'short', month:'short', day:'numeric', timeZone:TZ })
+                    + ' at ' + d.toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', timeZone:TZ });
+            }
+            function showErr(msg) { $err.textContent = msg; $err.classList.add('vis'); }
+            function clearErr()   { $err.classList.remove('vis'); }
+
+            function goStep(n) {
+                for (var i = 1; i <= 3; i++) {
+                    document.getElementById('dsn-p' + i).classList.toggle('active', i === n);
+                    var s = document.getElementById('dsn-s' + i);
+                    s.classList.remove('active','done');
+                    if (i < n)  s.classList.add('done');
+                    if (i === n) s.classList.add('active');
+                    if (i < 3) document.getElementById('dsn-l' + i).classList.toggle('done', i < n);
                 }
-                frame.onload = () => {
-                    loader.classList.add('hidden');
-                    isLoaded = true;
-                    isLoading = false;
-                }
+                step = n;
+                document.getElementById('dsn-bk').scrollIntoView({ behavior:'smooth', block:'start' });
             }
 
-            function openModal(e) {
+            // Build date strip + prefetch all slots
+            function buildDates() {
+                var today = new Date();
+                var end   = new Date(today); end.setDate(today.getDate() + 13);
+                var frag  = document.createDocumentFragment();
+                for (var i = 0; i < 14; i++) {
+                    var d = new Date(today); d.setDate(today.getDate() + i);
+                    var ymd = toYMD(d);
+                    var btn = document.createElement('button');
+                    btn.type = 'button'; btn.className = 'dsn-date-btn'; btn.dataset.date = ymd; btn.disabled = true;
+                    btn.innerHTML =
+                        '<span class="dd">' + d.toLocaleDateString('en-US',{ weekday:'short', timeZone:TZ }) + '</span>' +
+                        '<span class="dn">' + d.toLocaleDateString('en-US',{ day:'numeric', timeZone:TZ })   + '</span>' +
+                        '<span class="dm">' + d.toLocaleDateString('en-US',{ month:'short', timeZone:TZ })   + '</span>';
+                    btn.setAttribute('aria-pressed','false');
+                    btn.addEventListener('click', function () { pickDate(this.dataset.date); });
+                    frag.appendChild(btn);
+                }
+                $dates.appendChild(frag);
+                $slots.innerHTML = '<div class="dsn-spinner"></div>';
+
+                fetch(API + '?startDate=' + toYMD(today) + '&endDate=' + toYMD(end) + '&timezone=' + encodeURIComponent(TZ))
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        cache = data.dates || {};
+                        $dates.querySelectorAll('.dsn-date-btn').forEach(function (b) {
+                            b.disabled = !(cache[b.dataset.date] || []).length;
+                        });
+                        var first = $dates.querySelector('.dsn-date-btn:not(:disabled)');
+                        if (first) pickDate(first.dataset.date);
+                        else $slots.innerHTML = '<p class="dsn-empty">No availability in the next 14 days.<br>Please call us directly at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
+                    })
+                    .catch(function () { $slots.innerHTML = '<p class="dsn-empty">Could not load availability. Please refresh the page.</p>'; });
+            }
+
+            function pickDate(ymd) {
+                $dates.querySelectorAll('.dsn-date-btn').forEach(function (b) { b.classList.toggle('sel', b.dataset.date === ymd); });
+                selDate = ymd;
+                resetSlot();
+                renderSlots(cache[ymd] || []);
+            }
+
+            function renderSlots(slots) {
+                $slots.innerHTML = '';
+                if (!slots.length) { $slots.innerHTML = '<p class="dsn-empty">No availability on this date.<br>Try another day.</p>'; return; }
+                var morning   = slots.filter(function (s) { return slotHour(s) < 12; });
+                var afternoon = slots.filter(function (s) { return slotHour(s) >= 12; });
+                function makeGroup(label, group) {
+                    if (!group.length) return;
+                    var lbl = document.createElement('div'); lbl.className = 'dsn-grp-lbl'; lbl.textContent = label; $slots.appendChild(lbl);
+                    var list = document.createElement('div'); list.className = 'dsn-slots';
+                    group.forEach(function (iso) {
+                        var d = new Date(iso);
+                        var time = d.toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', timeZone:TZ });
+                        var btn = document.createElement('button');
+                        btn.type = 'button'; btn.className = 'dsn-slot-btn'; btn.dataset.iso = iso;
+                        btn.innerHTML = '<span>' + time + '</span><span class="dsn-slot-chk" aria-hidden="true"></span>';
+                        btn.addEventListener('click', function () { pickSlot(this); });
+                        list.appendChild(btn);
+                    });
+                    $slots.appendChild(list);
+                }
+                makeGroup('Morning', morning);
+                makeGroup('Afternoon', afternoon);
+            }
+
+            function pickSlot(btn) {
+                selSlot = btn.dataset.iso;
+                var d = new Date(selSlot);
+                $slots.style.display = 'none';
+                $ct.textContent = d.toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', timeZone:TZ });
+                $cd.textContent = d.toLocaleDateString('en-US',{ weekday:'long', month:'long', day:'numeric', timeZone:TZ });
+                $slotCard.classList.add('vis');
+                $slotCard.scrollIntoView({ behavior:'smooth', block:'nearest' });
+            }
+
+            function resetSlot() {
+                selSlot = null;
+                $slotCard.classList.remove('vis');
+                $slots.style.display = '';
+            }
+
+            $toForm.addEventListener('click', function () {
+                if (!selSlot) return;
+                var disp = fmtSlot(selSlot);
+                $slotLbl.textContent = disp;
+                $confLbl.textContent = disp;
+                goStep(2);
+            });
+            $change.addEventListener('click', resetSlot);
+            $back.addEventListener('click', function () { resetSlot(); goStep(1); });
+
+            $form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                lastFocused = document.activeElement;
-                loadCalendar();
-                modal.removeAttribute('aria-hidden');
-                modal.setAttribute('open', '');
-                document.body.style.overflow = 'hidden';
-                closeBtn.focus();
-            }
+                clearErr();
+                var name  = document.getElementById('dsn-name').value.trim();
+                var email = document.getElementById('dsn-email').value.trim();
+                var phone = document.getElementById('dsn-phone').value.trim();
+                if (!name || !email || !phone) { showErr('Please fill in all fields.'); return; }
+                if (!/^\S+@\S+\.\S+$/.test(email)) { showErr('Please enter a valid email address.'); return; }
+                var digits = phone.replace(/\D/g,'');
+                if (digits.length < 9 || digits.length > 15) { showErr('Please enter a valid phone number.'); return; }
 
-            function closeModal() {
-                modal.removeAttribute('open');
-                modal.setAttribute('aria-hidden', 'true');
-                document.body.style.overflow = '';
-                if (lastFocused) lastFocused.focus();
-            }
+                $submit.disabled = true; $submit.textContent = 'Booking…';
+                var ctrl    = new AbortController();
+                var timeout = setTimeout(function () { ctrl.abort(); }, 10000);
 
-            // Attach listeners
-            const triggers = document.querySelectorAll('a[href="#book"], [data-action="open-booking"], [data-cta="book-call"], .cta[href="#book"]');
-
-            triggers.forEach(trigger => {
-                trigger.addEventListener('click', openModal);
+                fetch(API, {
+                    signal: ctrl.signal, method:'POST',
+                    headers:{ 'Content-Type':'application/json' },
+                    body: JSON.stringify({ name:name, email:email, phone:phone, slot:selSlot, timezone:TZ }),
+                })
+                .then(function (r) { clearTimeout(timeout); return r.json().then(function (d) { return { ok:r.ok, status:r.status, data:d }; }); })
+                .then(function (res) {
+                    if (res.ok) {
+                        if (typeof fbq !== 'undefined') fbq('track', 'Schedule');
+                        if (typeof gtag !== 'undefined') gtag('event', 'appointment_booked', { event_category:'conversion' });
+                        goStep(3);
+                    } else if (res.status === 409) {
+                        showErr('That time slot was just taken. Please pick another time.');
+                        $submit.disabled = false; $submit.textContent = 'Book My Strategy Call';
+                        var d = selDate;
+                        selSlot = null; goStep(1); resetSlot();
+                        $slots.innerHTML = '<div class="dsn-spinner"></div>';
+                        fetch(API + '?startDate=' + d + '&endDate=' + d + '&timezone=' + encodeURIComponent(TZ))
+                            .then(function (r) { return r.json(); })
+                            .then(function (data) {
+                                var fresh = (data.dates || {})[d] || [];
+                                cache[d] = fresh;
+                                var btn = $dates.querySelector('[data-date="' + d + '"]');
+                                if (btn) btn.disabled = !fresh.length;
+                                renderSlots(fresh);
+                            })
+                            .catch(function () { renderSlots(cache[d] || []); });
+                    } else {
+                        showErr(res.data.message || 'Something went wrong. Please try again.');
+                        $submit.disabled = false; $submit.textContent = 'Book My Strategy Call';
+                    }
+                })
+                .catch(function (err) {
+                    clearTimeout(timeout);
+                    showErr(err && err.name === 'AbortError' ? 'Request timed out. Please try again.' : 'Network error. Please check your connection.');
+                    $submit.disabled = false; $submit.textContent = 'Book My Strategy Call';
+                });
             });
 
-            // Load calendar immediately when page finishes loading
-            window.addEventListener('load', () => {
-                // Short delay to prioritize critical render path
-                setTimeout(loadCalendar, 100);
-            });
-
-            document.addEventListener('click', (e) => {
-                const trigger = e.target.closest('a[href="#book"], [data-action="open-booking"], [data-cta="book-call"], .cta[href="#book"]');
-                if (trigger && !Array.from(triggers).includes(trigger)) {
-                    // Handle dynamically added triggers if any
-                    openModal(e);
-                }
-            });
-
-            [closeBtn, backdrop].forEach(el => el && el.addEventListener('click', closeModal));
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && modal.hasAttribute('open')) closeModal();
-            });
-        })();
+            buildDates();
+        }
+    })();
     </script>
 </body>
 
