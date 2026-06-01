@@ -20,12 +20,17 @@
 
     <!-- Performance: Resource Hints -->
     <link rel="preconnect" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://connect.facebook.net" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
     <link rel="dns-prefetch" href="https://api.leadconnectorhq.com" />
     <link rel="dns-prefetch" href="https://link.msgsndr.com" />
 
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://rsms.me" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <style>/* Prevent FOIT: show text immediately with system font while Inter loads */
+    body { font-display: optional; }
+    </style>
     <link rel="icon" href="https://res.cloudinary.com/diptffkzh/image/upload/v1764782206/favicon_j6wusj.png" />
     <meta name="theme-color" content="#19ad50" />
     <style>
@@ -104,6 +109,7 @@
                 top: 0;
                 z-index: 60;
                 background: color-mix(in oklab, var(--hdr-bg) 94%, transparent);
+                -webkit-backdrop-filter: saturate(1.05) blur(8px);
                 backdrop-filter: saturate(1.05) blur(8px);
                 border-bottom: 1px solid var(--hdr-hair);
             }
@@ -1101,7 +1107,7 @@
 
             .ns-proof-cc12 .tcard {
                 scroll-snap-align: start;
-                flex: 0 0 86%;
+                flex: 0 0 min(86%, calc(100vw - 48px));
                 min-height: 100%;
                 /* Reset display to allow google-card flex to take over */
                 display: flex;
@@ -1314,9 +1320,11 @@
                 font-size: 14px;
                 font-weight: 400;
                 cursor: pointer;
-                padding: 0;
+                padding: 8px 0;
+                min-height: 44px;
                 margin: 2px 0 0 0;
-                display: block;
+                display: flex;
+                align-items: center;
                 transition: color 0.2s ease;
                 text-align: left;
             }
@@ -2058,7 +2066,7 @@
 
     </section>
 
-    <script src="../assets/js/capi-client.js"></script>
+    <script src="../assets/js/capi-client.js" defer></script>
     <script>if(window.DSN&&DSN.trackEvent)DSN.trackEvent('ViewContent',{"content_name":"Commercial Offer"});</script>
 
     <!-- Section: Guarantee (unified headline & spacing) | Namespace: ns-guarantee-a94c -->
@@ -2425,6 +2433,7 @@
                 border: 1px solid color-mix(in oklab, var(--bb-accent) 25%, transparent);
                 border-radius: var(--bb-radius);
                 box-shadow: var(--bb-shadow);
+                -webkit-backdrop-filter: blur(8px) saturate(1.1);
                 backdrop-filter: blur(8px) saturate(1.1);
                 transition: opacity 180ms ease, transform 240ms cubic-bezier(.2, .7, .2, 1), filter 200ms ease, backdrop-filter 200ms ease;
                 will-change: opacity, transform;
@@ -2603,12 +2612,14 @@
                 position: absolute;
                 inset: 0;
                 background: rgba(2, 6, 8, .72);
+                -webkit-backdrop-filter: blur(2px);
                 backdrop-filter: blur(2px)
             }
 
             .ns-bookbar-c8f3 .bb-dialog {
                 position: relative;
                 width: min(960px, 94vw);
+                max-height: 92vh;
                 max-height: 92dvh;
                 background: #0b1517;
                 border-radius: 16px;
@@ -2655,6 +2666,7 @@
                 display: block;
                 width: 100%;
                 border: none;
+                min-height: 72vh;
                 min-height: 72dvh
             }
 
@@ -2692,6 +2704,7 @@
             @media (max-width:520px) {
                 .ns-bookbar-c8f3 .bb-dialog {
                     width: 96vw;
+                    max-height: 92vh;
                     max-height: 92dvh
                 }
             }
@@ -2737,6 +2750,7 @@
 
                 function setupFooterObserver(footerEl) {
                     if (!footerEl || !bar) return;
+                    if (typeof IntersectionObserver === 'undefined') return;
                     const io = new IntersectionObserver((entries) => {
                         const e = entries[0]; if (!e) return;
                         if (e.isIntersecting) {
@@ -3052,6 +3066,7 @@
                 position: absolute;
                 inset: 0;
                 background: rgba(2, 6, 8, .72);
+                -webkit-backdrop-filter: blur(2px);
                 backdrop-filter: blur(2px)
             }
 
@@ -3178,6 +3193,7 @@
                 position: sticky;
                 bottom: 0;
                 z-index: 50;
+                -webkit-backdrop-filter: saturate(140%) blur(6px);
                 backdrop-filter: saturate(140%) blur(6px);
                 border-top: 1px solid var(--ff-hair)
             }
@@ -3353,7 +3369,7 @@
               </div>
               <div class="bk-field">
                 <label for="bk-phone">Phone</label>
-                <input type="tel" id="bk-phone" name="phone" placeholder="(555) 000-0000" autocomplete="tel" required>
+                <input type="tel" id="bk-phone" name="phone" placeholder="(555) 000-0000" autocomplete="tel" inputmode="numeric" required>
               </div>
               <div id="bk-err" role="alert" aria-live="assertive"></div>
               <button type="submit" class="bk-btn-primary" id="bk-sub">Book My Strategy Call</button>
@@ -3554,6 +3570,7 @@
       padding-bottom: 4px;
       margin-bottom: 20px;
       -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
       scrollbar-width: none;
     }
     #bk-dates::-webkit-scrollbar { display: none; }
@@ -3562,7 +3579,8 @@
       flex-shrink: 0;
       display: flex; flex-direction: column; align-items: center;
       gap: 2px;
-      min-width: 52px;
+      min-width: 56px;
+      min-height: 44px;
       padding: 10px 8px;
       border-radius: 12px;
       border: 1.5px solid #e5e7eb;
@@ -3571,6 +3589,7 @@
       -webkit-tap-highlight-color: transparent;
       transition: border-color .15s, background .15s, box-shadow .15s;
       font-family: system-ui, sans-serif;
+      scroll-snap-align: center;
     }
     .bk-d:disabled { opacity: .3; cursor: default; }
     .bk-d:not(:disabled):hover { border-color: #86efac; }
@@ -3805,6 +3824,7 @@
     <script>
     (function () {
       /* ── Scroll animations ── */
+      if (typeof IntersectionObserver !== 'undefined') {
       var ro = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
           if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); }
@@ -3813,6 +3833,9 @@
       document.querySelectorAll('.reveal-on-scroll, section > .wrap, section > .container').forEach(function (el) {
         el.classList.add('reveal-on-scroll'); ro.observe(el);
       });
+      } else {
+        document.querySelectorAll('.reveal-on-scroll, section > .wrap, section > .container').forEach(function(el){ el.classList.add('visible'); });
+      }
 
       /* ── Overlay open / close ── */
       var overlay  = document.getElementById('bk');
@@ -3830,6 +3853,7 @@
         overlay.classList.add('open');
         overlay.removeAttribute('aria-hidden');
         document.body.style.overflow = 'hidden';
+        document.body.style.overscrollBehavior = 'contain';
         closeBtn.focus();
         if (!widgetReady) { initWidget(); widgetReady = true; }
         else if (onReset) onReset();
@@ -3840,6 +3864,7 @@
         overlay.classList.remove('open');
         overlay.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+        document.body.style.overscrollBehavior = '';
         if (lastFocus) lastFocus.focus();
       }
 
