@@ -2872,13 +2872,8 @@
   </script>
     </section>
 
-    <!-- Additional sections will be added below as you provide them -->
-    <!-- PASTE THESE SECTIONS BEFORE
-  <script src="../assets/js/capi-client.js"></script>
-  <!-- Meta CAPI Standard Event -->
-  <script>DSN.trackEvent('ViewContent', {"content_name":"Trial Offer"});</script>
-  <!-- End Meta CAPI Standard Event -->
-</body> TAG IN funnel.html -->
+    <script src="../assets/js/capi-client.js"></script>
+    <script>if(window.DSN&&DSN.trackEvent)DSN.trackEvent('ViewContent',{"content_name":"Trial Offer"});</script>
 
     <!-- Section: Guarantee (unified headline & spacing) | Namespace: ns-guarantee-a94c -->
     <section class="ns-guarantee-a94c" data-section="guarantee" aria-labelledby="ns-guarantee-a94c-title">

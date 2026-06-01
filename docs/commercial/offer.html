@@ -2058,13 +2058,8 @@
 
     </section>
 
-    <!-- Additional sections will be added below as you provide them -->
-    <!-- PASTE THESE SECTIONS BEFORE
-  <script src="../assets/js/capi-client.js"></script>
-  <!-- Meta CAPI Standard Event -->
-  <script>DSN.trackEvent('ViewContent', {"content_name":"Commercial Offer"});</script>
-  <!-- End Meta CAPI Standard Event -->
-</body> TAG IN funnel.html -->
+    <script src="../assets/js/capi-client.js"></script>
+    <script>if(window.DSN&&DSN.trackEvent)DSN.trackEvent('ViewContent',{"content_name":"Commercial Offer"});</script>
 
     <!-- Section: Guarantee (unified headline & spacing) | Namespace: ns-guarantee-a94c -->
     <section class="ns-guarantee-a94c" data-section="guarantee" aria-labelledby="ns-guarantee-a94c-title">
@@ -3285,233 +3280,262 @@
             /* ── Modal shell ──────────────────────────────────────── */
             .bb-modal { position:fixed; inset:0; z-index:10000; display:none; }
             .bb-modal[open] { display:grid; place-items:center; }
-            .bb-backdrop { position:absolute; inset:0; background:rgba(2,6,8,.85); backdrop-filter:blur(4px); animation:bbFadeIn .3s ease; }
+            .bb-backdrop { position:absolute; inset:0; background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); animation:bbFadeIn .4s cubic-bezier(.16,1,.3,1); }
+            
             .bb-dialog {
                 position:relative;
-                width: min(480px, calc(100vw - 24px));
+                width: min(520px, calc(100vw - 32px));
                 max-height: min(90vh, 90dvh);
-                background:#fff; border-radius:20px; overflow:hidden;
-                box-shadow:0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.06);
+                background: #ffffff;
+                border-radius: 24px;
+                overflow: hidden;
+                box-shadow: 0 25px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2) inset;
                 display:flex; flex-direction:column;
-                animation:bbSlideUp .35s cubic-bezier(.16,1,.3,1);
+                animation:bbSlideUp .5s cubic-bezier(.16,1,.3,1);
             }
             .bb-close {
-                position:absolute; top:12px; right:12px; width:36px; height:36px;
-                border-radius:999px; background:rgba(0,0,0,.06); color:#374151;
-                border:1px solid rgba(0,0,0,.09); display:grid; place-items:center;
-                z-index:10; cursor:pointer; transition:background .15s;
+                position:absolute; top:20px; right:20px; width:36px; height:36px;
+                border-radius:50%; background:#f1f5f9; color:#64748b;
+                border:none; display:grid; place-items:center;
+                z-index:10; cursor:pointer; transition:all .2s ease;
             }
-            .bb-close:hover { background:rgba(0,0,0,.1); }
-            .bb-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#fff; }
+            .bb-close:hover { background:#e2e8f0; color:#0f172a; transform: rotate(90deg); }
+            .bb-close svg { width: 20px; height: 20px; }
+            .bb-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#ffffff; }
+            
             @keyframes bbFadeIn  { from{opacity:0} to{opacity:1} }
-            @keyframes bbSlideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-
-            /* ── Modal theme ─────────────────────────────────────── */
-            .bb-dialog {
-                background: #ffffff;
-                border-radius: 20px;
-                border-top: 4px solid #2fcc41 !important;
-            }
-            .bb-scroll { background: #ffffff !important; }
-            .bb-close  {
-                background: #f3f4f6 !important; color: #374151 !important;
-                border-color: #e5e7eb !important;
-            }
-            .bb-close:hover { background: #e5e7eb !important; }
+            @keyframes bbSlideUp { from{opacity:0;transform:translateY(30px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
 
             /* ── Widget ───────────────────────────────────────────── */
             #dsn-bk {
                 padding: 0;
-                font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-                color: #111827;
+                font-family: "Inter", system-ui, -apple-system, sans-serif;
+                color: #0f172a;
             }
             #dsn-bk *, #dsn-bk *::before, #dsn-bk *::after { box-sizing:border-box; margin:0; padding:0; }
 
             /* Header */
             .dsn-hdr {
-                padding: 1.25rem 3.5rem 1.1rem 1.25rem;
-                border-bottom: 1px solid #f0f0f0;
-                background: #fff;
+                padding: 3rem 2rem 1.5rem;
+                background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+                border-bottom: 1px solid #f1f5f9;
+                text-align: center;
+                position: relative;
             }
-            .dsn-hdr h2 { font-size:1.1rem; font-weight:900; color:#111827; margin-bottom:.2rem; line-height:1.2; }
-            .dsn-sub { font-size:.8rem; color:#6b7280; line-height:1.4; }
+            .dsn-hdr::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; height: 4px;
+                background: linear-gradient(90deg, #22c55e, #16a34a);
+            }
+            .dsn-hdr h2 { font-size:1.6rem; font-weight:800; color:#0f172a; margin-bottom:.5rem; letter-spacing:-0.02em; line-height: 1.2; }
+            .dsn-sub { font-size:0.95rem; color:#64748b; font-weight: 500; line-height: 1.4; padding: 0 0.5rem; }
 
-            /* Progress — dots only on very small screens */
-            .dsn-progress { display:flex; align-items:center; margin-top:.8rem; }
-            .dsn-step { display:flex; align-items:center; gap:.28rem; }
+            /* Progress */
+            .dsn-progress { display:flex; align-items:center; justify-content: center; margin-top:2rem; max-width: 400px; margin-inline: auto; }
+            .dsn-step { display:flex; align-items:center; gap:.5rem; }
             .dsn-dot {
-                width:22px; height:22px; flex-shrink:0; border-radius:50%;
-                border:2px solid #d1d5db; background:#fff;
+                width:28px; height:28px; flex-shrink:0; border-radius:50%;
+                background:#f1f5f9; color:#94a3b8; font-size:.8rem; font-weight:700;
                 display:flex; align-items:center; justify-content:center;
-                font-size:.68rem; font-weight:800; color:#9ca3af; transition:all .2s;
+                transition:all .3s ease; border: 2px solid transparent;
             }
-            .dsn-step.active .dsn-dot { border-color:#2fcc41; color:#2fcc41; background:#f0fdf4; }
-            .dsn-step.done   .dsn-dot { background:#2fcc41; border-color:#2fcc41; color:#fff; }
-            .dsn-step-lbl { font-size:.68rem; font-weight:700; color:#9ca3af; white-space:nowrap; transition:color .2s; }
-            .dsn-step.active .dsn-step-lbl { color:#111827; }
-            .dsn-step.done   .dsn-step-lbl { color:#16a34a; }
-            .dsn-line { flex:1; height:2px; background:#e5e7eb; margin:0 .2rem; border-radius:2px; transition:background .2s; }
-            .dsn-line.done { background:#2fcc41; }
-            /* Hide step labels on very narrow screens, keep dots */
-            @media(max-width:380px) { .dsn-step-lbl { display:none; } }
+            .dsn-step.active .dsn-dot { background:#fff; border-color:#22c55e; color:#22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15); }
+            .dsn-step.done   .dsn-dot { background:#22c55e; color:#fff; border-color:#22c55e; }
+            
+            .dsn-step-lbl { font-size:.7rem; font-weight:700; color:#94a3b8; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; transition: color .3s ease; }
+            .dsn-step.active .dsn-step-lbl { color:#0f172a; }
+            .dsn-step.done .dsn-step-lbl { color:#16a34a; }
+
+            .dsn-line { flex:1; height:3px; background:#f1f5f9; border-radius:3px; transition:all .3s ease; margin: 0 0.5rem; }
+            .dsn-line.done { background:#22c55e; }
 
             /* Panels */
-            .dsn-panel { display:none; }
-            .dsn-panel.active { display:block; padding: 1.25rem 1.25rem 2rem; }
+            .dsn-panel { display:none; opacity: 0; transform: translateY(10px); transition: all 0.4s ease; }
+            .dsn-panel.active { display:block; padding: 2rem; opacity: 1; transform: translateY(0); animation: panelIn 0.4s ease forwards; }
+            
+            @keyframes panelIn {
+                from { opacity: 0; transform: translateY(15px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
 
             /* Date strip */
             .dsn-dates {
-                display:flex; gap:.5rem; overflow-x:auto; padding-bottom:.5rem;
-                -webkit-overflow-scrolling:touch; scrollbar-width:none; margin-bottom:.5rem;
+                display:flex; gap:.75rem; overflow-x:auto; padding: 0.5rem 0.5rem 1rem 0.5rem; margin: -0.5rem -0.5rem 1rem -0.5rem;
+                -webkit-overflow-scrolling:touch; scrollbar-width:none;
+                mask-image: linear-gradient(90deg, rgba(0,0,0,1) 90%, rgba(0,0,0,0) 100%);
+                -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,1) 90%, rgba(0,0,0,0) 100%);
             }
             .dsn-dates::-webkit-scrollbar { display:none; }
             .dsn-date-btn {
-                flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:.12rem;
-                padding:.65rem .7rem; min-width:56px; border-radius:12px;
-                border: 1.5px solid #e5e7eb; background:#fff;
-                box-shadow: 0 1px 2px rgba(0,0,0,.05);
-                cursor:pointer; transition:all .18s; -webkit-tap-highlight-color:transparent;
+                flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content: center; gap:.25rem;
+                width: 72px; height: 86px; border-radius:16px;
+                border: 2px solid #f1f5f9; background:#fff;
+                cursor:pointer; transition:all .2s cubic-bezier(0.4, 0, 0.2, 1);
+                -webkit-tap-highlight-color:transparent;
             }
-            .dsn-date-btn:disabled { opacity:.35; cursor:not-allowed; box-shadow:none; background:#f9fafb; }
-            .dsn-date-btn:not(:disabled):hover { border-color:#86efac; box-shadow:0 0 0 3px rgba(47,204,65,.1); }
+            .dsn-date-btn:disabled { opacity:.4; cursor:not-allowed; background:#f8fafc; border-color: #f8fafc; }
+            .dsn-date-btn:not(:disabled):hover { border-color:#86efac; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(34,197,94,0.1); }
             .dsn-date-btn.sel {
-                background:#2fcc41; border-color:#16a34a;
-                box-shadow: 0 4px 14px rgba(47,204,65,.4);
+                background:#22c55e; border-color:#22c55e;
+                box-shadow: 0 8px 20px rgba(34,197,94,0.3);
+                transform: translateY(-4px);
             }
-            .dsn-date-btn .dd { font-size:.63rem; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.4px; }
-            .dsn-date-btn .dn { font-size:1.1rem; font-weight:900; color:#111827; line-height:1; }
-            .dsn-date-btn .dm { font-size:.63rem; color:#6b7280; }
-            .dsn-date-btn.sel .dd,
-            .dsn-date-btn.sel .dn,
-            .dsn-date-btn.sel .dm { color:#fff; }
+            .dsn-date-btn .dd { font-size:.7rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; }
+            .dsn-date-btn .dn { font-size:1.4rem; font-weight:800; color:#0f172a; line-height:1; }
+            .dsn-date-btn .dm { font-size:.7rem; font-weight:600; color:#64748b; }
+            .dsn-date-btn.sel .dd, .dsn-date-btn.sel .dn, .dsn-date-btn.sel .dm { color:#fff; }
 
             /* Slots */
             .dsn-grp-lbl {
-                font-size:.72rem; font-weight:700; color:#6b7280;
-                text-transform:uppercase; letter-spacing:.8px; margin:1rem 0 .5rem;
+                font-size:.8rem; font-weight:800; color:#64748b;
+                text-transform:uppercase; letter-spacing:1px; margin:1.5rem 0 .75rem;
+                display: flex; align-items: center; gap: 0.5rem;
             }
-            .dsn-slots { display:flex; flex-direction:column; gap:.5rem; }
+            .dsn-grp-lbl::after {
+                content: ''; flex: 1; height: 1px; background: #f1f5f9;
+            }
+            .dsn-slots { display:grid; grid-template-columns: repeat(2, 1fr); gap:.75rem; }
             .dsn-slot-btn {
-                width:100%; padding:.95rem 1rem; border-radius:12px;
-                border:1.5px solid #e5e7eb; background:#fff;
-                color:#111827; font-size:1rem; font-weight:700;
-                cursor:pointer; text-align:left; display:flex; align-items:center; justify-content:space-between;
-                box-shadow: 0 1px 2px rgba(0,0,0,.05);
-                transition:all .18s; -webkit-tap-highlight-color:transparent; font-family:inherit;
+                width:100%; padding:1rem; border-radius:12px;
+                border:2px solid #f1f5f9; background:#fff;
+                color:#0f172a; font-size:1.05rem; font-weight:700;
+                cursor:pointer; text-align:center;
+                transition:all .2s cubic-bezier(0.4, 0, 0.2, 1);
+                font-family:inherit; position: relative; overflow: hidden;
             }
-            .dsn-slot-btn:not(.sel):hover { border-color:#86efac; box-shadow:0 0 0 3px rgba(47,204,65,.1); }
+            .dsn-slot-btn:not(.sel):hover { 
+                border-color:#22c55e; color: #16a34a; 
+                background: #f0fdf4;
+            }
             .dsn-slot-btn.sel {
-                border-color:#2fcc41; border-width:2px;
-                background:#f0fdf4; color:#15803d;
-                box-shadow:0 0 0 3px rgba(47,204,65,.15);
+                border-color:#22c55e; background:#22c55e; color:#fff;
+                box-shadow: 0 8px 20px rgba(34,197,94,0.25);
+                transform: scale(1.02);
             }
-            .dsn-slot-chk {
-                width:20px; height:20px; border-radius:50%;
-                border:2px solid #d1d5db; background:#f9fafb; flex-shrink:0; transition:all .18s;
-            }
-            .dsn-slot-btn.sel .dsn-slot-chk {
-                background:#2fcc41; border-color:#16a34a;
-                background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%23fff' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
-                background-size:11px; background-repeat:no-repeat; background-position:center;
-            }
-
-            /* Spinner */
-            .dsn-spinner {
-                width:28px; height:28px; border:3px solid #e5e7eb; border-top-color:#2fcc41;
-                border-radius:50%; animation:dsnSpin .7s linear infinite; margin:2rem auto; display:block;
-            }
-            @keyframes dsnSpin { to { transform:rotate(360deg) } }
+            .dsn-slot-chk { display: none; }
 
             /* Confirm card */
             .dsn-confirm-card {
-                display:none; border:2px solid #2fcc41; border-radius:14px;
-                background:#f0fdf4; padding:1.1rem 1.1rem .9rem; margin-top:1rem;
+                display:none; 
+                background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+                border: 2px solid #86efac;
+                border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem;
+                text-align: center; animation: panelIn 0.4s ease forwards;
             }
             .dsn-confirm-card.vis { display:block; }
-            .dsn-confirm-time { font-size:1.35rem; font-weight:900; color:#111827; margin-bottom:.15rem; }
-            .dsn-confirm-date { font-size:.85rem; color:#6b7280; margin-bottom:1rem; }
-            .dsn-confirm-actions { display:flex; flex-direction:column; gap:.5rem; }
-
-            /* Empty / error */
-            .dsn-empty { color:#6b7280; font-size:.9rem; padding:1.5rem 0; text-align:center; line-height:1.6; }
-            .dsn-empty a { color:#2fcc41; }
-            .dsn-err {
-                background:#fef2f2; border:1.5px solid #fecaca;
-                border-radius:10px; padding:.75rem 1rem; color:#dc2626;
-                font-size:.85rem; line-height:1.5; margin-top:.75rem; display:none;
-            }
-            .dsn-err.vis { display:block; }
+            .dsn-confirm-time { font-size:1.75rem; font-weight:800; color:#166534; margin-bottom:.25rem; letter-spacing: -0.02em; }
+            .dsn-confirm-date { font-size:1rem; color:#15803d; font-weight: 500; margin-bottom:1.5rem; }
+            .dsn-confirm-actions { display:flex; flex-direction:column; gap:.75rem; }
 
             /* Primary button */
             .dsn-btn-primary {
-                width:100%; padding:.9rem; border-radius:999px; border:none;
-                background:linear-gradient(135deg, #2fcc41, #22a835);
-                color:#fff; font-weight:800; font-size:1rem; cursor:pointer;
-                font-family:inherit; box-shadow:0 4px 16px rgba(47,204,65,.35);
-                transition:transform .15s, filter .15s;
-                -webkit-tap-highlight-color:transparent;
+                width:100%; padding:1rem 1.5rem; border-radius:12px; border:none;
+                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                color:#fff; font-weight:700; font-size:1.1rem; cursor:pointer;
+                font-family:inherit; box-shadow: 0 4px 14px rgba(34,197,94,0.3);
+                transition:all .2s ease;
             }
-            .dsn-btn-primary:hover  { filter:brightness(1.06); }
-            .dsn-btn-primary:active { transform:scale(.98); }
-            .dsn-btn-primary:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+            .dsn-btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34,197,94,0.4); filter: brightness(1.05); }
+            .dsn-btn-primary:active { transform: translateY(1px); box-shadow: 0 2px 8px rgba(34,197,94,0.3); }
+            .dsn-btn-primary:disabled { opacity:.6; cursor:not-allowed; transform:none; filter: grayscale(50%); }
 
             .dsn-btn-ghost {
-                background:none; border:none; color:#6b7280; font-size:.85rem; font-weight:600;
-                cursor:pointer; text-align:center; padding:.65rem 1rem; font-family:inherit;
-                text-decoration:underline; text-underline-offset:3px; -webkit-tap-highlight-color:transparent;
+                background:transparent; border:none; color:#15803d; font-size:0.95rem; font-weight:600;
+                cursor:pointer; padding:.5rem 1rem; font-family:inherit; transition: all .2s;
+                border-radius: 8px;
             }
+            .dsn-btn-ghost:hover { background: rgba(34,197,94,0.1); }
 
             /* Form */
-            .dsn-form { display:flex; flex-direction:column; gap:.85rem; }
-            .dsn-field { display:flex; flex-direction:column; gap:.35rem; }
-            .dsn-field label { font-size:.78rem; font-weight:700; color:#374151; }
+            .dsn-form { display:flex; flex-direction:column; gap:1.25rem; }
+            .dsn-field { display:flex; flex-direction:column; gap:.5rem; position: relative; }
+            .dsn-field label { font-size:.85rem; font-weight:600; color:#475569; margin-left: 4px; }
             .dsn-field input {
-                background:#fff; border:1.5px solid #e5e7eb; border-radius:10px;
-                padding:.78rem .95rem; color:#111827; font-size:.97rem; font-family:inherit;
-                outline:none; transition:border-color .15s, box-shadow .15s; -webkit-appearance:none;
-                box-shadow: 0 1px 2px rgba(0,0,0,.04);
+                background:#f8fafc; border:2px solid #e2e8f0; border-radius:12px;
+                padding:1rem 1.25rem; color:#0f172a; font-size:1rem; font-family:inherit; font-weight: 500;
+                outline:none; transition:all .2s ease;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.02) inset;
             }
-            .dsn-field input:focus { border-color:#2fcc41; box-shadow:0 0 0 3px rgba(47,204,65,.15); }
-            .dsn-field input::placeholder { color:#9ca3af; }
+            .dsn-field input:focus { border-color:#22c55e; background: #fff; box-shadow: 0 0 0 4px rgba(34,197,94,0.1); }
+            .dsn-field input::placeholder { color:#94a3b8; font-weight: 400; }
 
             /* Slot badge */
             .dsn-slot-badge {
-                display:flex; align-items:center; gap:.45rem;
-                background:#f0fdf4; border:1.5px solid #86efac;
-                border-radius:10px; padding:.65rem .9rem;
-                color:#15803d; font-size:.85rem; font-weight:700; margin-bottom:.85rem;
+                display:inline-flex; align-items:center; gap:.5rem;
+                background:#f0fdf4; border:2px solid #bbf7d0;
+                border-radius:999px; padding:.5rem 1rem;
+                color:#166534; font-size:.9rem; font-weight:700; margin-bottom:1.5rem;
             }
 
             /* Back button */
             .dsn-back-btn {
-                background:none; border:none; color:#6b7280; font-size:.82rem; font-weight:700;
-                cursor:pointer; display:flex; align-items:center; gap:.3rem;
-                padding:0; margin-bottom:.85rem; font-family:inherit; -webkit-tap-highlight-color:transparent;
+                background:none; border:none; color:#64748b; font-size:.9rem; font-weight:600;
+                cursor:pointer; display:inline-flex; align-items:center; gap:.4rem;
+                padding:.5rem 1rem .5rem 0; margin-bottom:1.5rem; font-family:inherit; transition: color .2s;
             }
+            .dsn-back-btn:hover { color:#0f172a; }
 
             /* Confirmed */
-            .dsn-confirmed { text-align:center; padding:1.5rem 0 1rem; }
+            .dsn-confirmed { text-align:center; padding: 1rem 0; }
             .dsn-confirmed-icon {
-                width:64px; height:64px; border-radius:50%;
-                background:#f0fdf4; border:2px solid #86efac;
+                width:80px; height:80px; border-radius:50%;
+                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
                 display:flex; align-items:center; justify-content:center;
-                margin:0 auto 1.1rem; color:#16a34a;
-                box-shadow:0 4px 16px rgba(47,204,65,.2);
+                margin:0 auto 1.5rem; color:#fff;
+                box-shadow: 0 10px 25px rgba(34,197,94,0.4);
+                animation: scaleUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
             }
-            .dsn-confirmed h3 { font-size:1.2rem; font-weight:900; color:#111827; margin-bottom:.4rem; }
-            .dsn-confirmed p  { color:#6b7280; font-size:.9rem; line-height:1.65; max-width:300px; margin:0 auto; }
+            @keyframes scaleUp {
+                from { transform: scale(0); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+            .dsn-confirmed h3 { font-size:1.8rem; font-weight:800; color:#0f172a; margin-bottom:.75rem; letter-spacing: -0.02em; }
+            .dsn-confirmed p  { color:#475569; font-size:1.05rem; line-height:1.6; max-width:340px; margin:0 auto; }
             .dsn-confirmed-slot {
-                display:inline-flex; align-items:center; gap:.45rem;
-                background:#f0fdf4; border:1.5px solid #86efac;
-                border-radius:999px; padding:.5rem 1rem;
-                color:#15803d; font-size:.88rem; font-weight:800; margin:.9rem 0;
+                display:inline-flex; align-items:center; gap:.5rem;
+                background:#f8fafc; border:2px solid #e2e8f0;
+                border-radius:12px; padding:1rem 1.5rem;
+                color:#0f172a; font-size:1rem; font-weight:700; margin:1.5rem 0;
+            }
+            
+            /* Spinner */
+            .dsn-spinner {
+                width:40px; height:40px; border:3px solid #f1f5f9; border-top-color:#22c55e;
+                border-radius:50%; animation:dsnSpin .8s linear infinite; margin:3rem auto;
+            }
+            @keyframes dsnSpin { to { transform:rotate(360deg) } }
+
+            /* Empty / error */
+            .dsn-empty { color:#64748b; font-size:1rem; padding:3rem 0; text-align:center; line-height:1.6; font-weight: 500; }
+            .dsn-empty a { color:#22c55e; font-weight: 600; text-decoration: none; }
+            .dsn-empty a:hover { text-decoration: underline; }
+            .dsn-err {
+                background:#fef2f2; border:2px solid #fecaca;
+                border-radius:12px; padding:1rem; color:#b91c1c;
+                font-size:.9rem; font-weight: 500; line-height:1.5; margin-top:.5rem; display:none;
+            }
+            .dsn-err.vis { display:block; animation: panelIn 0.3s ease forwards; }
+
+            /* Mobile Adjustments */
+            @media(max-width: 480px) {
+                .dsn-hdr { padding: 3rem 1.5rem 1.5rem; }
+                .dsn-hdr h2 { font-size: 1.4rem; }
+                .bb-close { top: 12px; right: 12px; width: 32px; height: 32px; }
+                .bb-close svg { width: 16px; height: 16px; }
+                .dsn-step-lbl { display:none; }
+                .dsn-step.active .dsn-step-lbl { display:block; }
+                .dsn-line { margin: 0 0.25rem; }
+                .dsn-panel.active { padding: 1.5rem; }
+                .dsn-dates { padding-bottom: 0.5rem; }
+                .dsn-slots { grid-template-columns: 1fr; }
             }
         </style>
 
         <div class="bb-backdrop"></div>
         <div class="bb-dialog" role="dialog" aria-modal="true" aria-label="Book your strategy call">
             <button class="bb-close" type="button" aria-label="Close booking">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
@@ -3521,7 +3545,7 @@
 
                     <div class="dsn-hdr">
                         <h2>Book Your Strategy Call</h2>
-                        <p class="dsn-sub">Free consultation &middot; no obligation &middot; takes under a minute</p>
+                        <p class="dsn-sub">Free consultation &middot; No obligation &middot; Under a minute</p>
                         <div class="dsn-progress" aria-label="Booking progress" role="group">
                             <div class="dsn-step active" id="dsn-s1">
                                 <div class="dsn-dot">1</div>
@@ -3556,21 +3580,23 @@
 
                     <!-- Panel 2: Contact form -->
                     <div class="dsn-panel" id="dsn-p2">
-                        <button class="dsn-back-btn" id="dsn-back" type="button">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-                            Back
-                        </button>
-                        <div class="dsn-slot-badge" id="dsn-slot-badge">
-                            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-                            <span id="dsn-slot-lbl"></span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <button class="dsn-back-btn" id="dsn-back" type="button" style="margin-bottom: 0;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                                Back
+                            </button>
+                            <div class="dsn-slot-badge" id="dsn-slot-badge" style="margin-bottom: 0;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+                                <span id="dsn-slot-lbl"></span>
+                            </div>
                         </div>
-                        <form class="dsn-form" id="dsn-form" novalidate>
+                        <form class="dsn-form" id="dsn-form" novalidate style="margin-top: 1rem;">
                             <div class="dsn-field">
                                 <label for="dsn-name">Full name</label>
                                 <input type="text" id="dsn-name" name="name" placeholder="John Smith" autocomplete="name" required>
                             </div>
                             <div class="dsn-field">
-                                <label for="dsn-email">Email</label>
+                                <label for="dsn-email">Email address</label>
                                 <input type="email" id="dsn-email" name="email" placeholder="you@company.com" autocomplete="email" required>
                             </div>
                             <div class="dsn-field">
@@ -3586,12 +3612,12 @@
                     <div class="dsn-panel" id="dsn-p3">
                         <div class="dsn-confirmed">
                             <div class="dsn-confirmed-icon">
-                                <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
                             </div>
-                            <h3>You're booked.</h3>
+                            <h3>You're booked!</h3>
                             <p>We'll call you at your scheduled time. Check your email for a confirmation.</p>
                             <div class="dsn-confirmed-slot">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
                                 <span id="dsn-conf-lbl"></span>
                             </div>
                             <p>We'll walk through your pipeline situation and show you exactly how DSN works.</p>
