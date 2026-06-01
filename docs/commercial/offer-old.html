@@ -3274,817 +3274,649 @@
         }
     </style>
 
+    <!-- Global Booking Modal — native widget (no iframe) -->
+    <div id="global-booking-modal" class="bb-modal" aria-hidden="true">
+        <style>
+            /* ── Modal shell ──────────────────────────────────────── */
+            .bb-modal { position:fixed; inset:0; z-index:10000; display:none; }
+            .bb-modal[open] { display:grid; place-items:center; }
+            .bb-backdrop { position:absolute; inset:0; background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); animation:bbFadeIn .4s cubic-bezier(.16,1,.3,1); }
+            
+            .bb-dialog {
+                position:relative;
+                width: min(520px, calc(100vw - 32px));
+                max-height: min(90vh, 90dvh);
+                background: #ffffff;
+                border-radius: 24px;
+                overflow: hidden;
+                box-shadow: 0 25px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2) inset;
+                display:flex; flex-direction:column;
+                animation:bbSlideUp .5s cubic-bezier(.16,1,.3,1);
+            }
+            .bb-close {
+                position:absolute; top:20px; right:20px; width:36px; height:36px;
+                border-radius:50%; background:#f1f5f9; color:#64748b;
+                border:none; display:grid; place-items:center;
+                z-index:10; cursor:pointer; transition:all .2s ease;
+            }
+            .bb-close:hover { background:#e2e8f0; color:#0f172a; transform: rotate(90deg); }
+            .bb-close svg { width: 20px; height: 20px; }
+            .bb-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#ffffff; }
+            
+            @keyframes bbFadeIn  { from{opacity:0} to{opacity:1} }
+            @keyframes bbSlideUp { from{opacity:0;transform:translateY(30px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
 
-    <!-- ═══════════════════════════════════════════════════════════
-         BOOKING OVERLAY  —  written from scratch, no legacy CSS
-         Bottom sheet on mobile · centered dialog on desktop
-    ════════════════════════════════════════════════════════════ -->
-    <div id="bk" aria-hidden="true">
+            /* ── Widget ───────────────────────────────────────────── */
+            #dsn-bk {
+                padding: 0;
+                font-family: "Inter", system-ui, -apple-system, sans-serif;
+                color: #0f172a;
+            }
+            #dsn-bk *, #dsn-bk *::before, #dsn-bk *::after { box-sizing:border-box; margin:0; padding:0; }
 
-      <div id="bk-bd"></div><!-- backdrop -->
+            /* Header */
+            .dsn-hdr {
+                padding: 3rem 2rem 1.5rem;
+                background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+                border-bottom: 1px solid #f1f5f9;
+                text-align: center;
+                position: relative;
+            }
+            .dsn-hdr::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; height: 4px;
+                background: linear-gradient(90deg, #22c55e, #16a34a);
+            }
+            .dsn-hdr h2 { font-size:1.6rem; font-weight:800; color:#0f172a; margin-bottom:.5rem; letter-spacing:-0.02em; line-height: 1.2; }
+            .dsn-sub { font-size:0.95rem; color:#64748b; font-weight: 500; line-height: 1.4; padding: 0 0.5rem; }
 
-      <div id="bk-sh" role="dialog" aria-modal="true" aria-label="Book your strategy call">
+            /* Progress */
+            .dsn-progress { display:flex; align-items:center; justify-content: center; margin-top:2rem; max-width: 400px; margin-inline: auto; }
+            .dsn-step { display:flex; align-items:center; gap:.5rem; }
+            .dsn-dot {
+                width:28px; height:28px; flex-shrink:0; border-radius:50%;
+                background:#f1f5f9; color:#94a3b8; font-size:.8rem; font-weight:700;
+                display:flex; align-items:center; justify-content:center;
+                transition:all .3s ease; border: 2px solid transparent;
+            }
+            .dsn-step.active .dsn-dot { background:#fff; border-color:#22c55e; color:#22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15); }
+            .dsn-step.done   .dsn-dot { background:#22c55e; color:#fff; border-color:#22c55e; }
+            
+            .dsn-step-lbl { font-size:.7rem; font-weight:700; color:#94a3b8; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; transition: color .3s ease; }
+            .dsn-step.active .dsn-step-lbl { color:#0f172a; }
+            .dsn-step.done .dsn-step-lbl { color:#16a34a; }
 
-        <div id="bk-grip"></div><!-- drag-handle affordance (mobile) -->
+            .dsn-line { flex:1; height:3px; background:#f1f5f9; border-radius:3px; transition:all .3s ease; margin: 0 0.5rem; }
+            .dsn-line.done { background:#22c55e; }
 
-        <!-- ── Header: steps + close ── -->
-        <div id="bk-hdr">
-          <div id="bk-steps" aria-label="Booking steps" role="group">
-            <div class="bk-st active" id="bk-st1">
-              <div class="bk-sn">1</div>
-              <span class="bk-sl">Date &amp; Time</span>
-            </div>
-            <div class="bk-sx" id="bk-sx1"></div>
-            <div class="bk-st" id="bk-st2">
-              <div class="bk-sn">2</div>
-              <span class="bk-sl">Your Info</span>
-            </div>
-            <div class="bk-sx" id="bk-sx2"></div>
-            <div class="bk-st" id="bk-st3">
-              <div class="bk-sn">3</div>
-              <span class="bk-sl">Done</span>
-            </div>
-          </div>
-          <button id="bk-x" type="button" aria-label="Close">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
+            /* Panels */
+            .dsn-panel { display:none; opacity: 0; transform: translateY(10px); transition: all 0.4s ease; }
+            .dsn-panel.active { display:block; padding: 2rem; opacity: 1; transform: translateY(0); animation: panelIn 0.4s ease forwards; }
+            
+            @keyframes panelIn {
+                from { opacity: 0; transform: translateY(15px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
 
-        <!-- ── Scrollable body ── -->
-        <div id="bk-body">
+            /* Date strip */
+            .dsn-dates {
+                display:flex; gap:.75rem; overflow-x:auto; padding: 0.5rem 0.5rem 1rem 0.5rem; margin: -0.5rem -0.5rem 1rem -0.5rem;
+                -webkit-overflow-scrolling:touch; scrollbar-width:none;
+                mask-image: linear-gradient(90deg, rgba(0,0,0,1) 90%, rgba(0,0,0,0) 100%);
+                -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,1) 90%, rgba(0,0,0,0) 100%);
+            }
+            .dsn-dates::-webkit-scrollbar { display:none; }
+            .dsn-date-btn {
+                flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content: center; gap:.25rem;
+                width: 72px; height: 86px; border-radius:16px;
+                border: 2px solid #f1f5f9; background:#fff;
+                cursor:pointer; transition:all .2s cubic-bezier(0.4, 0, 0.2, 1);
+                -webkit-tap-highlight-color:transparent;
+            }
+            .dsn-date-btn:disabled { opacity:.4; cursor:not-allowed; background:#f8fafc; border-color: #f8fafc; }
+            .dsn-date-btn:not(:disabled):hover { border-color:#86efac; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(34,197,94,0.1); }
+            .dsn-date-btn.sel {
+                background:#22c55e; border-color:#22c55e;
+                box-shadow: 0 8px 20px rgba(34,197,94,0.3);
+                transform: translateY(-4px);
+            }
+            .dsn-date-btn .dd { font-size:.7rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; }
+            .dsn-date-btn .dn { font-size:1.4rem; font-weight:800; color:#0f172a; line-height:1; }
+            .dsn-date-btn .dm { font-size:.7rem; font-weight:600; color:#64748b; }
+            .dsn-date-btn.sel .dd, .dsn-date-btn.sel .dn, .dsn-date-btn.sel .dm { color:#fff; }
 
-          <!-- Step 1: pick date + time -->
-          <div class="bk-pn active" id="bk-pn1">
-            <p class="bk-label">Select a date</p>
-            <div id="bk-dates" role="group" aria-label="Available dates"></div>
+            /* Slots */
+            .dsn-grp-lbl {
+                font-size:.8rem; font-weight:800; color:#64748b;
+                text-transform:uppercase; letter-spacing:1px; margin:1.5rem 0 .75rem;
+                display: flex; align-items: center; gap: 0.5rem;
+            }
+            .dsn-grp-lbl::after {
+                content: ''; flex: 1; height: 1px; background: #f1f5f9;
+            }
+            .dsn-slots { display:grid; grid-template-columns: repeat(2, 1fr); gap:.75rem; }
+            .dsn-slot-btn {
+                width:100%; padding:1rem; border-radius:12px;
+                border:2px solid #f1f5f9; background:#fff;
+                color:#0f172a; font-size:1.05rem; font-weight:700;
+                cursor:pointer; text-align:center;
+                transition:all .2s cubic-bezier(0.4, 0, 0.2, 1);
+                font-family:inherit; position: relative; overflow: hidden;
+            }
+            .dsn-slot-btn:not(.sel):hover { 
+                border-color:#22c55e; color: #16a34a; 
+                background: #f0fdf4;
+            }
+            .dsn-slot-btn.sel {
+                border-color:#22c55e; background:#22c55e; color:#fff;
+                box-shadow: 0 8px 20px rgba(34,197,94,0.25);
+                transform: scale(1.02);
+            }
+            .dsn-slot-chk { display: none; }
 
-            <div id="bk-times-wrap">
-              <p class="bk-label" id="bk-times-lbl">Available times</p>
-              <div id="bk-times"></div>
-            </div>
+            /* Confirm card */
+            .dsn-confirm-card {
+                display:none; 
+                background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+                border: 2px solid #86efac;
+                border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem;
+                text-align: center; animation: panelIn 0.4s ease forwards;
+            }
+            .dsn-confirm-card.vis { display:block; }
+            .dsn-confirm-time { font-size:1.75rem; font-weight:800; color:#166534; margin-bottom:.25rem; letter-spacing: -0.02em; }
+            .dsn-confirm-date { font-size:1rem; color:#15803d; font-weight: 500; margin-bottom:1.5rem; }
+            .dsn-confirm-actions { display:flex; flex-direction:column; gap:.75rem; }
 
-            <!-- Slot confirm card (hidden until slot picked) -->
-            <div id="bk-pick">
-              <div id="bk-pick-info">
-                <div id="bk-pick-time"></div>
-                <div id="bk-pick-date"></div>
-              </div>
-              <button class="bk-btn-primary" id="bk-confirm">Confirm this time</button>
-              <button class="bk-btn-link" id="bk-unsel">Change time</button>
-            </div>
-          </div>
+            /* Primary button */
+            .dsn-btn-primary {
+                width:100%; padding:1rem 1.5rem; border-radius:12px; border:none;
+                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                color:#fff; font-weight:700; font-size:1.1rem; cursor:pointer;
+                font-family:inherit; box-shadow: 0 4px 14px rgba(34,197,94,0.3);
+                transition:all .2s ease;
+            }
+            .dsn-btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34,197,94,0.4); filter: brightness(1.05); }
+            .dsn-btn-primary:active { transform: translateY(1px); box-shadow: 0 2px 8px rgba(34,197,94,0.3); }
+            .dsn-btn-primary:disabled { opacity:.6; cursor:not-allowed; transform:none; filter: grayscale(50%); }
 
-          <!-- Step 2: contact form -->
-          <div class="bk-pn" id="bk-pn2">
-            <div id="bk-chosen-slot">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-              <span id="bk-chosen-txt"></span>
-            </div>
-            <form id="bk-form" novalidate>
-              <div class="bk-field">
-                <label for="bk-name">Full name</label>
-                <input type="text" id="bk-name" name="name" placeholder="John Smith" autocomplete="name" required>
-              </div>
-              <div class="bk-field">
-                <label for="bk-email">Email</label>
-                <input type="email" id="bk-email" name="email" placeholder="you@company.com" autocomplete="email" required>
-              </div>
-              <div class="bk-field">
-                <label for="bk-phone">Phone</label>
-                <input type="tel" id="bk-phone" name="phone" placeholder="(555) 000-0000" autocomplete="tel" required>
-              </div>
-              <div id="bk-err" role="alert" aria-live="assertive"></div>
-              <button type="submit" class="bk-btn-primary" id="bk-sub">Book My Strategy Call</button>
-            </form>
-            <button class="bk-btn-link" id="bk-back" type="button">← Back</button>
-          </div>
+            .dsn-btn-ghost {
+                background:transparent; border:none; color:#15803d; font-size:0.95rem; font-weight:600;
+                cursor:pointer; padding:.5rem 1rem; font-family:inherit; transition: all .2s;
+                border-radius: 8px;
+            }
+            .dsn-btn-ghost:hover { background: rgba(34,197,94,0.1); }
 
-          <!-- Step 3: confirmed -->
-          <div class="bk-pn" id="bk-pn3">
-            <div id="bk-done">
-              <div id="bk-done-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-              </div>
-              <h3>You're booked.</h3>
-              <p>We'll call you at your scheduled time. Check your email for a confirmation.</p>
-              <div id="bk-done-slot"></div>
-              <p>We'll walk through your pipeline situation and show you exactly how DSN works.</p>
-            </div>
-          </div>
+            /* Form */
+            .dsn-form { display:flex; flex-direction:column; gap:1.25rem; }
+            .dsn-field { display:flex; flex-direction:column; gap:.5rem; position: relative; }
+            .dsn-field label { font-size:.85rem; font-weight:600; color:#475569; margin-left: 4px; }
+            .dsn-field input {
+                background:#f8fafc; border:2px solid #e2e8f0; border-radius:12px;
+                padding:1rem 1.25rem; color:#0f172a; font-size:1rem; font-family:inherit; font-weight: 500;
+                outline:none; transition:all .2s ease;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.02) inset;
+            }
+            .dsn-field input:focus { border-color:#22c55e; background: #fff; box-shadow: 0 0 0 4px rgba(34,197,94,0.1); }
+            .dsn-field input::placeholder { color:#94a3b8; font-weight: 400; }
 
-        </div><!-- /bk-body -->
-      </div><!-- /bk-sh -->
-    </div><!-- /bk -->
+            /* Slot badge */
+            .dsn-slot-badge {
+                display:inline-flex; align-items:center; gap:.5rem;
+                background:#f0fdf4; border:2px solid #bbf7d0;
+                border-radius:999px; padding:.5rem 1rem;
+                color:#166534; font-size:.9rem; font-weight:700; margin-bottom:1.5rem;
+            }
 
-    <style>
-    /* ─────────────────────────────────────────────────────────────
-       BOOKING OVERLAY STYLES
-       Scoped to #bk — zero conflict with page styles
-    ───────────────────────────────────────────────────────────── */
+            /* Back button */
+            .dsn-back-btn {
+                background:none; border:none; color:#64748b; font-size:.9rem; font-weight:600;
+                cursor:pointer; display:inline-flex; align-items:center; gap:.4rem;
+                padding:.5rem 1rem .5rem 0; margin-bottom:1.5rem; font-family:inherit; transition: color .2s;
+            }
+            .dsn-back-btn:hover { color:#0f172a; }
 
-    /* Overlay */
-    #bk {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      align-items: flex-end;   /* bottom sheet by default */
-      justify-content: center;
-    }
-    #bk.open { display: flex; }
+            /* Confirmed */
+            .dsn-confirmed { text-align:center; padding: 1rem 0; }
+            .dsn-confirmed-icon {
+                width:80px; height:80px; border-radius:50%;
+                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                display:flex; align-items:center; justify-content:center;
+                margin:0 auto 1.5rem; color:#fff;
+                box-shadow: 0 10px 25px rgba(34,197,94,0.4);
+                animation: scaleUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
+            @keyframes scaleUp {
+                from { transform: scale(0); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+            .dsn-confirmed h3 { font-size:1.8rem; font-weight:800; color:#0f172a; margin-bottom:.75rem; letter-spacing: -0.02em; }
+            .dsn-confirmed p  { color:#475569; font-size:1.05rem; line-height:1.6; max-width:340px; margin:0 auto; }
+            .dsn-confirmed-slot {
+                display:inline-flex; align-items:center; gap:.5rem;
+                background:#f8fafc; border:2px solid #e2e8f0;
+                border-radius:12px; padding:1rem 1.5rem;
+                color:#0f172a; font-size:1rem; font-weight:700; margin:1.5rem 0;
+            }
+            
+            /* Spinner */
+            .dsn-spinner {
+                width:40px; height:40px; border:3px solid #f1f5f9; border-top-color:#22c55e;
+                border-radius:50%; animation:dsnSpin .8s linear infinite; margin:3rem auto;
+            }
+            @keyframes dsnSpin { to { transform:rotate(360deg) } }
 
-    /* Backdrop */
-    #bk-bd {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.55);
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
-      animation: bkFade .22s ease forwards;
-    }
-    @keyframes bkFade { from { opacity: 0 } to { opacity: 1 } }
+            /* Empty / error */
+            .dsn-empty { color:#64748b; font-size:1rem; padding:3rem 0; text-align:center; line-height:1.6; font-weight: 500; }
+            .dsn-empty a { color:#22c55e; font-weight: 600; text-decoration: none; }
+            .dsn-empty a:hover { text-decoration: underline; }
+            .dsn-err {
+                background:#fef2f2; border:2px solid #fecaca;
+                border-radius:12px; padding:1rem; color:#b91c1c;
+                font-size:.9rem; font-weight: 500; line-height:1.5; margin-top:.5rem; display:none;
+            }
+            .dsn-err.vis { display:block; animation: panelIn 0.3s ease forwards; }
 
-    /* Sheet */
-    #bk-sh {
-      position: relative;
-      width: 100%;
-      max-height: 88svh;
-      max-height: 88dvh;
-      background: #fff;
-      border-radius: 20px 20px 0 0;
-      border-top: 4px solid #2fcc41;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 -8px 40px rgba(0,0,0,.18);
-      animation: bkUp .3s cubic-bezier(.16, 1, .3, 1) forwards;
-    }
-    @keyframes bkUp {
-      from { transform: translateY(60px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
+            /* Mobile Adjustments */
+            @media(max-width: 480px) {
+                .dsn-hdr { padding: 3rem 1.5rem 1.5rem; }
+                .dsn-hdr h2 { font-size: 1.4rem; }
+                .bb-close { top: 12px; right: 12px; width: 32px; height: 32px; }
+                .bb-close svg { width: 16px; height: 16px; }
+                .dsn-step-lbl { display:none; }
+                .dsn-step.active .dsn-step-lbl { display:block; }
+                .dsn-line { margin: 0 0.25rem; }
+                .dsn-panel.active { padding: 1.5rem; }
+                .dsn-dates { padding-bottom: 0.5rem; }
+                .dsn-slots { grid-template-columns: 1fr; }
+            }
+        </style>
 
-    /* Desktop: centered dialog */
-    @media (min-width: 580px) {
-      #bk { align-items: center; }
-      #bk-sh {
-        width: min(440px, calc(100vw - 32px));
-        border-radius: 20px;
-        border-top: 4px solid #2fcc41;
-        max-height: min(88vh, 88dvh);
-        box-shadow: 0 24px 64px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.06);
-        animation: bkPop .3s cubic-bezier(.16, 1, .3, 1) forwards;
-      }
-      @keyframes bkPop {
-        from { transform: scale(.94); opacity: 0; }
-        to   { transform: scale(1);   opacity: 1; }
-      }
-    }
+        <div class="bb-backdrop"></div>
+        <div class="bb-dialog" role="dialog" aria-modal="true" aria-label="Book your strategy call">
+            <button class="bb-close" type="button" aria-label="Close booking">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="bb-scroll">
 
-    /* Drag handle */
-    #bk-grip {
-      width: 36px; height: 4px;
-      background: #d1d5db;
-      border-radius: 2px;
-      margin: 10px auto 0;
-      flex-shrink: 0;
-    }
-    @media (min-width: 580px) { #bk-grip { display: none; } }
+                <div id="dsn-bk">
 
-    /* ── Header ── */
-    #bk-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px 12px;
-      border-bottom: 1px solid #f0f0f0;
-      flex-shrink: 0;
-    }
+                    <div class="dsn-hdr">
+                        <h2>Book Your Strategy Call</h2>
+                        <p class="dsn-sub">Free consultation &middot; No obligation &middot; Under a minute</p>
+                        <div class="dsn-progress" aria-label="Booking progress" role="group">
+                            <div class="dsn-step active" id="dsn-s1">
+                                <div class="dsn-dot">1</div>
+                                <div class="dsn-step-lbl">Date &amp; Time</div>
+                            </div>
+                            <div class="dsn-line" id="dsn-l1"></div>
+                            <div class="dsn-step" id="dsn-s2">
+                                <div class="dsn-dot">2</div>
+                                <div class="dsn-step-lbl">Your Info</div>
+                            </div>
+                            <div class="dsn-line" id="dsn-l2"></div>
+                            <div class="dsn-step" id="dsn-s3">
+                                <div class="dsn-dot">3</div>
+                                <div class="dsn-step-lbl">Confirmed</div>
+                            </div>
+                        </div>
+                    </div>
 
-    #bk-steps {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      flex: 1;
-    }
+                    <!-- Panel 1: Date + Time -->
+                    <div class="dsn-panel active" id="dsn-p1">
+                        <div class="dsn-dates" id="dsn-dates" role="group" aria-label="Select a date"></div>
+                        <div id="dsn-slots"></div>
+                        <div class="dsn-confirm-card" id="dsn-slot-card">
+                            <div class="dsn-confirm-time" id="dsn-ct"></div>
+                            <div class="dsn-confirm-date" id="dsn-cd"></div>
+                            <div class="dsn-confirm-actions">
+                                <button class="dsn-btn-primary" id="dsn-to-form">Confirm this time</button>
+                                <button class="dsn-btn-ghost" id="dsn-change">Change time</button>
+                            </div>
+                        </div>
+                    </div>
 
-    .bk-st {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+                    <!-- Panel 2: Contact form -->
+                    <div class="dsn-panel" id="dsn-p2">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <button class="dsn-back-btn" id="dsn-back" type="button" style="margin-bottom: 0;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                                Back
+                            </button>
+                            <div class="dsn-slot-badge" id="dsn-slot-badge" style="margin-bottom: 0;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+                                <span id="dsn-slot-lbl"></span>
+                            </div>
+                        </div>
+                        <form class="dsn-form" id="dsn-form" novalidate style="margin-top: 1rem;">
+                            <div class="dsn-field">
+                                <label for="dsn-name">Full name</label>
+                                <input type="text" id="dsn-name" name="name" placeholder="John Smith" autocomplete="name" required>
+                            </div>
+                            <div class="dsn-field">
+                                <label for="dsn-email">Email address</label>
+                                <input type="email" id="dsn-email" name="email" placeholder="you@company.com" autocomplete="email" required>
+                            </div>
+                            <div class="dsn-field">
+                                <label for="dsn-phone">Phone number</label>
+                                <input type="tel" id="dsn-phone" name="phone" placeholder="(555) 000-0000" autocomplete="tel" required>
+                            </div>
+                            <div class="dsn-err" id="dsn-err" role="alert" aria-live="assertive"></div>
+                            <button type="submit" class="dsn-btn-primary" id="dsn-submit">Book My Strategy Call</button>
+                        </form>
+                    </div>
 
-    .bk-sn {
-      width: 24px; height: 24px;
-      border-radius: 50%;
-      border: 2px solid #d1d5db;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 800;
-      color: #9ca3af;
-      flex-shrink: 0;
-      transition: all .2s;
-      font-family: system-ui, sans-serif;
-    }
-    .bk-st.active .bk-sn { border-color: #2fcc41; color: #2fcc41; background: #f0fdf4; }
-    .bk-st.done   .bk-sn { background: #2fcc41; border-color: #2fcc41; color: #fff; }
+                    <!-- Panel 3: Confirmed -->
+                    <div class="dsn-panel" id="dsn-p3">
+                        <div class="dsn-confirmed">
+                            <div class="dsn-confirmed-icon">
+                                <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </div>
+                            <h3>You're booked!</h3>
+                            <p>We'll call you at your scheduled time. Check your email for a confirmation.</p>
+                            <div class="dsn-confirmed-slot">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+                                <span id="dsn-conf-lbl"></span>
+                            </div>
+                            <p>We'll walk through your pipeline situation and show you exactly how DSN works.</p>
+                        </div>
+                    </div>
 
-    .bk-sl {
-      font-size: 11px; font-weight: 700;
-      color: #9ca3af;
-      white-space: nowrap;
-      font-family: system-ui, sans-serif;
-      transition: color .2s;
-    }
-    .bk-st.active .bk-sl { color: #111827; }
-    .bk-st.done   .bk-sl { color: #16a34a; }
+                </div>
 
-    .bk-sx {
-      flex: 1;
-      height: 2px;
-      background: #e5e7eb;
-      margin: 0 6px;
-      border-radius: 2px;
-      transition: background .2s;
-      min-width: 12px;
-    }
-    .bk-sx.done { background: #2fcc41; }
+            </div><!-- /bb-scroll -->
+        </div><!-- /bb-dialog -->
+    </div><!-- /bb-modal -->
 
-    /* Hide labels on very small screens */
-    @media (max-width: 360px) { .bk-sl { display: none; } }
-
-    /* Close button */
-    #bk-x {
-      width: 34px; height: 34px;
-      border-radius: 50%;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-      color: #374151;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      margin-left: 10px;
-      transition: background .15s;
-    }
-    #bk-x:hover { background: #f3f4f6; }
-
-    /* ── Scrollable body ── */
-    #bk-body {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
-    }
-
-    /* Panels */
-    .bk-pn { display: none; padding: 20px 16px 28px; }
-    .bk-pn.active { display: block; }
-
-    /* Section label */
-    .bk-label {
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .8px;
-      color: #9ca3af;
-      margin-bottom: 10px;
-      font-family: system-ui, sans-serif;
-    }
-
-    /* ── Date strip ── */
-    #bk-dates {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      margin-bottom: 20px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    #bk-dates::-webkit-scrollbar { display: none; }
-
-    .bk-d {
-      flex-shrink: 0;
-      display: flex; flex-direction: column; align-items: center;
-      gap: 2px;
-      min-width: 52px;
-      padding: 10px 8px;
-      border-radius: 12px;
-      border: 1.5px solid #e5e7eb;
-      background: #fff;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: border-color .15s, background .15s, box-shadow .15s;
-      font-family: system-ui, sans-serif;
-    }
-    .bk-d:disabled { opacity: .3; cursor: default; }
-    .bk-d:not(:disabled):hover { border-color: #86efac; }
-    .bk-d.sel {
-      background: #2fcc41;
-      border-color: #16a34a;
-      box-shadow: 0 4px 12px rgba(47, 204, 65, .35);
-    }
-    .bk-d .bk-dw { font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .3px; }
-    .bk-d .bk-dd { font-size: 18px; font-weight: 900; color: #111827; line-height: 1; }
-    .bk-d .bk-dm { font-size: 10px; color: #9ca3af; }
-    .bk-d.sel .bk-dw,
-    .bk-d.sel .bk-dd,
-    .bk-d.sel .bk-dm { color: #fff; }
-
-    /* ── Time slots ── */
-    #bk-times-wrap { margin-bottom: 8px; }
-
-    .bk-grp {
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .8px;
-      color: #9ca3af; margin: 16px 0 6px;
-      font-family: system-ui, sans-serif;
-    }
-
-    .bk-t-list { display: flex; flex-direction: column; }
-
-    .bk-t {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 4px;
-      border-bottom: 1px solid #f3f4f6;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: background .12s;
-      font-family: system-ui, sans-serif;
-      background: transparent;
-      border-left: none; border-right: none; border-top: none;
-      border-radius: 0;
-      width: 100%;
-      text-align: left;
-    }
-    .bk-t:first-child { border-top: 1px solid #f3f4f6; }
-    .bk-t:hover { background: #f9fafb; }
-    .bk-t.sel { background: #f0fdf4; }
-    .bk-t-label {
-      font-size: 16px; font-weight: 600; color: #111827;
-      transition: color .12s;
-    }
-    .bk-t.sel .bk-t-label { color: #15803d; }
-
-    .bk-t-chk {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      border: 2px solid #d1d5db;
-      background: #fff;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: all .15s;
-    }
-    .bk-t.sel .bk-t-chk {
-      background: #2fcc41; border-color: #16a34a;
-    }
-    .bk-t-chk svg { display: none; }
-    .bk-t.sel .bk-t-chk svg { display: block; }
-
-    /* ── Spinner ── */
-    .bk-spin {
-      width: 26px; height: 26px;
-      border: 3px solid #e5e7eb;
-      border-top-color: #2fcc41;
-      border-radius: 50%;
-      animation: bkSpin .7s linear infinite;
-      margin: 24px auto;
-    }
-    @keyframes bkSpin { to { transform: rotate(360deg) } }
-
-    /* ── Empty ── */
-    .bk-empty {
-      text-align: center;
-      padding: 20px 0;
-      color: #6b7280;
-      font-size: 14px;
-      line-height: 1.6;
-      font-family: system-ui, sans-serif;
-    }
-    .bk-empty a { color: #2fcc41; }
-
-    /* ── Confirm card ── */
-    #bk-pick {
-      display: none;
-      margin-top: 16px;
-      padding: 16px;
-      border-radius: 14px;
-      border: 2px solid #2fcc41;
-      background: #f0fdf4;
-    }
-    #bk-pick.vis { display: block; }
-    #bk-pick-info { margin-bottom: 14px; }
-    #bk-pick-time { font-size: 22px; font-weight: 900; color: #111827; font-family: system-ui, sans-serif; }
-    #bk-pick-date { font-size: 13px; color: #6b7280; margin-top: 2px; font-family: system-ui, sans-serif; }
-
-    /* ── Chosen slot badge (step 2) ── */
-    #bk-chosen-slot {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 14px;
-      background: #f0fdf4;
-      border: 1.5px solid #86efac;
-      border-radius: 10px;
-      color: #15803d;
-      font-size: 13px; font-weight: 700;
-      margin-bottom: 20px;
-      font-family: system-ui, sans-serif;
-    }
-
-    /* ── Primary button ── */
-    .bk-btn-primary {
-      display: block;
-      width: 100%;
-      padding: 15px;
-      border-radius: 999px;
-      border: none;
-      background: #2fcc41;
-      color: #fff;
-      font-size: 16px; font-weight: 800;
-      font-family: system-ui, sans-serif;
-      cursor: pointer;
-      letter-spacing: .01em;
-      transition: filter .15s, transform .1s;
-      -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 14px rgba(47, 204, 65, .4);
-    }
-    .bk-btn-primary:hover   { filter: brightness(1.06); }
-    .bk-btn-primary:active  { transform: scale(.98); }
-    .bk-btn-primary:disabled { opacity: .5; cursor: default; transform: none; }
-
-    /* ── Link button ── */
-    .bk-btn-link {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      background: none;
-      border: none;
-      color: #6b7280;
-      font-size: 14px; font-weight: 600;
-      text-align: center;
-      cursor: pointer;
-      font-family: system-ui, sans-serif;
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #bk-back { text-align: left; text-decoration: none; margin-bottom: 16px; padding: 0; width: auto; }
-
-    /* ── Form ── */
-    .bk-field {
-      display: flex; flex-direction: column;
-      gap: 5px;
-      margin-bottom: 14px;
-    }
-    .bk-field label {
-      font-size: 12px; font-weight: 700;
-      color: #374151;
-      font-family: system-ui, sans-serif;
-      text-transform: uppercase; letter-spacing: .5px;
-    }
-    .bk-field input {
-      padding: 13px 14px;
-      border-radius: 10px;
-      border: 1.5px solid #e5e7eb;
-      background: #fff;
-      font-size: 16px; /* 16px prevents iOS zoom */
-      color: #111827;
-      font-family: system-ui, sans-serif;
-      outline: none;
-      -webkit-appearance: none;
-      transition: border-color .15s, box-shadow .15s;
-    }
-    .bk-field input:focus {
-      border-color: #2fcc41;
-      box-shadow: 0 0 0 3px rgba(47, 204, 65, .15);
-    }
-    .bk-field input::placeholder { color: #9ca3af; }
-
-    /* ── Error ── */
-    #bk-err {
-      display: none;
-      padding: 12px 14px;
-      border-radius: 10px;
-      background: #fef2f2;
-      border: 1.5px solid #fecaca;
-      color: #dc2626;
-      font-size: 14px; line-height: 1.5;
-      margin-bottom: 14px;
-      font-family: system-ui, sans-serif;
-    }
-    #bk-err.vis { display: block; }
-
-    /* ── Done ── */
-    #bk-done {
-      text-align: center;
-      padding: 20px 0 10px;
-      font-family: system-ui, sans-serif;
-    }
-    #bk-done-icon {
-      width: 60px; height: 60px;
-      border-radius: 50%;
-      background: #f0fdf4;
-      border: 2px solid #86efac;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 16px;
-      color: #16a34a;
-    }
-    #bk-done h3 { font-size: 20px; font-weight: 900; color: #111827; margin: 0 0 8px; }
-    #bk-done p  { font-size: 14px; color: #6b7280; line-height: 1.6; margin: 0 auto 12px; max-width: 280px; }
-    #bk-done-slot {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 16px;
-      border-radius: 999px;
-      background: #f0fdf4;
-      border: 1.5px solid #86efac;
-      color: #15803d;
-      font-size: 14px; font-weight: 700;
-      margin: 4px 0 12px;
-    }
-    </style>
-
-    <!-- ── Scroll-reveal (keep existing) ── -->
+    <!-- Global Scripts: Animations + Native Booking Widget -->
     <script>
     (function () {
-      /* ── Scroll animations ── */
-      var ro = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); }
-        });
-      }, { threshold: .1, rootMargin: '0px 0px -50px 0px' });
-      document.querySelectorAll('.reveal-on-scroll, section > .wrap, section > .container').forEach(function (el) {
-        el.classList.add('reveal-on-scroll'); ro.observe(el);
-      });
+        'use strict';
 
-      /* ── Overlay open / close ── */
-      var overlay  = document.getElementById('bk');
-      var sheet    = document.getElementById('bk-sh');
-      var closeBtn = document.getElementById('bk-x');
-      var backdrop = document.getElementById('bk-bd');
-      var lastFocus;
-      var widgetReady = false;
-      var pendingAbort = null;
-      var onReset = null;
-
-      function openOverlay(e) {
-        e.preventDefault();
-        lastFocus = document.activeElement;
-        overlay.classList.add('open');
-        overlay.removeAttribute('aria-hidden');
-        document.body.style.overflow = 'hidden';
-        closeBtn.focus();
-        if (!widgetReady) { initWidget(); widgetReady = true; }
-        else if (onReset) onReset();
-      }
-
-      function closeOverlay() {
-        if (pendingAbort) { pendingAbort.abort(); pendingAbort = null; }
-        overlay.classList.remove('open');
-        overlay.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-        if (lastFocus) lastFocus.focus();
-      }
-
-      document.addEventListener('click', function (e) {
-        var t = e.target.closest('a[href="#book"],[data-action="open-booking"],[data-cta="book-call"],.cta[href="#book"]');
-        if (t) openOverlay(e);
-      });
-      closeBtn.addEventListener('click', closeOverlay);
-      backdrop.addEventListener('click', closeOverlay);
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && overlay.classList.contains('open')) closeOverlay();
-      });
-
-      /* ── Booking widget ── */
-      function initWidget() {
-        var API = '/.netlify/functions/booking';
-        var TZ  = 'America/Chicago';
-        try { TZ = Intl.DateTimeFormat().resolvedOptions().timeZone || TZ; } catch (e) {}
-
-        if (!window.fetch || !window.AbortController) {
-          document.getElementById('bk-times').innerHTML =
-            '<p class="bk-empty">Your browser doesn\'t support this form. Call us at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
-          return;
-        }
-
-        var selDate   = null;
-        var selSlot   = null;
-        var cache     = {};
-        var submitting = false;
-
-        var $dates    = document.getElementById('bk-dates');
-        var $times    = document.getElementById('bk-times');
-        var $timesWrap= document.getElementById('bk-times-wrap');
-        var $pick     = document.getElementById('bk-pick');
-        var $pickTime = document.getElementById('bk-pick-time');
-        var $pickDate = document.getElementById('bk-pick-date');
-        var $confirm  = document.getElementById('bk-confirm');
-        var $unsel    = document.getElementById('bk-unsel');
-        var $chosen   = document.getElementById('bk-chosen-txt');
-        var $doneSl   = document.getElementById('bk-done-slot');
-        var $form     = document.getElementById('bk-form');
-        var $err      = document.getElementById('bk-err');
-        var $sub      = document.getElementById('bk-sub');
-        var $back     = document.getElementById('bk-back');
-
-        function pad(n) { return String(n).padStart(2, '0'); }
-        function toYMD(d) { return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
-        function hour(iso) { return parseInt(new Date(iso).toLocaleString('en-US', { hour:'2-digit', hour12:false, timeZone:TZ }), 10); }
-        function fmtTime(iso) { return new Date(iso).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZone:TZ }); }
-        function fmtFull(iso) {
-          var d = new Date(iso);
-          return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', timeZone:TZ })
-               + ' at ' + fmtTime(iso);
-        }
-        function showErr(m) { $err.textContent = m; $err.classList.add('vis'); }
-        function clearErr()  { $err.classList.remove('vis'); }
-        function resetBtn()  { $sub.disabled = false; $sub.textContent = 'Book My Strategy Call'; submitting = false; }
-
-        function goStep(n) {
-          [1,2,3].forEach(function (i) {
-            var pn = document.getElementById('bk-pn' + i);
-            var st = document.getElementById('bk-st' + i);
-            pn.classList.toggle('active', i === n);
-            st.classList.remove('active','done');
-            if (i < n)  st.classList.add('done');
-            if (i === n) st.classList.add('active');
-            if (i < 3) document.getElementById('bk-sx' + i).classList.toggle('done', i < n);
-          });
-          document.getElementById('bk-body').scrollTop = 0;
-        }
-
-        function resetSlot() {
-          selSlot = null;
-          $pick.classList.remove('vis');
-          $times.style.display = '';
-          $timesWrap.style.display = '';
-        }
-
-        onReset = function () {
-          selDate = null; selSlot = null; submitting = false;
-          $pick.classList.remove('vis');
-          $times.style.display = '';
-          clearErr(); resetBtn(); goStep(1);
-        };
-
-        /* Build date strip + prefetch all slots */
-        function buildDates() {
-          var today = new Date();
-          var end   = new Date(today); end.setDate(today.getDate() + 13);
-          var frag  = document.createDocumentFragment();
-          for (var i = 0; i < 14; i++) {
-            var d = new Date(today); d.setDate(today.getDate() + i);
-            var ymd = toYMD(d);
-            var b = document.createElement('button');
-            b.type = 'button'; b.className = 'bk-d'; b.dataset.date = ymd; b.disabled = true;
-            b.innerHTML =
-              '<span class="bk-dw">' + d.toLocaleDateString('en-US',{weekday:'short',timeZone:TZ}) + '</span>' +
-              '<span class="bk-dd">' + d.toLocaleDateString('en-US',{day:'numeric',timeZone:TZ}) + '</span>' +
-              '<span class="bk-dm">' + d.toLocaleDateString('en-US',{month:'short',timeZone:TZ}) + '</span>';
-            b.addEventListener('click', function () { pickDate(this.dataset.date); });
-            frag.appendChild(b);
-          }
-          $dates.appendChild(frag);
-          $times.innerHTML = '<div class="bk-spin"></div>';
-
-          fetch(API + '?startDate=' + toYMD(today) + '&endDate=' + toYMD(end) + '&timezone=' + encodeURIComponent(TZ))
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-              cache = data.dates || {};
-              $dates.querySelectorAll('.bk-d').forEach(function (b) {
-                b.disabled = !(cache[b.dataset.date] || []).length;
-              });
-              var first = $dates.querySelector('.bk-d:not(:disabled)');
-              if (first) pickDate(first.dataset.date);
-              else $times.innerHTML = '<p class="bk-empty">No availability in the next 14 days.<br>Call us at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
-            })
-            .catch(function () {
-              $times.innerHTML = '<p class="bk-empty">Could not load availability. Please refresh the page.</p>';
+        // ── Scroll animations ─────────────────────────────────────
+        var revealObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); }
             });
-        }
-
-        function pickDate(ymd) {
-          $dates.querySelectorAll('.bk-d').forEach(function (b) { b.classList.toggle('sel', b.dataset.date === ymd); });
-          selDate = ymd;
-          resetSlot();
-          renderTimes(cache[ymd] || []);
-        }
-
-        function renderTimes(slots) {
-          $times.innerHTML = '';
-          if (!slots.length) {
-            $times.innerHTML = '<p class="bk-empty">No times available on this date.<br>Try another day.</p>';
-            return;
-          }
-          var morning   = slots.filter(function (s) { return hour(s) < 12; });
-          var afternoon = slots.filter(function (s) { return hour(s) >= 12; });
-
-          function makeGroup(label, group) {
-            if (!group.length) return;
-            var g = document.createElement('p'); g.className = 'bk-grp'; g.textContent = label;
-            $times.appendChild(g);
-            var list = document.createElement('div'); list.className = 'bk-t-list';
-            group.forEach(function (iso) {
-              var btn = document.createElement('button');
-              btn.type = 'button'; btn.className = 'bk-t'; btn.dataset.iso = iso;
-              btn.innerHTML =
-                '<span class="bk-t-label">' + fmtTime(iso) + '</span>' +
-                '<span class="bk-t-chk">' +
-                  '<svg width="12" height="12" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>' +
-                '</span>';
-              btn.addEventListener('click', function () { pickSlot(this); });
-              list.appendChild(btn);
-            });
-            $times.appendChild(list);
-          }
-          makeGroup('Morning', morning);
-          makeGroup('Afternoon', afternoon);
-        }
-
-        function pickSlot(btn) {
-          selSlot = btn.dataset.iso;
-          var d   = new Date(selSlot);
-          $times.style.display = 'none';
-          $timesWrap.style.display = 'none';
-          $pickTime.textContent = fmtTime(selSlot);
-          $pickDate.textContent = d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', timeZone:TZ });
-          $pick.classList.add('vis');
-          $pick.scrollIntoView({ behavior:'smooth', block:'nearest' });
-        }
-
-        $confirm.addEventListener('click', function () {
-          if (!selSlot) return;
-          var disp = fmtFull(selSlot);
-          $chosen.textContent = disp;
-          $doneSl.textContent = disp;
-          goStep(2);
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+        document.querySelectorAll('.reveal-on-scroll, section > .wrap, section > .container').forEach(function (el) {
+            el.classList.add('reveal-on-scroll');
+            revealObserver.observe(el);
         });
-        $unsel.addEventListener('click', resetSlot);
-        $back.addEventListener('click', function () { resetSlot(); goStep(1); });
 
-        $form.addEventListener('submit', function (e) {
-          e.preventDefault();
-          if (submitting) return;
-          clearErr();
-          var name  = document.getElementById('bk-name').value.trim();
-          var email = document.getElementById('bk-email').value.trim();
-          var phone = document.getElementById('bk-phone').value.trim();
-          if (!name || !email || !phone) { showErr('Please fill in all fields.'); return; }
-          if (!/^\S+@\S+\.\S+$/.test(email)) { showErr('Please enter a valid email address.'); return; }
-          var digits = phone.replace(/\D/g, '');
-          if (digits.length < 9 || digits.length > 15) { showErr('Please enter a valid phone number.'); return; }
+        // ── Modal open / close ────────────────────────────────────
+        var modal    = document.getElementById('global-booking-modal');
+        var closeBtn = modal.querySelector('.bb-close');
+        var backdrop = modal.querySelector('.bb-backdrop');
+        var lastFocused;
+        var widgetInitialised = false;
+        var pendingAbort  = null;   // in-flight booking request — aborted on modal close
+        var doResetWidget = null;   // set by initWidget; called when modal reopens
 
-          submitting = true;
-          $sub.disabled = true; $sub.textContent = 'Booking…';
-          var ctrl = new AbortController(); pendingAbort = ctrl;
-          var timeout = setTimeout(function () { ctrl.abort(); }, 10000);
+        function openModal(e) {
+            e.preventDefault();
+            lastFocused = document.activeElement;
+            modal.removeAttribute('aria-hidden');
+            modal.setAttribute('open', '');
+            document.body.style.overflow = 'hidden';
+            closeBtn.focus();
+            if (!widgetInitialised) { initWidget(); widgetInitialised = true; }
+            else if (doResetWidget) { doResetWidget(); }
+        }
+        function closeModal() {
+            if (pendingAbort) { pendingAbort.abort(); pendingAbort = null; }
+            modal.removeAttribute('open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            if (lastFocused) lastFocused.focus();
+        }
 
-          fetch(API, {
-            signal: ctrl.signal, method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name:name, email:email, phone:phone, slot:selSlot, timezone:TZ }),
-          })
-          .then(function (r) {
-            clearTimeout(timeout); pendingAbort = null;
-            return r.json().then(function (d) { return { ok:r.ok, status:r.status, data:d }; });
-          })
-          .then(function (res) {
-            submitting = false;
-            if (res.ok) {
-              var eid = 'dsn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-              if (typeof fbq !== 'undefined')  fbq('track', 'Schedule', {}, { eventID: eid });
-              if (typeof gtag !== 'undefined') gtag('event', 'appointment_booked', { event_category:'conversion', event_id:eid });
-              if (window.DSN && window.DSN.trackEvent) window.DSN.trackEvent('Schedule', { currency:'USD', value:0 }, { eventID:eid });
-              goStep(3);
-              setTimeout(function () { window.location.href = '/commercial/thankyou'; }, 1800);
-            } else if (res.status === 409) {
-              showErr('That slot was just taken. Please pick another time.');
-              resetBtn();
-              var d = selDate; selSlot = null; goStep(1); resetSlot();
-              $times.innerHTML = '<div class="bk-spin"></div>';
-              fetch(API + '?startDate=' + d + '&endDate=' + d + '&timezone=' + encodeURIComponent(TZ))
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                  var fresh = (data.dates || {})[d] || [];
-                  cache[d] = fresh;
-                  var b = $dates.querySelector('[data-date="' + d + '"]');
-                  if (b) b.disabled = !fresh.length;
-                  renderTimes(fresh);
-                })
-                .catch(function () { renderTimes(cache[d] || []); resetBtn(); });
-            } else {
-              showErr((res.data && res.data.message) || 'Something went wrong. Please try again.');
-              resetBtn();
+        document.addEventListener('click', function (e) {
+            var t = e.target.closest('a[href="#book"],[data-action="open-booking"],[data-cta="book-call"],.cta[href="#book"]');
+            if (t) openModal(e);
+        });
+        [closeBtn, backdrop].forEach(function (el) { if (el) el.addEventListener('click', closeModal); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.hasAttribute('open')) closeModal();
+        });
+
+        // ── Native booking widget ─────────────────────────────────
+        function initWidget() {
+            var $slots = document.getElementById('dsn-slots');
+
+            // Feature detection — very old Android WebViews lack fetch/AbortController
+            if (!window.fetch || !window.AbortController) {
+                $slots.innerHTML = '<p class="dsn-empty">Your browser doesn\'t support this form.<br>Please call us at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
+                return;
             }
-          })
-          .catch(function (err) {
-            clearTimeout(timeout); pendingAbort = null; submitting = false;
-            showErr(err && err.name === 'AbortError' ? 'Request timed out. Please try again.' : 'Network error. Please try again.');
-            resetBtn();
-          });
-        });
 
-        buildDates();
-      } /* end initWidget */
+            var TZ = 'America/Chicago';
+            try { TZ = Intl.DateTimeFormat().resolvedOptions().timeZone || TZ; } catch (e) {}
+
+            var API        = '/.netlify/functions/booking';
+            var selDate    = null;
+            var selSlot    = null;
+            var cache      = {};
+            var submitting = false;
+
+            var $dates     = document.getElementById('dsn-dates');
+            var $slotCard  = document.getElementById('dsn-slot-card');
+            var $ct        = document.getElementById('dsn-ct');
+            var $cd        = document.getElementById('dsn-cd');
+            var $toForm    = document.getElementById('dsn-to-form');
+            var $change    = document.getElementById('dsn-change');
+            var $back      = document.getElementById('dsn-back');
+            var $slotLbl   = document.getElementById('dsn-slot-lbl');
+            var $form      = document.getElementById('dsn-form');
+            var $err       = document.getElementById('dsn-err');
+            var $submit    = document.getElementById('dsn-submit');
+            var $confLbl   = document.getElementById('dsn-conf-lbl');
+
+            function pad(n) { return String(n).padStart(2, '0'); }
+            function toYMD(d) { return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+            function slotHour(iso) { return parseInt(new Date(iso).toLocaleString('en-US', { hour:'2-digit', hour12:false, timeZone:TZ }), 10); }
+            function fmtSlot(iso) {
+                var d = new Date(iso);
+                return d.toLocaleDateString('en-US',{ weekday:'short', month:'short', day:'numeric', timeZone:TZ })
+                     + ' at ' + d.toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', timeZone:TZ });
+            }
+            function showErr(msg) { $err.textContent = msg; $err.classList.add('vis'); }
+            function clearErr()   { $err.classList.remove('vis'); }
+            function resetBtn()   { $submit.disabled = false; $submit.textContent = 'Book My Strategy Call'; submitting = false; }
+
+            function goStep(n) {
+                for (var i = 1; i <= 3; i++) {
+                    document.getElementById('dsn-p' + i).classList.toggle('active', i === n);
+                    var s = document.getElementById('dsn-s' + i);
+                    s.classList.remove('active','done');
+                    if (i < n)  s.classList.add('done');
+                    if (i === n) s.classList.add('active');
+                    if (i < 3)  document.getElementById('dsn-l' + i).classList.toggle('done', i < n);
+                }
+                document.getElementById('dsn-bk').scrollIntoView({ behavior:'smooth', block:'start' });
+            }
+
+            function resetSlot() {
+                selSlot = null;
+                $slotCard.classList.remove('vis');
+                $slots.style.display = '';
+            }
+
+            // Exposed so openModal can call it on reopen
+            doResetWidget = function () {
+                selDate = null;
+                selSlot = null;
+                submitting = false;
+                $slotCard.classList.remove('vis');
+                $slots.style.display = '';
+                clearErr();
+                resetBtn();
+                goStep(1);
+            };
+
+            function buildDates() {
+                var today = new Date();
+                var end   = new Date(today); end.setDate(today.getDate() + 13);
+                var frag  = document.createDocumentFragment();
+                for (var i = 0; i < 14; i++) {
+                    var d = new Date(today); d.setDate(today.getDate() + i);
+                    var ymd = toYMD(d);
+                    var btn = document.createElement('button');
+                    btn.type = 'button'; btn.className = 'dsn-date-btn'; btn.dataset.date = ymd; btn.disabled = true;
+                    btn.innerHTML =
+                        '<span class="dd">' + d.toLocaleDateString('en-US',{ weekday:'short', timeZone:TZ }) + '</span>' +
+                        '<span class="dn">' + d.toLocaleDateString('en-US',{ day:'numeric',   timeZone:TZ }) + '</span>' +
+                        '<span class="dm">' + d.toLocaleDateString('en-US',{ month:'short',   timeZone:TZ }) + '</span>';
+                    btn.setAttribute('aria-pressed','false');
+                    btn.addEventListener('click', function () { pickDate(this.dataset.date); });
+                    frag.appendChild(btn);
+                }
+                $dates.appendChild(frag);
+                $slots.innerHTML = '<div class="dsn-spinner"></div>';
+
+                fetch(API + '?startDate=' + toYMD(today) + '&endDate=' + toYMD(end) + '&timezone=' + encodeURIComponent(TZ))
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        cache = data.dates || {};
+                        $dates.querySelectorAll('.dsn-date-btn').forEach(function (b) {
+                            b.disabled = !(cache[b.dataset.date] || []).length;
+                        });
+                        var first = $dates.querySelector('.dsn-date-btn:not(:disabled)');
+                        if (first) pickDate(first.dataset.date);
+                        else $slots.innerHTML = '<p class="dsn-empty">No availability in the next 14 days.<br>Please call us at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
+                    })
+                    .catch(function () { $slots.innerHTML = '<p class="dsn-empty">Could not load availability. Please refresh the page.</p>'; });
+            }
+
+            function pickDate(ymd) {
+                $dates.querySelectorAll('.dsn-date-btn').forEach(function (b) { b.classList.toggle('sel', b.dataset.date === ymd); });
+                selDate = ymd;
+                resetSlot();
+                renderSlots(cache[ymd] || []);
+            }
+
+            function renderSlots(slots) {
+                $slots.innerHTML = '';
+                if (!slots.length) { $slots.innerHTML = '<p class="dsn-empty">No availability on this date.<br>Try another day.</p>'; return; }
+                var morning   = slots.filter(function (s) { return slotHour(s) < 12; });
+                var afternoon = slots.filter(function (s) { return slotHour(s) >= 12; });
+                function makeGroup(label, group) {
+                    if (!group.length) return;
+                    var lbl = document.createElement('div'); lbl.className = 'dsn-grp-lbl'; lbl.textContent = label; $slots.appendChild(lbl);
+                    var list = document.createElement('div'); list.className = 'dsn-slots';
+                    group.forEach(function (iso) {
+                        var d    = new Date(iso);
+                        var time = d.toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', timeZone:TZ });
+                        var btn  = document.createElement('button');
+                        btn.type = 'button'; btn.className = 'dsn-slot-btn'; btn.dataset.iso = iso;
+                        btn.innerHTML = '<span>' + time + '</span><span class="dsn-slot-chk" aria-hidden="true"></span>';
+                        btn.addEventListener('click', function () { pickSlot(this); });
+                        list.appendChild(btn);
+                    });
+                    $slots.appendChild(list);
+                }
+                makeGroup('Morning', morning);
+                makeGroup('Afternoon', afternoon);
+            }
+
+            function pickSlot(btn) {
+                selSlot = btn.dataset.iso;
+                var d = new Date(selSlot);
+                $slots.style.display = 'none';
+                $ct.textContent = d.toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', timeZone:TZ });
+                $cd.textContent = d.toLocaleDateString('en-US',{ weekday:'long', month:'long', day:'numeric', timeZone:TZ });
+                $slotCard.classList.add('vis');
+                $slotCard.scrollIntoView({ behavior:'smooth', block:'nearest' });
+            }
+
+            $toForm.addEventListener('click', function () {
+                if (!selSlot) return;
+                var disp = fmtSlot(selSlot);
+                $slotLbl.textContent = disp;
+                $confLbl.textContent = disp;
+                goStep(2);
+            });
+            $change.addEventListener('click', resetSlot);
+            $back.addEventListener('click', function () { resetSlot(); goStep(1); });
+
+            $form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (submitting) return;   // double-click guard
+                clearErr();
+
+                var name  = document.getElementById('dsn-name').value.trim();
+                var email = document.getElementById('dsn-email').value.trim();
+                var phone = document.getElementById('dsn-phone').value.trim();
+                if (!name || !email || !phone) { showErr('Please fill in all fields.'); return; }
+                if (!/^\S+@\S+\.\S+$/.test(email)) { showErr('Please enter a valid email address.'); return; }
+                var digits = phone.replace(/\D/g,'');
+                if (digits.length < 9 || digits.length > 15) { showErr('Please enter a valid phone number.'); return; }
+
+                submitting = true;
+                $submit.disabled = true; $submit.textContent = 'Booking…';
+
+                var ctrl    = new AbortController();
+                pendingAbort = ctrl;
+                var timeout = setTimeout(function () { ctrl.abort(); }, 10000);
+
+                fetch(API, {
+                    signal:  ctrl.signal,
+                    method:  'POST',
+                    headers: { 'Content-Type':'application/json' },
+                    body:    JSON.stringify({ name:name, email:email, phone:phone, slot:selSlot, timezone:TZ }),
+                })
+                .then(function (r) {
+                    clearTimeout(timeout); pendingAbort = null;
+                    return r.json().then(function (d) { return { ok:r.ok, status:r.status, data:d }; });
+                })
+                .then(function (res) {
+                    submitting = false;
+                    if (res.ok) {
+                        var evtId = 'dsn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        if (typeof fbq  !== 'undefined') fbq('track', 'Schedule', {}, { eventID: evtId });
+                        if (typeof gtag !== 'undefined') gtag('event', 'appointment_booked', { event_category:'conversion', event_id: evtId });
+                        if (window.DSN && typeof window.DSN.trackEvent === 'function') {
+                            window.DSN.trackEvent('Schedule', { currency:'USD', value:0 }, { eventID: evtId });
+                        }
+                        goStep(3);
+                    } else if (res.status === 409) {
+                        showErr('That time slot was just taken. Please pick another time.');
+                        resetBtn();
+                        var d = selDate;
+                        selSlot = null; goStep(1); resetSlot();
+                        $slots.innerHTML = '<div class="dsn-spinner"></div>';
+                        fetch(API + '?startDate=' + d + '&endDate=' + d + '&timezone=' + encodeURIComponent(TZ))
+                            .then(function (r) { return r.json(); })
+                            .then(function (data) {
+                                var fresh = (data.dates || {})[d] || [];
+                                cache[d] = fresh;
+                                var b = $dates.querySelector('[data-date="' + d + '"]');
+                                if (b) b.disabled = !fresh.length;
+                                renderSlots(fresh);
+                            })
+                            .catch(function () {
+                                renderSlots(cache[d] || []);
+                                resetBtn();   // re-enable after 409 + retry network failure
+                            });
+                    } else {
+                        showErr(res.data.message || 'Something went wrong. Please try again.');
+                        resetBtn();
+                    }
+                })
+                .catch(function (err) {
+                    clearTimeout(timeout); pendingAbort = null;
+                    submitting = false;
+                    showErr(err && err.name === 'AbortError' ? 'Request timed out. Please try again.' : 'Network error. Please check your connection.');
+                    resetBtn();
+                });
+            });
+
+            buildDates();
+        }
     })();
     </script>
 </body>
+
 </html>
