@@ -3305,234 +3305,181 @@
             @keyframes bbFadeIn  { from{opacity:0} to{opacity:1} }
             @keyframes bbSlideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-            /* ── Booking widget ───────────────────────────────────── */
-            #global-booking-modal {
-                --g:  #2fcc41;
-                --gh: #25b336;
-                --ink: #111316;
-                --sub: #515a67;
-                --bd:  #d0d7df;
-                --bg:  #f4f6f8;
-                --wh:  #ffffff;
-                --glow: rgba(47,204,65,.22);
-            }
+            /* ── Booking widget — dark theme ──────────────────────── */
+            .bb-dialog { background: #0d1a1f; }
+            .bb-scroll  { background: #0d1a1f !important; }
+            .bb-close   { background: rgba(255,255,255,.08) !important; color: #fff !important; border-color: rgba(255,255,255,.15) !important; }
 
-            /* Dialog gets a green accent stripe at the top */
-            .bb-dialog::before {
-                content:''; display:block; height:4px; flex-shrink:0;
-                background:linear-gradient(90deg, var(--g), var(--gh));
-            }
-
-            /* Scroll area uses off-white background */
-            .bb-scroll { background: var(--bg) !important; }
-
+            /* ── Widget layout ───────────────────────────────────── */
             #dsn-bk {
-                padding: 1.4rem 1.25rem 2rem;
+                padding: 1.25rem 1.25rem 2rem;
                 font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-                color: var(--ink);
+                color: #f0f4f8;
             }
             #dsn-bk *, #dsn-bk *::before, #dsn-bk *::after { box-sizing:border-box; margin:0; padding:0; }
 
-            /* Header card */
-            .dsn-hdr {
-                background: var(--wh);
-                border-radius: 14px;
-                border: 1px solid var(--bd);
-                padding: 1rem 3.5rem 1rem 1.1rem; /* right padding clears the close button */
-                margin-bottom: 1rem;
-                box-shadow: 0 1px 4px rgba(0,0,0,.06);
-            }
-            .dsn-hdr h2 { font-size:1.05rem; font-weight:900; color:var(--ink); margin-bottom:.2rem; line-height:1.2; }
-            .dsn-sub { font-size:.82rem; color:var(--sub); }
+            /* Header */
+            .dsn-hdr { padding-right: 3.75rem; margin-bottom: 1.4rem; }
+            .dsn-hdr h2 { font-size:1.1rem; font-weight:900; color:#fff; margin-bottom:.25rem; line-height:1.25; }
+            .dsn-sub { font-size:.82rem; color:#7a909e; }
 
-            /* progress */
-            .dsn-progress { display:flex; align-items:center; margin-top:.85rem; }
-            .dsn-step { display:flex; align-items:center; gap:.35rem; flex:1; }
+            /* Progress */
+            .dsn-progress { display:flex; align-items:center; margin-top:.9rem; }
+            .dsn-step { display:flex; align-items:center; gap:.3rem; }
             .dsn-dot {
-                width:22px; height:22px; border-radius:50%; border:2px solid var(--bd);
+                width:22px; height:22px; flex-shrink:0; border-radius:50%;
+                border:2px solid rgba(255,255,255,.2);
                 display:flex; align-items:center; justify-content:center;
-                font-size:.68rem; font-weight:800; color:var(--sub); flex-shrink:0; transition:all .2s;
+                font-size:.68rem; font-weight:800; color:#7a909e; transition:all .2s;
             }
-            .dsn-step.active .dsn-dot { border-color:var(--g); color:var(--g); background:rgba(47,204,65,.1); }
-            .dsn-step.done .dsn-dot   { background:var(--g); border-color:var(--g); color:#fff; }
-            .dsn-step-lbl { font-size:.72rem; font-weight:700; color:var(--sub); white-space:nowrap; transition:color .2s; }
-            .dsn-step.active .dsn-step-lbl { color:var(--ink); font-weight:800; }
-            .dsn-step.done .dsn-step-lbl   { color:var(--g); }
-            .dsn-line { flex:1; height:2px; background:var(--bd); margin:0 .3rem; border-radius:2px; transition:background .2s; }
-            .dsn-line.done { background:var(--g); }
+            .dsn-step.active .dsn-dot { border-color:#2fcc41; color:#2fcc41; }
+            .dsn-step.done   .dsn-dot { background:#2fcc41; border-color:#2fcc41; color:#031807; }
+            .dsn-step-lbl { font-size:.7rem; font-weight:700; color:#7a909e; white-space:nowrap; transition:color .2s; }
+            .dsn-step.active .dsn-step-lbl { color:#f0f4f8; }
+            .dsn-step.done   .dsn-step-lbl { color:#2fcc41; }
+            .dsn-line { flex:1; height:1px; background:rgba(255,255,255,.12); margin:0 .25rem; transition:background .2s; }
+            .dsn-line.done { background:#2fcc41; }
 
-            /* panels */
+            /* Panels */
             .dsn-panel { display:none; }
             .dsn-panel.active { display:block; }
 
-            /* section label */
-            .dsn-sec-lbl {
-                font-size:.72rem; font-weight:800; color:var(--sub);
-                text-transform:uppercase; letter-spacing:.8px; margin-bottom:.55rem;
-            }
-
-            /* date strip */
+            /* Date strip */
             .dsn-dates {
                 display:flex; gap:.45rem; overflow-x:auto; padding-bottom:.5rem;
-                scrollbar-width:none; -webkit-overflow-scrolling:touch;
-                margin-bottom:1rem;
+                -webkit-overflow-scrolling:touch; scrollbar-width:none; margin-bottom:1.25rem;
             }
             .dsn-dates::-webkit-scrollbar { display:none; }
             .dsn-date-btn {
-                flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:.12rem;
-                padding:.6rem .65rem; border-radius:10px; border:1.5px solid var(--bd);
-                background:var(--wh); cursor:pointer; min-width:52px;
-                box-shadow:0 1px 3px rgba(0,0,0,.07);
-                transition:border-color .15s, background .15s, box-shadow .15s;
+                flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:.15rem;
+                padding:.6rem .7rem; min-width:54px; border-radius:10px;
+                border:1px solid rgba(255,255,255,.12);
+                background:rgba(255,255,255,.06);
+                cursor:pointer; transition:all .18s;
                 -webkit-tap-highlight-color:transparent;
             }
-            .dsn-date-btn:disabled { opacity:.38; cursor:not-allowed; box-shadow:none; }
-            .dsn-date-btn:not(:disabled):hover { border-color:#a3c9a8; box-shadow:0 2px 6px rgba(47,204,65,.15); }
-            .dsn-date-btn.sel {
-                background:var(--g); border-color:var(--gh);
-                box-shadow:0 3px 10px var(--glow);
-            }
-            .dsn-date-btn .dd { font-size:.62rem; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.3px; }
-            .dsn-date-btn .dn { font-size:1.05rem; font-weight:900; color:var(--ink); line-height:1; }
-            .dsn-date-btn .dm { font-size:.62rem; color:var(--sub); }
+            .dsn-date-btn:disabled { opacity:.3; cursor:not-allowed; }
+            .dsn-date-btn:not(:disabled):hover { border-color:rgba(47,204,65,.5); background:rgba(47,204,65,.08); }
+            .dsn-date-btn.sel { background:#2fcc41; border-color:#25b336; box-shadow:0 4px 14px rgba(47,204,65,.35); }
+            .dsn-date-btn .dd { font-size:.62rem; font-weight:700; color:#7a909e; text-transform:uppercase; letter-spacing:.4px; }
+            .dsn-date-btn .dn { font-size:1.05rem; font-weight:900; color:#fff; line-height:1; }
+            .dsn-date-btn .dm { font-size:.62rem; color:#7a909e; }
             .dsn-date-btn.sel .dd,
             .dsn-date-btn.sel .dn,
-            .dsn-date-btn.sel .dm { color:#fff; }
+            .dsn-date-btn.sel .dm { color:#031807; }
 
-            /* slots */
-            .dsn-grp-lbl { font-size:.72rem; font-weight:800; color:var(--sub); text-transform:uppercase; letter-spacing:.8px; margin:0 0 .5rem; }
-            .dsn-slots { display:flex; flex-direction:column; gap:.5rem; margin-bottom:.5rem; }
+            /* Slots */
+            .dsn-grp-lbl { font-size:.72rem; font-weight:700; color:#7a909e; text-transform:uppercase; letter-spacing:.8px; margin:1.1rem 0 .5rem; }
+            .dsn-slots { display:flex; flex-direction:column; gap:.5rem; }
             .dsn-slot-btn {
-                width:100%; padding:.9rem 1rem; border-radius:12px;
-                border:1.5px solid var(--bd);
-                background:var(--wh);
-                color:var(--ink); font-size:1rem; font-weight:700;
+                width:100%; padding:.95rem 1.1rem; border-radius:12px;
+                border:1px solid rgba(255,255,255,.12);
+                background:rgba(255,255,255,.06);
+                color:#f0f4f8; font-size:1rem; font-weight:700;
                 cursor:pointer; text-align:left; display:flex; align-items:center; justify-content:space-between;
-                box-shadow:0 1px 3px rgba(0,0,0,.06);
-                transition:border-color .15s, background .15s, color .15s, box-shadow .15s;
-                -webkit-tap-highlight-color:transparent; font-family:inherit;
+                transition:all .18s; -webkit-tap-highlight-color:transparent; font-family:inherit;
             }
-            .dsn-slot-btn:not(.sel):hover { border-color:#a3c9a8; box-shadow:0 2px 8px rgba(47,204,65,.12); }
-            .dsn-slot-btn.sel {
-                border-color:var(--g); border-width:2px;
-                background:rgba(47,204,65,.07); color:var(--g);
-                box-shadow:0 2px 10px var(--glow);
-            }
+            .dsn-slot-btn:not(.sel):hover { border-color:rgba(47,204,65,.45); background:rgba(47,204,65,.07); }
+            .dsn-slot-btn.sel { border-color:#2fcc41; background:rgba(47,204,65,.14); color:#2fcc41; }
             .dsn-slot-chk {
-                width:20px; height:20px; border-radius:50%; border:2px solid var(--bd);
-                flex-shrink:0; transition:all .15s; background:var(--bg);
+                width:20px; height:20px; border-radius:50%;
+                border:2px solid rgba(255,255,255,.2); flex-shrink:0; transition:all .18s;
             }
             .dsn-slot-btn.sel .dsn-slot-chk {
-                background:var(--g); border-color:var(--g);
-                background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%23fff' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+                background:#2fcc41; border-color:#2fcc41;
+                background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%23031807' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
                 background-size:11px; background-repeat:no-repeat; background-position:center;
             }
 
-            /* spinner */
+            /* Spinner */
             .dsn-spinner {
-                width:30px; height:30px; border:3px solid var(--bd); border-top-color:var(--g);
+                width:30px; height:30px; border:3px solid rgba(255,255,255,.1); border-top-color:#2fcc41;
                 border-radius:50%; animation:dsnSpin .7s linear infinite; margin:2rem auto; display:block;
             }
-            @keyframes dsnSpin { to{transform:rotate(360deg)} }
+            @keyframes dsnSpin { to { transform:rotate(360deg) } }
 
-            /* slot section wrapper */
-            .dsn-slots-wrap {
-                background:var(--wh); border:1px solid var(--bd); border-radius:14px;
-                padding:1rem 1rem .6rem; box-shadow:0 1px 4px rgba(0,0,0,.05);
-                margin-bottom:1rem;
-            }
-
-            /* confirm card */
+            /* Confirm card */
             .dsn-confirm-card {
-                display:none; border:2px solid var(--g); border-radius:14px;
-                background:rgba(47,204,65,.06); padding:1.1rem 1.1rem .9rem;
-                margin-top:1rem; box-shadow:0 3px 12px var(--glow);
+                display:none; border:2px solid #2fcc41; border-radius:14px;
+                background:rgba(47,204,65,.1); padding:1.1rem 1.1rem .9rem; margin-top:1.1rem;
+                box-shadow:0 4px 18px rgba(47,204,65,.2);
             }
             .dsn-confirm-card.vis { display:block; }
-            .dsn-confirm-time { font-size:1.35rem; font-weight:900; color:var(--ink); margin-bottom:.15rem; }
-            .dsn-confirm-date { font-size:.85rem; color:var(--sub); margin-bottom:1rem; }
+            .dsn-confirm-time { font-size:1.4rem; font-weight:900; color:#fff; margin-bottom:.15rem; }
+            .dsn-confirm-date { font-size:.85rem; color:#7a909e; margin-bottom:1rem; }
             .dsn-confirm-actions { display:flex; flex-direction:column; gap:.5rem; }
 
-            /* empty / error */
-            .dsn-empty { color:var(--sub); font-size:.9rem; padding:1.25rem 0; text-align:center; line-height:1.6; }
+            /* Empty / error */
+            .dsn-empty { color:#7a909e; font-size:.9rem; padding:1.5rem 0; text-align:center; line-height:1.6; }
             .dsn-err {
-                background:rgba(220,38,38,.07); border:1.5px solid rgba(220,38,38,.3);
-                border-radius:10px; padding:.75rem 1rem; color:#b91c1c;
+                background:rgba(220,38,38,.1); border:1px solid rgba(220,38,38,.35);
+                border-radius:10px; padding:.75rem 1rem; color:#f87171;
                 font-size:.85rem; line-height:1.5; margin-top:.75rem; display:none;
             }
             .dsn-err.vis { display:block; }
 
-            /* primary button */
+            /* Primary button */
             .dsn-btn-primary {
                 width:100%; padding:.9rem; border-radius:999px; border:none;
-                background:linear-gradient(135deg, var(--g), var(--gh));
+                background:linear-gradient(135deg, #2fcc41, #25b336);
                 color:#031807; font-weight:900; font-size:1rem; cursor:pointer;
-                font-family:inherit; box-shadow:0 6px 20px var(--glow);
-                transition:transform .15s, box-shadow .15s, filter .15s;
+                font-family:inherit; box-shadow:0 6px 20px rgba(47,204,65,.3);
+                transition:transform .15s, filter .15s, box-shadow .15s;
                 -webkit-tap-highlight-color:transparent;
             }
-            .dsn-btn-primary:hover  { filter:brightness(1.04); box-shadow:0 8px 24px var(--glow); }
-            .dsn-btn-primary:active { transform:scale(.98); box-shadow:0 3px 10px var(--glow); }
-            .dsn-btn-primary:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+            .dsn-btn-primary:hover  { filter:brightness(1.06); box-shadow:0 8px 26px rgba(47,204,65,.38); }
+            .dsn-btn-primary:active { transform:scale(.98); }
+            .dsn-btn-primary:disabled { opacity:.55; cursor:not-allowed; transform:none; }
 
             .dsn-btn-ghost {
-                background:none; border:none; color:var(--sub); font-size:.85rem; font-weight:600;
-                cursor:pointer; text-align:center; padding:.6rem 1rem; font-family:inherit;
-                text-decoration:underline; text-underline-offset:3px;
-                -webkit-tap-highlight-color:transparent;
+                background:none; border:none; color:#7a909e; font-size:.85rem; font-weight:600;
+                cursor:pointer; text-align:center; padding:.65rem 1rem; font-family:inherit;
+                text-decoration:underline; text-underline-offset:3px; -webkit-tap-highlight-color:transparent;
             }
 
-            /* form */
-            .dsn-form-wrap {
-                background:var(--wh); border:1px solid var(--bd); border-radius:14px;
-                padding:1.1rem 1rem 1rem; box-shadow:0 1px 4px rgba(0,0,0,.05);
-                margin-bottom:1rem;
-            }
+            /* Form */
             .dsn-form { display:flex; flex-direction:column; gap:.9rem; }
             .dsn-field { display:flex; flex-direction:column; gap:.35rem; }
-            .dsn-field label { font-size:.78rem; font-weight:700; color:var(--sub); }
+            .dsn-field label { font-size:.78rem; font-weight:700; color:#7a909e; }
             .dsn-field input {
-                background:var(--bg); border:1.5px solid var(--bd); border-radius:10px;
-                padding:.75rem .95rem; color:var(--ink); font-size:.97rem; font-family:inherit;
+                background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.15);
+                border-radius:10px; padding:.78rem .95rem;
+                color:#f0f4f8; font-size:.97rem; font-family:inherit;
                 outline:none; transition:border-color .15s, box-shadow .15s; -webkit-appearance:none;
             }
-            .dsn-field input:focus {
-                border-color:var(--g);
-                box-shadow:0 0 0 3px rgba(47,204,65,.15);
-            }
-            .dsn-field input::placeholder { color:#9ca7b0; }
+            .dsn-field input:focus { border-color:#2fcc41; box-shadow:0 0 0 3px rgba(47,204,65,.18); }
+            .dsn-field input::placeholder { color:#4a5a65; }
 
-            /* selected slot badge */
+            /* Slot badge */
             .dsn-slot-badge {
                 display:flex; align-items:center; gap:.45rem;
-                background:rgba(47,204,65,.08); border:1.5px solid rgba(47,204,65,.3);
+                background:rgba(47,204,65,.1); border:1px solid rgba(47,204,65,.3);
                 border-radius:10px; padding:.65rem .9rem;
-                color:var(--g); font-size:.85rem; font-weight:700; margin-bottom:.9rem;
+                color:#2fcc41; font-size:.85rem; font-weight:700; margin-bottom:.85rem;
             }
 
-            /* back button */
+            /* Back button */
             .dsn-back-btn {
-                background:none; border:none; color:var(--sub); font-size:.82rem; font-weight:700;
+                background:none; border:none; color:#7a909e; font-size:.82rem; font-weight:700;
                 cursor:pointer; display:flex; align-items:center; gap:.3rem;
-                padding:0; margin-bottom:.8rem; font-family:inherit;
-                -webkit-tap-highlight-color:transparent;
+                padding:0; margin-bottom:.85rem; font-family:inherit; -webkit-tap-highlight-color:transparent;
             }
 
-            /* confirmed */
+            /* Confirmed */
             .dsn-confirmed { text-align:center; padding:1.5rem 0 1rem; }
             .dsn-confirmed-icon {
                 width:64px; height:64px; border-radius:50%;
-                background:linear-gradient(135deg,rgba(47,204,65,.18),rgba(47,204,65,.08));
-                border:2px solid var(--g); display:flex; align-items:center; justify-content:center;
-                margin:0 auto 1.1rem; color:var(--g); box-shadow:0 4px 16px var(--glow);
+                background:rgba(47,204,65,.15); border:2px solid #2fcc41;
+                display:flex; align-items:center; justify-content:center;
+                margin:0 auto 1.1rem; color:#2fcc41; box-shadow:0 4px 20px rgba(47,204,65,.25);
             }
-            .dsn-confirmed h3 { font-size:1.2rem; font-weight:900; color:var(--ink); margin-bottom:.4rem; }
-            .dsn-confirmed p  { color:var(--sub); font-size:.9rem; line-height:1.65; max-width:300px; margin:0 auto; }
+            .dsn-confirmed h3 { font-size:1.2rem; font-weight:900; color:#fff; margin-bottom:.4rem; }
+            .dsn-confirmed p  { color:#7a909e; font-size:.9rem; line-height:1.65; max-width:300px; margin:0 auto; }
             .dsn-confirmed-slot {
                 display:inline-flex; align-items:center; gap:.45rem;
-                background:rgba(47,204,65,.08); border:1.5px solid rgba(47,204,65,.3);
+                background:rgba(47,204,65,.1); border:1px solid rgba(47,204,65,.3);
                 border-radius:999px; padding:.5rem 1rem;
-                color:var(--g); font-size:.88rem; font-weight:800; margin:.9rem 0;
+                color:#2fcc41; font-size:.88rem; font-weight:800; margin:.9rem 0;
             }
         </style>
 
@@ -3547,7 +3494,6 @@
 
                 <div id="dsn-bk">
 
-                    <!-- Header card: title + progress -->
                     <div class="dsn-hdr">
                         <h2>Book Your Strategy Call</h2>
                         <p class="dsn-sub">Free consultation &middot; no obligation &middot; takes under a minute</p>
@@ -3571,12 +3517,8 @@
 
                     <!-- Panel 1: Date + Time -->
                     <div class="dsn-panel active" id="dsn-p1">
-                        <div class="dsn-slots-wrap">
-                            <p class="dsn-sec-lbl">Select a date</p>
-                            <div class="dsn-dates" id="dsn-dates" role="group" aria-label="Select a date"></div>
-                            <p class="dsn-sec-lbl">Available times</p>
-                            <div id="dsn-slots"></div>
-                        </div>
+                        <div class="dsn-dates" id="dsn-dates" role="group" aria-label="Select a date"></div>
+                        <div id="dsn-slots"></div>
                         <div class="dsn-confirm-card" id="dsn-slot-card">
                             <div class="dsn-confirm-time" id="dsn-ct"></div>
                             <div class="dsn-confirm-date" id="dsn-cd"></div>
@@ -3597,24 +3539,22 @@
                             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
                             <span id="dsn-slot-lbl"></span>
                         </div>
-                        <div class="dsn-form-wrap">
-                            <form class="dsn-form" id="dsn-form" novalidate>
-                                <div class="dsn-field">
-                                    <label for="dsn-name">Full name</label>
-                                    <input type="text" id="dsn-name" name="name" placeholder="John Smith" autocomplete="name" required>
-                                </div>
-                                <div class="dsn-field">
-                                    <label for="dsn-email">Email</label>
-                                    <input type="email" id="dsn-email" name="email" placeholder="you@company.com" autocomplete="email" required>
-                                </div>
-                                <div class="dsn-field">
-                                    <label for="dsn-phone">Phone number</label>
-                                    <input type="tel" id="dsn-phone" name="phone" placeholder="(555) 000-0000" autocomplete="tel" required>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="dsn-err" id="dsn-err" role="alert" aria-live="assertive"></div>
-                        <button type="submit" form="dsn-form" class="dsn-btn-primary" id="dsn-submit">Book My Strategy Call</button>
+                        <form class="dsn-form" id="dsn-form" novalidate>
+                            <div class="dsn-field">
+                                <label for="dsn-name">Full name</label>
+                                <input type="text" id="dsn-name" name="name" placeholder="John Smith" autocomplete="name" required>
+                            </div>
+                            <div class="dsn-field">
+                                <label for="dsn-email">Email</label>
+                                <input type="email" id="dsn-email" name="email" placeholder="you@company.com" autocomplete="email" required>
+                            </div>
+                            <div class="dsn-field">
+                                <label for="dsn-phone">Phone number</label>
+                                <input type="tel" id="dsn-phone" name="phone" placeholder="(555) 000-0000" autocomplete="tel" required>
+                            </div>
+                            <div class="dsn-err" id="dsn-err" role="alert" aria-live="assertive"></div>
+                            <button type="submit" class="dsn-btn-primary" id="dsn-submit">Book My Strategy Call</button>
+                        </form>
                     </div>
 
                     <!-- Panel 3: Confirmed -->
