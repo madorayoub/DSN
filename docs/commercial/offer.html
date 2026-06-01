@@ -3187,7 +3187,7 @@
             <!-- <h2 id="ff-title" class="sr-only">Company info and next steps</h2> -->
 
             <!-- anchor for the booking link -->
-            <span id="book" hidden></span>
+            <span id="book-footer" hidden></span>
 
             <div class="ff-top">
                 <!-- Left: logo and about -->
@@ -3516,7 +3516,7 @@
 
     /* Close button */
     #bk-x {
-      width: 34px; height: 34px;
+      width: 44px; height: 44px;
       border-radius: 50%;
       border: 1px solid #e5e7eb;
       background: #f9fafb;
@@ -3524,7 +3524,7 @@
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
       flex-shrink: 0;
-      margin-left: 10px;
+      margin-left: 8px;
       transition: background .15s;
     }
     #bk-x:hover { background: #f3f4f6; }
@@ -3604,7 +3604,8 @@
 
     .bk-t {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 4px;
+      padding: 16px 12px;
+      min-height: 48px;
       border-bottom: 1px solid #f3f4f6;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
@@ -3650,6 +3651,9 @@
       margin: 24px auto;
     }
     @keyframes bkSpin { to { transform: rotate(360deg) } }
+    @media (prefers-reduced-motion: reduce) {
+      #bk, #bk-sh, #bk-bd { animation: none !important; }
+    }
 
     /* ── Empty ── */
     .bk-empty {
