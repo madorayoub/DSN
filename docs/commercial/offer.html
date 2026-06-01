@@ -3306,7 +3306,7 @@
             @keyframes bbSlideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
             /* ── Booking widget ───────────────────────────────────── */
-            :root {
+            #global-booking-modal {
                 --dsn-green: #2fcc41;
                 --dsn-green-h: #28b839;
                 --dsn-ink: #111316;
@@ -3540,12 +3540,12 @@
         'use strict';
 
         // ── Scroll animations ─────────────────────────────────────
-        const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach(e => {
+        var revealObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
                 if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); }
             });
         }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-        document.querySelectorAll('.reveal-on-scroll, section > .wrap, section > .container').forEach(el => {
+        document.querySelectorAll('.reveal-on-scroll, section > .wrap, section > .container').forEach(function (el) {
             el.classList.add('reveal-on-scroll');
             revealObserver.observe(el);
         });
@@ -3556,6 +3556,8 @@
         var backdrop = modal.querySelector('.bb-backdrop');
         var lastFocused;
         var widgetInitialised = false;
+        var pendingAbort  = null;   // in-flight booking request — aborted on modal close
+        var doResetWidget = null;   // set by initWidget; called when modal reopens
 
         function openModal(e) {
             e.preventDefault();
@@ -3565,8 +3567,10 @@
             document.body.style.overflow = 'hidden';
             closeBtn.focus();
             if (!widgetInitialised) { initWidget(); widgetInitialised = true; }
+            else if (doResetWidget) { doResetWidget(); }
         }
         function closeModal() {
+            if (pendingAbort) { pendingAbort.abort(); pendingAbort = null; }
             modal.removeAttribute('open');
             modal.setAttribute('aria-hidden', 'true');
             document.body.style.overflow = '';
@@ -3584,27 +3588,35 @@
 
         // ── Native booking widget ─────────────────────────────────
         function initWidget() {
-            var TZ         = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'America/Chicago';
+            var $slots = document.getElementById('dsn-slots');
+
+            // Feature detection — very old Android WebViews lack fetch/AbortController
+            if (!window.fetch || !window.AbortController) {
+                $slots.innerHTML = '<p class="dsn-empty">Your browser doesn\'t support this form.<br>Please call us at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
+                return;
+            }
+
+            var TZ = 'America/Chicago';
+            try { TZ = Intl.DateTimeFormat().resolvedOptions().timeZone || TZ; } catch (e) {}
+
             var API        = '/.netlify/functions/booking';
             var selDate    = null;
             var selSlot    = null;
-            var step       = 1;
             var cache      = {};
+            var submitting = false;
 
-            var $dates      = document.getElementById('dsn-dates');
-            var $slots      = document.getElementById('dsn-slots');
-            var $slotCard   = document.getElementById('dsn-slot-card');
-            var $ct         = document.getElementById('dsn-ct');
-            var $cd         = document.getElementById('dsn-cd');
-            var $toForm     = document.getElementById('dsn-to-form');
-            var $change     = document.getElementById('dsn-change');
-            var $back       = document.getElementById('dsn-back');
-            var $slotBadge  = document.getElementById('dsn-slot-badge');
-            var $slotLbl    = document.getElementById('dsn-slot-lbl');
-            var $form       = document.getElementById('dsn-form');
-            var $err        = document.getElementById('dsn-err');
-            var $submit     = document.getElementById('dsn-submit');
-            var $confLbl    = document.getElementById('dsn-conf-lbl');
+            var $dates     = document.getElementById('dsn-dates');
+            var $slotCard  = document.getElementById('dsn-slot-card');
+            var $ct        = document.getElementById('dsn-ct');
+            var $cd        = document.getElementById('dsn-cd');
+            var $toForm    = document.getElementById('dsn-to-form');
+            var $change    = document.getElementById('dsn-change');
+            var $back      = document.getElementById('dsn-back');
+            var $slotLbl   = document.getElementById('dsn-slot-lbl');
+            var $form      = document.getElementById('dsn-form');
+            var $err       = document.getElementById('dsn-err');
+            var $submit    = document.getElementById('dsn-submit');
+            var $confLbl   = document.getElementById('dsn-conf-lbl');
 
             function pad(n) { return String(n).padStart(2, '0'); }
             function toYMD(d) { return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
@@ -3612,10 +3624,11 @@
             function fmtSlot(iso) {
                 var d = new Date(iso);
                 return d.toLocaleDateString('en-US',{ weekday:'short', month:'short', day:'numeric', timeZone:TZ })
-                    + ' at ' + d.toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', timeZone:TZ });
+                     + ' at ' + d.toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', timeZone:TZ });
             }
             function showErr(msg) { $err.textContent = msg; $err.classList.add('vis'); }
             function clearErr()   { $err.classList.remove('vis'); }
+            function resetBtn()   { $submit.disabled = false; $submit.textContent = 'Book My Strategy Call'; submitting = false; }
 
             function goStep(n) {
                 for (var i = 1; i <= 3; i++) {
@@ -3624,13 +3637,29 @@
                     s.classList.remove('active','done');
                     if (i < n)  s.classList.add('done');
                     if (i === n) s.classList.add('active');
-                    if (i < 3) document.getElementById('dsn-l' + i).classList.toggle('done', i < n);
+                    if (i < 3)  document.getElementById('dsn-l' + i).classList.toggle('done', i < n);
                 }
-                step = n;
                 document.getElementById('dsn-bk').scrollIntoView({ behavior:'smooth', block:'start' });
             }
 
-            // Build date strip + prefetch all slots
+            function resetSlot() {
+                selSlot = null;
+                $slotCard.classList.remove('vis');
+                $slots.style.display = '';
+            }
+
+            // Exposed so openModal can call it on reopen
+            doResetWidget = function () {
+                selDate = null;
+                selSlot = null;
+                submitting = false;
+                $slotCard.classList.remove('vis');
+                $slots.style.display = '';
+                clearErr();
+                resetBtn();
+                goStep(1);
+            };
+
             function buildDates() {
                 var today = new Date();
                 var end   = new Date(today); end.setDate(today.getDate() + 13);
@@ -3642,8 +3671,8 @@
                     btn.type = 'button'; btn.className = 'dsn-date-btn'; btn.dataset.date = ymd; btn.disabled = true;
                     btn.innerHTML =
                         '<span class="dd">' + d.toLocaleDateString('en-US',{ weekday:'short', timeZone:TZ }) + '</span>' +
-                        '<span class="dn">' + d.toLocaleDateString('en-US',{ day:'numeric', timeZone:TZ })   + '</span>' +
-                        '<span class="dm">' + d.toLocaleDateString('en-US',{ month:'short', timeZone:TZ })   + '</span>';
+                        '<span class="dn">' + d.toLocaleDateString('en-US',{ day:'numeric',   timeZone:TZ }) + '</span>' +
+                        '<span class="dm">' + d.toLocaleDateString('en-US',{ month:'short',   timeZone:TZ }) + '</span>';
                     btn.setAttribute('aria-pressed','false');
                     btn.addEventListener('click', function () { pickDate(this.dataset.date); });
                     frag.appendChild(btn);
@@ -3660,7 +3689,7 @@
                         });
                         var first = $dates.querySelector('.dsn-date-btn:not(:disabled)');
                         if (first) pickDate(first.dataset.date);
-                        else $slots.innerHTML = '<p class="dsn-empty">No availability in the next 14 days.<br>Please call us directly at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
+                        else $slots.innerHTML = '<p class="dsn-empty">No availability in the next 14 days.<br>Please call us at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
                     })
                     .catch(function () { $slots.innerHTML = '<p class="dsn-empty">Could not load availability. Please refresh the page.</p>'; });
             }
@@ -3682,9 +3711,9 @@
                     var lbl = document.createElement('div'); lbl.className = 'dsn-grp-lbl'; lbl.textContent = label; $slots.appendChild(lbl);
                     var list = document.createElement('div'); list.className = 'dsn-slots';
                     group.forEach(function (iso) {
-                        var d = new Date(iso);
+                        var d    = new Date(iso);
                         var time = d.toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', timeZone:TZ });
-                        var btn = document.createElement('button');
+                        var btn  = document.createElement('button');
                         btn.type = 'button'; btn.className = 'dsn-slot-btn'; btn.dataset.iso = iso;
                         btn.innerHTML = '<span>' + time + '</span><span class="dsn-slot-chk" aria-hidden="true"></span>';
                         btn.addEventListener('click', function () { pickSlot(this); });
@@ -3706,12 +3735,6 @@
                 $slotCard.scrollIntoView({ behavior:'smooth', block:'nearest' });
             }
 
-            function resetSlot() {
-                selSlot = null;
-                $slotCard.classList.remove('vis');
-                $slots.style.display = '';
-            }
-
             $toForm.addEventListener('click', function () {
                 if (!selSlot) return;
                 var disp = fmtSlot(selSlot);
@@ -3724,7 +3747,9 @@
 
             $form.addEventListener('submit', function (e) {
                 e.preventDefault();
+                if (submitting) return;   // double-click guard
                 clearErr();
+
                 var name  = document.getElementById('dsn-name').value.trim();
                 var email = document.getElementById('dsn-email').value.trim();
                 var phone = document.getElementById('dsn-phone').value.trim();
@@ -3733,24 +3758,36 @@
                 var digits = phone.replace(/\D/g,'');
                 if (digits.length < 9 || digits.length > 15) { showErr('Please enter a valid phone number.'); return; }
 
+                submitting = true;
                 $submit.disabled = true; $submit.textContent = 'Booking…';
+
                 var ctrl    = new AbortController();
+                pendingAbort = ctrl;
                 var timeout = setTimeout(function () { ctrl.abort(); }, 10000);
 
                 fetch(API, {
-                    signal: ctrl.signal, method:'POST',
-                    headers:{ 'Content-Type':'application/json' },
-                    body: JSON.stringify({ name:name, email:email, phone:phone, slot:selSlot, timezone:TZ }),
+                    signal:  ctrl.signal,
+                    method:  'POST',
+                    headers: { 'Content-Type':'application/json' },
+                    body:    JSON.stringify({ name:name, email:email, phone:phone, slot:selSlot, timezone:TZ }),
                 })
-                .then(function (r) { clearTimeout(timeout); return r.json().then(function (d) { return { ok:r.ok, status:r.status, data:d }; }); })
+                .then(function (r) {
+                    clearTimeout(timeout); pendingAbort = null;
+                    return r.json().then(function (d) { return { ok:r.ok, status:r.status, data:d }; });
+                })
                 .then(function (res) {
+                    submitting = false;
                     if (res.ok) {
-                        if (typeof fbq !== 'undefined') fbq('track', 'Schedule');
-                        if (typeof gtag !== 'undefined') gtag('event', 'appointment_booked', { event_category:'conversion' });
+                        var evtId = 'dsn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        if (typeof fbq  !== 'undefined') fbq('track', 'Schedule', {}, { eventID: evtId });
+                        if (typeof gtag !== 'undefined') gtag('event', 'appointment_booked', { event_category:'conversion', event_id: evtId });
+                        if (window.DSN && typeof window.DSN.trackEvent === 'function') {
+                            window.DSN.trackEvent('Schedule', { currency:'USD', value:0 }, { eventID: evtId });
+                        }
                         goStep(3);
                     } else if (res.status === 409) {
                         showErr('That time slot was just taken. Please pick another time.');
-                        $submit.disabled = false; $submit.textContent = 'Book My Strategy Call';
+                        resetBtn();
                         var d = selDate;
                         selSlot = null; goStep(1); resetSlot();
                         $slots.innerHTML = '<div class="dsn-spinner"></div>';
@@ -3759,20 +3796,24 @@
                             .then(function (data) {
                                 var fresh = (data.dates || {})[d] || [];
                                 cache[d] = fresh;
-                                var btn = $dates.querySelector('[data-date="' + d + '"]');
-                                if (btn) btn.disabled = !fresh.length;
+                                var b = $dates.querySelector('[data-date="' + d + '"]');
+                                if (b) b.disabled = !fresh.length;
                                 renderSlots(fresh);
                             })
-                            .catch(function () { renderSlots(cache[d] || []); });
+                            .catch(function () {
+                                renderSlots(cache[d] || []);
+                                resetBtn();   // re-enable after 409 + retry network failure
+                            });
                     } else {
                         showErr(res.data.message || 'Something went wrong. Please try again.');
-                        $submit.disabled = false; $submit.textContent = 'Book My Strategy Call';
+                        resetBtn();
                     }
                 })
                 .catch(function (err) {
-                    clearTimeout(timeout);
+                    clearTimeout(timeout); pendingAbort = null;
+                    submitting = false;
                     showErr(err && err.name === 'AbortError' ? 'Request timed out. Please try again.' : 'Network error. Please check your connection.');
-                    $submit.disabled = false; $submit.textContent = 'Book My Strategy Call';
+                    resetBtn();
                 });
             });
 

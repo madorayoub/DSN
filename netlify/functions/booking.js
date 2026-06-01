@@ -18,7 +18,7 @@ const GHL_HEADERS = {
 function corsHeaders(origin) {
   const allowed = (origin === ALLOWED_ORIGIN || !origin) ? origin || ALLOWED_ORIGIN : null;
   return {
-    'Access-Control-Allow-Origin':  allowed || ALLOWED_ORIGIN,
+    'Access-Control-Allow-Origin':  allowed,
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   };
@@ -173,7 +173,8 @@ exports.handler = async (event) => {
     if (!phone) return json(400, { error: 'invalid_phone', message: 'Please enter a valid phone number.' }, origin);
 
     try {
-      const contact     = await upsertContact({ name, email, phone });
+      const contact = await upsertContact({ name, email, phone });
+      if (!contact?.id) throw new Error('Contact creation returned no ID');
       const appointment = await createAppointment({ contactId: contact.id, slot, timezone, name, email, phone });
       return json(200, { success: true, appointmentId: appointment.id }, origin);
     } catch (err) {
