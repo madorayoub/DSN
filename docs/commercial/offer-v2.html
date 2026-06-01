@@ -4054,6 +4054,7 @@
               if (typeof gtag !== 'undefined') gtag('event', 'appointment_booked', { event_category:'conversion', event_id:eid });
               if (window.DSN && window.DSN.trackEvent) window.DSN.trackEvent('Schedule', { currency:'USD', value:0 }, { eventID:eid });
               goStep(3);
+              setTimeout(function () { window.location.href = '/commercial/thankyou'; }, 1800);
             } else if (res.status === 409) {
               showErr('That slot was just taken. Please pick another time.');
               resetBtn();
@@ -4070,7 +4071,7 @@
                 })
                 .catch(function () { renderTimes(cache[d] || []); resetBtn(); });
             } else {
-              showErr(res.data.message || 'Something went wrong. Please try again.');
+              showErr((res.data && res.data.message) || 'Something went wrong. Please try again.');
               resetBtn();
             }
           })

@@ -99,11 +99,13 @@ async function upsertContact({ name, email, phone }) {
 }
 
 async function createAppointment({ contactId, slot, timezone, name, email, phone }) {
+  const startTime = new Date(slot).toISOString();
+  const endTime   = new Date(new Date(slot).getTime() + 30 * 60 * 1000).toISOString(); // +30 min
   const res = await fetch(`${GHL_BASE}/calendars/events/appointments`, {
     method: 'POST', headers: GHL_HEADERS,
     body: JSON.stringify({
       calendarId: CALENDAR_ID, locationId: LOCATION_ID,
-      contactId,  startTime: new Date(slot).toISOString(),
+      contactId,  startTime, endTime,
       timezone,   title: `Strategy Call — ${name}`,
       appointmentStatus: 'confirmed', email, phone,
     }),
