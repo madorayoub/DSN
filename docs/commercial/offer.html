@@ -4045,6 +4045,11 @@
         $unsel.addEventListener('click', resetSlot);
         $back.addEventListener('click', function () { resetSlot(); goStep(1); });
 
+        // Clear error the moment user starts correcting any field
+        ['bk-name','bk-email','bk-phone'].forEach(function(id) {
+          document.getElementById(id).addEventListener('input', clearErr);
+        });
+
         $form.addEventListener('submit', function (e) {
           e.preventDefault();
           if (submitting) return;
@@ -4053,6 +4058,7 @@
           var email = document.getElementById('bk-email').value.trim();
           var phone = document.getElementById('bk-phone').value.trim();
           if (!name || !email || !phone) { showErr('Please fill in all fields.'); return; }
+          if (name.length < 2) { showErr('Please enter your full name.'); return; }
           if (!/^\S+@\S+\.\S+$/.test(email)) { showErr('Please enter a valid email address.'); return; }
           var digits = phone.replace(/\D/g, '');
           if (digits.length < 9 || digits.length > 15) { showErr('Please enter a valid phone number.'); return; }
