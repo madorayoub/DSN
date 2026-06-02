@@ -28,7 +28,24 @@ async def _get_access_token() -> str:
         return r.json()["access_token"]
 
 
-async def _get_meetings(token: str, days_back: int = 1) -> list:
+async def _get_report_meetings(token: str, days_back: int = 1) -> list:
+    """Reports API returns ALL past meetings, including no-shows that have no recording."""
+    from_date = (datetime.utcnow() - timedelta(days=days_back)).strftime("%Y-%m-%d")
+    to_date = datetime.utcnow().strftime("%Y-%m-%d")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    async with httpx.AsyncClient() as client:
+        r = await client.get(
+            f"{ZOOM_BASE}/report/users/me/meetings",
+            headers=headers,
+            params={"from": from_date, "to": to_date, "page_size": 300},
+        )
+        r.raise_for_status()
+        return r.json().get("meetings", [])
+
+
+async def _get_recordings(token: str, days_back: int = 1) -> dict:
+    """Returns {uuid: meeting_data} for meetings that have cloud recordings."""
     from_date = (datetime.utcnow() - timedelta(days=days_back)).strftime("%Y-%m-%d")
     to_date = datetime.utcnow().strftime("%Y-%m-%d")
     headers = {"Authorization": f"Bearer {token}"}
@@ -40,7 +57,9 @@ async def _get_meetings(token: str, days_back: int = 1) -> list:
             params={"from": from_date, "to": to_date, "page_size": 100},
         )
         r.raise_for_status()
-        return r.json().get("meetings", [])
+        meetings = r.json().get("meetings", [])
+
+    return {str(m.get("uuid", m.get("id", ""))): m for m in meetings}
 
 
 async def _download_transcript(token: str, download_url: str) -> str:
@@ -57,33 +76,40 @@ async def _download_transcript(token: str, download_url: str) -> str:
 async def sync_meetings(days_back: int = 1):
     logger.info(f"Starting Zoom meeting sync — {days_back} day(s) back")
     token = await _get_access_token()
-    meetings = await _get_meetings(token, days_back=days_back)
 
-    # Load already-processed meeting IDs from sheet — never re-process
+    # Reports API is the master list — catches meetings with no recording (true no-shows)
+    report_meetings = await _get_report_meetings(token, days_back=days_back)
+    # Recordings map for transcript access on full calls
+    recordings = await _get_recordings(token, days_back=days_back)
+
     processed_ids = await sheets_service.get_processed_meeting_ids()
-    logger.info(f"Already processed: {len(processed_ids)} meetings in sheet")
+    logger.info(
+        f"Report: {len(report_meetings)} meetings | Recordings: {len(recordings)} | "
+        f"Already processed: {len(processed_ids)}"
+    )
 
     rows = []
     skipped = 0
-    for meeting in meetings:
-        duration_minutes = meeting.get("duration", 0)
+    for meeting in report_meetings:
         topic = meeting.get("topic", "Unknown")
         start_time = meeting.get("start_time", "")
         meeting_id = str(meeting.get("uuid", meeting.get("id", "")))
 
-        # Skip if already in sheet
         if meeting_id in processed_ids:
             skipped += 1
             logger.info(f"Skipping already processed: {topic} ({meeting_id})")
             continue
 
-        # Look up contact in GHL by meeting topic (contact name)
         contact = await ghl_service.search_contact_by_name(topic)
         email = contact.get("email", "")
         phone = contact.get("phone", "") or contact.get("mobilePhone", "")
 
-        # Classify no-shows immediately — no Claude needed
-        if duration_minutes < NO_SHOW_THRESHOLD_MINUTES:
+        recording = recordings.get(meeting_id)
+        # Use recording's actual duration when available; fall back to report's value
+        duration_minutes = recording.get("duration", meeting.get("duration", 0)) if recording else meeting.get("duration", 0)
+
+        # No recording at all, or actual duration below threshold → No Show
+        if not recording or duration_minutes < NO_SHOW_THRESHOLD_MINUTES:
             rows.append({
                 "meeting_id": meeting_id,
                 "date": start_time,
@@ -101,7 +127,7 @@ async def sync_meetings(days_back: int = 1):
             continue
 
         # Find transcript file — prefer audio_transcript, take first match
-        recording_files = meeting.get("recording_files", [])
+        recording_files = recording.get("recording_files", [])
         transcript_file = next(
             (f for f in recording_files
              if f.get("file_type") == "TRANSCRIPT"
@@ -129,7 +155,6 @@ async def sync_meetings(days_back: int = 1):
             })
             continue
 
-        # Download and analyze transcript — Claude only runs on NEW meetings
         try:
             transcript_text = await _download_transcript(token, transcript_file["download_url"])
             analysis = await claude_service.analyze_call(transcript_text, topic, meeting_date=start_time)

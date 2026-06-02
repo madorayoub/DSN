@@ -1,6 +1,12 @@
+import logging
 from fastapi import FastAPI
 from app.routes import ghl, zoom
 import uvicorn
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 app = FastAPI(title="DSN Orchestrator")
 

@@ -17,7 +17,7 @@ HEADERS = [
     "Meeting ID",  # col A — dedup key
     "Date", "Contact", "Duration (min)", "Status",
     "Follow-Up Date", "Deal Status", "Summary", "Call Analysis",
-    "Score", "Commission Paid (Yes/No — Date)", "Email", "Phone"
+    "Score", "Email", "Phone", "Commission Paid (Yes/No — Date)",
 ]
 
 
@@ -87,7 +87,7 @@ def _append_rows_sync(rows: list[dict]):
 
     existing = sheet.values().get(
         spreadsheetId=settings.GOOGLE_SHEET_ID,
-        range=f"{SHEET_NAME}!A1:L1",
+        range=f"{SHEET_NAME}!A1:M1",
     ).execute()
 
     if not existing.get("values"):
@@ -103,21 +103,47 @@ def _append_rows_sync(rows: list[dict]):
             r["meeting_id"],  # col A — dedup key
             r["date"], r["topic"], r["duration_min"], r["status"],
             r["follow_up_date"], r["deal_status"], r["summary"], r["call_analysis"],
-            r["score"], "",  # Commission Paid — blank, filled manually
-            r.get("email", ""), r.get("phone", ""),
+            r["score"], r.get("email", ""), r.get("phone", ""),
+            "",  # Commission Paid (col M) — blank, filled manually
         ]
         for r in rows
     ]
 
-    sheet.values().append(
+    # Get the sheetId for the Meetings tab (needed for insertDimension)
+    spreadsheet = service.spreadsheets().get(
+        spreadsheetId=settings.GOOGLE_SHEET_ID
+    ).execute()
+    sheet_id = next(
+        s["properties"]["sheetId"]
+        for s in spreadsheet["sheets"]
+        if s["properties"]["title"] == SHEET_NAME
+    )
+
+    # Insert blank rows at row index 1 (right after header) then write values there.
+    # This keeps the sheet sorted newest-first without touching existing data.
+    service.spreadsheets().batchUpdate(
         spreadsheetId=settings.GOOGLE_SHEET_ID,
-        range=f"{SHEET_NAME}!A1",
+        body={"requests": [{
+            "insertDimension": {
+                "range": {
+                    "sheetId": sheet_id,
+                    "dimension": "ROWS",
+                    "startIndex": 1,          # 0-based → row 2 in the UI
+                    "endIndex": 1 + len(values),
+                },
+                "inheritFromBefore": False,
+            }
+        }]},
+    ).execute()
+
+    sheet.values().update(
+        spreadsheetId=settings.GOOGLE_SHEET_ID,
+        range=f"{SHEET_NAME}!A2",
         valueInputOption="RAW",
-        insertDataOption="INSERT_ROWS",
         body={"values": values},
     ).execute()
 
-    logger.info(f"Appended {len(values)} rows to Google Sheets")
+    logger.info(f"Inserted {len(values)} rows at top of {SHEET_NAME}")
 
 
 async def append_rows(rows: list[dict]):

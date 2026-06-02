@@ -17,11 +17,13 @@ const GHL_HEADERS = {
 
 function corsHeaders(origin) {
   const allowed = (origin === ALLOWED_ORIGIN || !origin) ? origin || ALLOWED_ORIGIN : null;
-  return {
-    'Access-Control-Allow-Origin':  allowed,
+  const headers = {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   };
+  // Only set the header when we have a valid allowed origin (never write "null")
+  if (allowed) headers['Access-Control-Allow-Origin'] = allowed;
+  return headers;
 }
 
 function json(statusCode, body, origin) {
@@ -35,12 +37,23 @@ function json(statusCode, body, origin) {
 // Fetch available slots for a date range.
 // GHL returns: { "YYYY-MM-DD": { slots: ["ISO", ...] }, traceId: "..." }
 async function getSlots(startDate, endDate, timezone) {
-  const start = new Date(`${startDate}T00:00:00`).getTime();
-  const end   = new Date(`${endDate}T23:59:59`).getTime();
+  // Expand range by 1 day each side so UTC+/- users don't miss slots at day boundaries.
+  // GHL's timezone param handles correct date grouping; the frontend filters by date button.
+  const startMs = new Date(`${startDate}T00:00:00Z`).getTime() - 24 * 60 * 60 * 1000;
+  const endMs   = new Date(`${endDate}T23:59:59Z`).getTime()   + 24 * 60 * 60 * 1000;
   const url   = `${GHL_BASE}/calendars/${CALENDAR_ID}/free-slots`
-    + `?startDate=${start}&endDate=${end}&timezone=${encodeURIComponent(timezone)}`;
+    + `?startDate=${startMs}&endDate=${endMs}&timezone=${encodeURIComponent(timezone)}`;
 
-  const res = await fetch(url, { headers: GHL_HEADERS });
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+
+  let res;
+  try {
+    res = await fetch(url, { headers: GHL_HEADERS, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+
   if (!res.ok) {
     const text = await res.text();
     throw Object.assign(new Error('GHL slots error'), { status: res.status, detail: text });
@@ -79,12 +92,18 @@ async function upsertContact({ name, email, phone }) {
   const { contacts } = await search.json();
 
   if (contacts?.length) {
-    const patch = await fetch(`${GHL_BASE}/contacts/${contacts[0].id}`, {
+    const existing = contacts[0];
+    const patch = await fetch(`${GHL_BASE}/contacts/${existing.id}`, {
       method: 'PUT', headers: GHL_HEADERS,
       body: JSON.stringify({ locationId: LOCATION_ID, firstName, lastName, email, phone }),
     });
-    if (!patch.ok) throw new Error(`Contact update failed: ${patch.status}`);
-    return (await patch.json()).contact;
+    if (!patch.ok) {
+      console.warn(`[booking] Contact update failed: ${patch.status} — proceeding with existing contact ${existing.id}`);
+      return existing;
+    }
+    const patchData = await patch.json();
+    // GHL PUT may return { contact: {...} } or the contact object directly
+    return patchData.contact ?? (patchData.id ? patchData : existing);
   }
 
   const create = await fetch(`${GHL_BASE}/contacts/`, {
@@ -114,7 +133,9 @@ async function createAppointment({ contactId, slot, timezone, name, email, phone
     const text = await res.text();
     throw Object.assign(new Error(`Appointment failed: ${res.status}`), { status: res.status, detail: text });
   }
-  return res.json();
+  const data = await res.json();
+  // GHL may return { id } or { appointment: { id } }
+  return { id: data.id ?? data.appointment?.id ?? data.appointmentId };
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -133,6 +154,7 @@ exports.handler = async (event) => {
 
   // ── GET: fetch available slots ────────────────────────────────
   if (event.httpMethod === 'GET') {
+    if (!TOKEN) return json(500, { error: 'Server misconfiguration' }, origin);
     const { startDate, endDate, timezone = 'America/Chicago' } = event.queryStringParameters || {};
     if (!startDate || !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
       return json(400, { error: 'startDate param required (YYYY-MM-DD)' }, origin);
@@ -146,8 +168,9 @@ exports.handler = async (event) => {
         body: JSON.stringify({ dates }),
       };
     } catch (err) {
-      console.error('[booking/slots]', err.message);
-      return json(err.status || 500, { error: err.message }, origin);
+      const timedOut = err.name === 'AbortError';
+      console.error('[booking/slots]', timedOut ? 'timeout' : err.message);
+      return json(timedOut ? 504 : (err.status || 500), { error: timedOut ? 'timeout' : err.message }, origin);
     }
   }
 

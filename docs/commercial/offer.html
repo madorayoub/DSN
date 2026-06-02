@@ -3911,7 +3911,7 @@
         var $back     = document.getElementById('bk-back');
 
         function pad(n) { return String(n).padStart(2, '0'); }
-        function toYMD(d) { return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+        function toYMD(d) { return d.toLocaleDateString('en-CA', { timeZone:TZ }); }
         function hour(iso) { return parseInt(new Date(iso).toLocaleString('en-US', { hour:'2-digit', hour12:false, timeZone:TZ }), 10); }
         function fmtTime(iso) { return new Date(iso).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZone:TZ }); }
         function fmtFull(iso) {
