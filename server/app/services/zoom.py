@@ -28,15 +28,19 @@ async def _get_access_token() -> str:
         return r.json()["access_token"]
 
 
-async def _get_report_meetings(token: str, days_back: int = 1) -> list:
-    """Reports API returns ALL past meetings, including no-shows that have no recording."""
+async def _get_report_meetings(token: str, user_id: str, days_back: int = 1) -> list:
+    """Reports API returns ALL past meetings, including no-shows that have no recording.
+
+    Requires report:read:user:admin scope. Uses a real user ID because the 'me'
+    alias does not resolve for S2S OAuth account credentials tokens.
+    """
     from_date = (datetime.utcnow() - timedelta(days=days_back)).strftime("%Y-%m-%d")
     to_date = datetime.utcnow().strftime("%Y-%m-%d")
     headers = {"Authorization": f"Bearer {token}"}
 
     async with httpx.AsyncClient() as client:
         r = await client.get(
-            f"{ZOOM_BASE}/report/users/me/meetings",
+            f"{ZOOM_BASE}/report/users/{user_id}/meetings",
             headers=headers,
             params={"from": from_date, "to": to_date, "page_size": 300},
         )
@@ -77,20 +81,58 @@ async def sync_meetings(days_back: int = 1):
     logger.info(f"Starting Zoom meeting sync — {days_back} day(s) back")
     token = await _get_access_token()
 
-    # Reports API is the master list — catches meetings with no recording (true no-shows)
-    report_meetings = await _get_report_meetings(token, days_back=days_back)
-    # Recordings map for transcript access on full calls
+    # Recordings API always works — also gives us the host_id needed for the Reports API.
     recordings = await _get_recordings(token, days_back=days_back)
 
-    processed_ids = await sheets_service.get_processed_meeting_ids()
-    logger.info(
-        f"Report: {len(report_meetings)} meetings | Recordings: {len(recordings)} | "
-        f"Already processed: {len(processed_ids)}"
+    # Extract host_id from any recording so the Reports API gets a real user ID.
+    # ('me' does not resolve for S2S account-credentials tokens on the report endpoint.)
+    host_id = next(
+        (m.get("host_id") for m in recordings.values() if m.get("host_id")),
+        None,
     )
+
+    # If no recordings in the requested window (e.g. all meetings were true no-shows),
+    # widen the search to 30 days just to find a valid host_id for the Reports API.
+    if not host_id:
+        try:
+            wider = await _get_recordings(token, days_back=30)
+            host_id = next(
+                (m.get("host_id") for m in wider.values() if m.get("host_id")),
+                None,
+            )
+            if host_id:
+                logger.info(f"Resolved host_id from 30-day window: {host_id}")
+        except Exception:
+            pass
+
+    # Try Reports API — catches true no-shows (requires report:read:user:admin scope).
+    # Falls back to recordings-only when the scope is missing or no host_id is available.
+    report_meetings = None
+    if host_id:
+        try:
+            report_meetings = await _get_report_meetings(token, user_id=host_id, days_back=days_back)
+        except Exception as e:
+            logger.warning(
+                f"Reports API unavailable (add report:read:user:admin scope to Zoom app): {e}"
+            )
+
+    if report_meetings is not None:
+        master_list = report_meetings
+        logger.info(
+            f"Report: {len(report_meetings)} meetings | Recordings: {len(recordings)}"
+        )
+    else:
+        master_list = list(recordings.values())
+        logger.info(
+            f"Fallback to recordings master: {len(master_list)} meetings (host_id={'found' if host_id else 'missing'})"
+        )
+
+    processed_ids = await sheets_service.get_processed_meeting_ids()
+    logger.info(f"Already processed: {len(processed_ids)}")
 
     rows = []
     skipped = 0
-    for meeting in report_meetings:
+    for meeting in master_list:
         topic = meeting.get("topic", "Unknown")
         start_time = meeting.get("start_time", "")
         meeting_id = str(meeting.get("uuid", meeting.get("id", "")))

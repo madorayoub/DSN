@@ -15,7 +15,7 @@ SHEET_NAME = "Meetings"
 # This means the sheet never re-processes a meeting it already has
 HEADERS = [
     "Meeting ID",  # col A — dedup key
-    "Date", "Contact", "Duration (min)", "Status",
+    "Date", "Topic / Contact", "Duration (min)", "Status",
     "Follow-Up Date", "Deal Status", "Summary", "Call Analysis",
     "Score", "Email", "Phone", "Commission Paid (Yes/No — Date)",
 ]
@@ -119,28 +119,40 @@ def _append_rows_sync(rows: list[dict]):
         if s["properties"]["title"] == SHEET_NAME
     )
 
-    # Insert blank rows at row index 1 (right after header) then write values there.
-    # This keeps the sheet sorted newest-first without touching existing data.
+    # Build cell objects for updateCells (strings and numbers handled separately so
+    # Sheets stores numeric scores/durations as numbers, not text).
+    def _cell(val):
+        if isinstance(val, (int, float)) and val != "":
+            return {"userEnteredValue": {"numberValue": val}}
+        return {"userEnteredValue": {"stringValue": str(val) if val is not None else ""}}
+
+    rows_data = [{"values": [_cell(v) for v in row]} for row in values]
+
+    # Single batchUpdate: insertDimension + updateCells in one atomic request.
+    # Previously these were two separate calls — if the second failed, blank rows
+    # were left in the sheet with no data.
     service.spreadsheets().batchUpdate(
         spreadsheetId=settings.GOOGLE_SHEET_ID,
-        body={"requests": [{
-            "insertDimension": {
-                "range": {
-                    "sheetId": sheet_id,
-                    "dimension": "ROWS",
-                    "startIndex": 1,          # 0-based → row 2 in the UI
-                    "endIndex": 1 + len(values),
+        body={"requests": [
+            {
+                "insertDimension": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "dimension": "ROWS",
+                        "startIndex": 1,      # 0-based → row 2 in the UI
+                        "endIndex": 1 + len(values),
+                    },
+                    "inheritFromBefore": False,
                 },
-                "inheritFromBefore": False,
-            }
-        }]},
-    ).execute()
-
-    sheet.values().update(
-        spreadsheetId=settings.GOOGLE_SHEET_ID,
-        range=f"{SHEET_NAME}!A2",
-        valueInputOption="RAW",
-        body={"values": values},
+            },
+            {
+                "updateCells": {
+                    "rows": rows_data,
+                    "fields": "userEnteredValue",
+                    "start": {"sheetId": sheet_id, "rowIndex": 1, "columnIndex": 0},
+                },
+            },
+        ]},
     ).execute()
 
     logger.info(f"Inserted {len(values)} rows at top of {SHEET_NAME}")

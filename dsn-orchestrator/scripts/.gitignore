@@ -1,0 +1,4 @@
+transcripts_cache/
+playbook.json
+__pycache__/
+*.pyc

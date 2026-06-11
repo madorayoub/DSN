@@ -6,6 +6,7 @@ HEADERS = {
     "Authorization": f"Bearer {settings.GHL_API_KEY}",
     "Version": "2021-07-28",
     "Content-Type": "application/json",
+    "User-Agent": "DSN-Orchestrator/1.0",
 }
 
 
@@ -29,17 +30,26 @@ async def move_to_stage(opportunity_id: str, stage_id: str) -> dict:
 
 import re
 
+# Prefixes like "Strategy Call — " that precede the actual contact name
+_TOPIC_PREFIXES = re.compile(
+    r"^(strategy|discovery|intro|demo|onboard\w*)\s+call\s*[—–\-]\s*",
+    re.IGNORECASE,
+)
+
 # Suffixes appended to Zoom meeting topics that don't appear in GHL contact names
+# Includes em-dash (—), en-dash (–), and hyphen (-)
 _TOPIC_SUFFIXES = re.compile(
-    r"\s*[-–]\s*(follow[\s\-]?up|followup|fu|check[\s\-]?in|callback|call\s*back|"
+    r"\s*[—–\-]\s*(follow[\s\-]?up|followup|fu|check[\s\-]?in|callback|call\s*back|"
     r"re[\s\-]?schedule|reschedule|intro|discovery|demo|onboard\w*)$",
     re.IGNORECASE,
 )
 
 
 def _clean_topic(name: str) -> str:
-    """Strip Zoom-topic suffixes so the GHL name search has a better chance of matching."""
-    return _TOPIC_SUFFIXES.sub("", name).strip()
+    """Strip Zoom-topic prefixes and suffixes so GHL name search has a better match rate."""
+    name = _TOPIC_PREFIXES.sub("", name).strip()
+    name = _TOPIC_SUFFIXES.sub("", name).strip()
+    return name
 
 
 async def search_contact_by_name(name: str) -> dict:
@@ -57,6 +67,7 @@ async def search_contact_by_name(name: str) -> dict:
                 params={"locationId": settings.GHL_LOCATION_ID, "query": query, "limit": 1},
             )
             if r.status_code != 200:
+                logger.warning(f"GHL contact search returned {r.status_code} for query={query!r}")
                 continue
             results = r.json().get("contacts", [])
             if results:

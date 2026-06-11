@@ -75,5 +75,5 @@ async def analyze_call(transcript: str, topic: str, meeting_date: str = "") -> d
             "follow_up_date": "",
             "deal_status": "Unknown",
             "call_analysis": "",
-            "score": "",
+            "score": 0,
         }

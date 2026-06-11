@@ -1,0 +1,27 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "node index.js"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+
+# ── Cron jobs ──────────────────────────────────────────────────────────────────
+# Railway Dashboard → your service → Settings → Cron Jobs. Add:
+#
+#   Name: speed-to-lead-followup
+#   Schedule: */5 * * * *
+#   Command: curl -s -X POST https://<your-app>.up.railway.app/cron/speed-to-lead
+#            -H "x-cron-secret: $CRON_SECRET"
+#
+#   Name: appointment-reminders
+#   Schedule: */5 * * * *
+#   Command: curl -s -X POST https://<your-app>.up.railway.app/cron/appointment-reminders
+#            -H "x-cron-secret: $CRON_SECRET"
+#
+# ── Uptime monitor ──────────────────────────────────────────────────────────────
+# Set up UptimeRobot (free) → https://uptimerobot.com
+# URL: https://<your-app>.up.railway.app/ping   Interval: 5 minutes
+# Alerts you if the server goes down independently of Railway's own health checks.

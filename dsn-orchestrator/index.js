@@ -1,0 +1,1303 @@
+'use strict';
+
+const express   = require('express');
+const rateLimit = require('express-rate-limit');
+const crypto    = require('crypto');
+const { createClient } = require('@supabase/supabase-js');
+
+const app = express();
+app.set('trust proxy', 1);
+
+// Capture raw bytes for Retell webhook/tool routes (needed for HMAC signature verification).
+// Must be registered BEFORE express.json() so it runs first.
+function rawBodyMiddleware(req, res, next) {
+  express.raw({ type: 'application/json', limit: '2mb' })(req, res, err => {
+    if (err) return next(err);
+    if (Buffer.isBuffer(req.body)) {
+      req.rawBody = req.body;
+      req.body    = JSON.parse(req.body.toString('utf8') || '{}');
+    }
+    next();
+  });
+}
+
+app.use('/webhook/retell',              rawBodyMiddleware);
+app.use('/retell/function/',            rawBodyMiddleware);
+app.use(express.json({ limit: '2mb' }));
+
+// ── Env ───────────────────────────────────────────────────────────────────────
+const {
+  PORT                         = '3000',
+  NODE_ENV                     = 'development',
+  WEBHOOK_SECRET,
+  CRON_SECRET,
+  ADMIN_PASSWORD,
+  SUPABASE_URL,
+  SUPABASE_SECRET_KEY,
+  GHL_API_KEY,
+  GHL_LOCATION_ID              = 'NgduPjDbvABP3zFIqnt4',
+  GHL_CALENDAR_ID              = 'DXh5uGCZVjFLPQNeKRZu',
+  RETELL_API_KEY,
+  RETELL_FROM_NUMBER,
+  RETELL_AGENT_ID_SPEED_TO_LEAD,
+  RETELL_AGENT_ID_REMINDER,
+  RETELL_WEBHOOK_KEY,
+  RETELL_SPEED_TO_LEAD_DELAY_MS = '90000',
+  RETELL_DOUBLE_DIAL_DELAY_MS   = '45000',
+} = process.env;
+
+// ── Startup checks ────────────────────────────────────────────────────────────
+// RETELL_FROM_NUMBER is intentionally excluded — server starts without it, calls just won't fire until it's set
+const REQUIRED = ['SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'GHL_API_KEY', 'RETELL_API_KEY', 'WEBHOOK_SECRET', 'CRON_SECRET'];
+const missing  = REQUIRED.filter(k => !process.env[k]);
+if (missing.length && NODE_ENV === 'production') {
+  console.error(`[startup] FATAL: Missing required env vars in production: ${missing.join(', ')}`);
+  process.exit(1);
+} else if (missing.length) {
+  console.warn(`[startup] ⚠️  Missing env vars: ${missing.join(', ')}`);
+}
+if (!RETELL_AGENT_ID_SPEED_TO_LEAD) console.warn('[startup] ⚠️  RETELL_AGENT_ID_SPEED_TO_LEAD not set — speed-to-lead calls disabled');
+if (!RETELL_AGENT_ID_REMINDER)      console.warn('[startup] ⚠️  RETELL_AGENT_ID_REMINDER not set — reminder calls disabled');
+
+// ── Supabase ──────────────────────────────────────────────────────────────────
+const supabase = (SUPABASE_URL && SUPABASE_SECRET_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_SECRET_KEY)
+  : null;
+if (!supabase) console.warn('[startup] ⚠️  Supabase not configured — all DB operations will fail');
+
+// ── Rate limiting ─────────────────────────────────────────────────────────────
+const webhookLimiter = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false });
+app.use('/webhook/', webhookLimiter);
+app.use('/retell/',  webhookLimiter);
+
+// ── CORS (admin dashboard uses fetch from browser) ────────────────────────────
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-webhook-secret, x-cron-secret, x-admin-password');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTH MIDDLEWARE
+// ─────────────────────────────────────────────────────────────────────────────
+
+function requireWebhookSecret(req, res, next) {
+  if (!WEBHOOK_SECRET) {
+    console.warn('[auth] WEBHOOK_SECRET not set — request allowed (insecure)');
+    return next();
+  }
+  if (req.headers['x-webhook-secret'] !== WEBHOOK_SECRET) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  next();
+}
+
+function requireCronSecret(req, res, next) {
+  if (!CRON_SECRET) {
+    console.warn('[auth] CRON_SECRET not set — cron request allowed (insecure)');
+    return next();
+  }
+  if (req.headers['x-cron-secret'] !== CRON_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
+function requireAdminPassword(req, res, next) {
+  if (!ADMIN_PASSWORD) return res.status(503).json({ error: 'Admin not configured' });
+  if (req.headers['x-admin-password'] !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
+// Retell signed-webhook verification (optional — enable by setting RETELL_WEBHOOK_KEY)
+// IMPORTANT: must use raw request body bytes, not re-serialized JSON.
+// The retell webhook route and tool function routes use express.raw() via rawBodyMiddleware.
+function validateRetell(req, res, next) {
+  if (!RETELL_WEBHOOK_KEY) return next();
+  const sig = req.headers['x-retell-signature'];
+  if (!sig) return res.status(401).json({ error: 'Missing x-retell-signature' });
+  const rawBody = req.rawBody;
+  if (!rawBody) return res.status(401).json({ error: 'Missing raw body for signature verification' });
+  try {
+    const expected = crypto.createHmac('sha256', RETELL_WEBHOOK_KEY)
+      .update(rawBody)
+      .digest('base64');
+    const sigBuf  = Buffer.from(sig,      'base64');
+    const expBuf  = Buffer.from(expected, 'base64');
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+      return res.status(401).json({ error: 'Invalid Retell signature' });
+    }
+  } catch {
+    return res.status(401).json({ error: 'Signature verification failed' });
+  }
+  next();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILITY — LOGGING & DEBUGGING
+// ─────────────────────────────────────────────────────────────────────────────
+
+// logEvent: immutable audit trail — use this for EVERY state transition.
+// Primary debugging tool: SELECT * FROM lead_events WHERE lead_id=X ORDER BY created_at;
+async function logEvent(eventType, payload = {}) {
+  if (!supabase) return;
+  const { error } = await supabase.from('lead_events').insert({ event_type: eventType, payload });
+  if (error) console.error(`[logEvent] Failed to write ${eventType}:`, error.message);
+}
+
+// dlq: dead-letter queue — saves failed webhook payloads for later inspection.
+// Check failed_webhook_events table when calls aren't firing or reminders are stuck.
+async function dlq(source, payload, err) {
+  console.error(`[dlq] ${source}: ${err?.message || err}`);
+  if (!supabase) return;
+  await supabase.from('failed_webhook_events').insert({
+    source,
+    payload,
+    error: err?.message || String(err),
+  }).then(({ error: dbErr }) => {
+    if (dbErr) console.warn('[dlq] Could not persist to failed_webhook_events:', dbErr.message);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILITY — TIME / TIMEZONE
+// ─────────────────────────────────────────────────────────────────────────────
+
+// US area-code → IANA timezone. Used when lead's timezone is not in GHL.
+const AREA_CODE_TZ = {
+  '201': 'America/New_York',  '202': 'America/New_York',  '203': 'America/New_York',
+  '205': 'America/Chicago',   '206': 'America/Los_Angeles','207': 'America/New_York',
+  '208': 'America/Boise',     '209': 'America/Los_Angeles','210': 'America/Chicago',
+  '212': 'America/New_York',  '213': 'America/Los_Angeles','214': 'America/Chicago',
+  '215': 'America/New_York',  '216': 'America/New_York',  '217': 'America/Chicago',
+  '218': 'America/Chicago',   '219': 'America/Chicago',   '224': 'America/Chicago',
+  '225': 'America/Chicago',   '228': 'America/Chicago',   '229': 'America/New_York',
+  '231': 'America/Detroit',   '239': 'America/New_York',  '240': 'America/New_York',
+  '248': 'America/Detroit',   '251': 'America/Chicago',   '252': 'America/New_York',
+  '253': 'America/Los_Angeles','254': 'America/Chicago',   '256': 'America/Chicago',
+  '260': 'America/Indiana/Indianapolis', '262': 'America/Chicago',
+  '267': 'America/New_York',  '269': 'America/Detroit',   '270': 'America/Chicago',
+  '272': 'America/New_York',  '276': 'America/New_York',  '281': 'America/Chicago',
+  '301': 'America/New_York',  '302': 'America/New_York',  '303': 'America/Denver',
+  '304': 'America/New_York',  '305': 'America/New_York',  '307': 'America/Denver',
+  '308': 'America/Chicago',   '309': 'America/Chicago',   '310': 'America/Los_Angeles',
+  '312': 'America/Chicago',   '313': 'America/Detroit',   '314': 'America/Chicago',
+  '315': 'America/New_York',  '316': 'America/Chicago',   '317': 'America/Indiana/Indianapolis',
+  '318': 'America/Chicago',   '319': 'America/Chicago',   '320': 'America/Chicago',
+  '321': 'America/New_York',  '323': 'America/Los_Angeles','325': 'America/Chicago',
+  '330': 'America/New_York',  '331': 'America/Chicago',   '336': 'America/New_York',
+  '337': 'America/Chicago',   '339': 'America/New_York',  '340': 'America/Puerto_Rico',
+  '346': 'America/Chicago',   '347': 'America/New_York',  '351': 'America/New_York',
+  '352': 'America/New_York',  '360': 'America/Los_Angeles','361': 'America/Chicago',
+  '380': 'America/New_York',  '385': 'America/Denver',    '386': 'America/New_York',
+  '401': 'America/New_York',  '402': 'America/Chicago',   '404': 'America/New_York',
+  '405': 'America/Chicago',   '406': 'America/Denver',    '407': 'America/New_York',
+  '408': 'America/Los_Angeles','409': 'America/Chicago',   '410': 'America/New_York',
+  '412': 'America/New_York',  '413': 'America/New_York',  '414': 'America/Chicago',
+  '415': 'America/Los_Angeles','417': 'America/Chicago',   '419': 'America/New_York',
+  '423': 'America/New_York',  '424': 'America/Los_Angeles','425': 'America/Los_Angeles',
+  '430': 'America/Chicago',   '432': 'America/Chicago',   '434': 'America/New_York',
+  '435': 'America/Denver',    '440': 'America/New_York',  '442': 'America/Los_Angeles',
+  '443': 'America/New_York',  '469': 'America/Chicago',   '470': 'America/New_York',
+  '475': 'America/New_York',  '478': 'America/New_York',  '479': 'America/Chicago',
+  '480': 'America/Phoenix',   '484': 'America/New_York',
+  '501': 'America/Chicago',   '502': 'America/Kentucky/Louisville', '503': 'America/Los_Angeles',
+  '504': 'America/Chicago',   '505': 'America/Denver',    '507': 'America/Chicago',
+  '508': 'America/New_York',  '509': 'America/Los_Angeles','510': 'America/Los_Angeles',
+  '512': 'America/Chicago',   '513': 'America/New_York',  '515': 'America/Chicago',
+  '516': 'America/New_York',  '517': 'America/Detroit',   '518': 'America/New_York',
+  '520': 'America/Phoenix',   '530': 'America/Los_Angeles','539': 'America/Chicago',
+  '540': 'America/New_York',  '541': 'America/Los_Angeles','551': 'America/New_York',
+  '559': 'America/Los_Angeles','561': 'America/New_York',  '562': 'America/Los_Angeles',
+  '563': 'America/Chicago',   '564': 'America/Los_Angeles','567': 'America/New_York',
+  '570': 'America/New_York',  '571': 'America/New_York',  '573': 'America/Chicago',
+  '574': 'America/Indiana/Indianapolis', '575': 'America/Denver', '580': 'America/Chicago',
+  '585': 'America/New_York',  '586': 'America/Detroit',
+  '601': 'America/Chicago',   '602': 'America/Phoenix',   '603': 'America/New_York',
+  '605': 'America/Chicago',   '606': 'America/New_York',  '607': 'America/New_York',
+  '608': 'America/Chicago',   '609': 'America/New_York',  '610': 'America/New_York',
+  '612': 'America/Chicago',   '614': 'America/New_York',  '615': 'America/Chicago',
+  '616': 'America/Detroit',   '617': 'America/New_York',  '618': 'America/Chicago',
+  '619': 'America/Los_Angeles','620': 'America/Chicago',   '623': 'America/Phoenix',
+  '626': 'America/Los_Angeles','628': 'America/Los_Angeles','630': 'America/Chicago',
+  '631': 'America/New_York',  '636': 'America/Chicago',   '641': 'America/Chicago',
+  '646': 'America/New_York',  '650': 'America/Los_Angeles','651': 'America/Chicago',
+  '657': 'America/Los_Angeles','659': 'America/Chicago',   '660': 'America/Chicago',
+  '661': 'America/Los_Angeles','662': 'America/Chicago',   '667': 'America/New_York',
+  '669': 'America/Los_Angeles','678': 'America/New_York',  '681': 'America/New_York',
+  '682': 'America/Chicago',   '689': 'America/New_York',
+  '701': 'America/Chicago',   '702': 'America/Los_Angeles','703': 'America/New_York',
+  '704': 'America/New_York',  '706': 'America/New_York',  '707': 'America/Los_Angeles',
+  '708': 'America/Chicago',   '712': 'America/Chicago',   '713': 'America/Chicago',
+  '714': 'America/Los_Angeles','715': 'America/Chicago',   '716': 'America/New_York',
+  '717': 'America/New_York',  '718': 'America/New_York',  '719': 'America/Denver',
+  '720': 'America/Denver',    '724': 'America/New_York',  '725': 'America/Los_Angeles',
+  '727': 'America/New_York',  '730': 'America/Chicago',   '731': 'America/Chicago',
+  '732': 'America/New_York',  '734': 'America/Detroit',   '737': 'America/Chicago',
+  '740': 'America/New_York',  '743': 'America/New_York',  '747': 'America/Los_Angeles',
+  '754': 'America/New_York',  '757': 'America/New_York',  '760': 'America/Los_Angeles',
+  '762': 'America/New_York',  '763': 'America/Chicago',   '765': 'America/Indiana/Indianapolis',
+  '769': 'America/Chicago',   '770': 'America/New_York',  '772': 'America/New_York',
+  '773': 'America/Chicago',   '774': 'America/New_York',  '775': 'America/Los_Angeles',
+  '779': 'America/Chicago',   '781': 'America/New_York',  '785': 'America/Chicago',
+  '786': 'America/New_York',  '787': 'America/Puerto_Rico',
+  '801': 'America/Denver',    '802': 'America/New_York',  '803': 'America/New_York',
+  '804': 'America/New_York',  '805': 'America/Los_Angeles','806': 'America/Chicago',
+  '808': 'Pacific/Honolulu',  '810': 'America/Detroit',   '812': 'America/Indiana/Indianapolis',
+  '813': 'America/New_York',  '814': 'America/New_York',  '815': 'America/Chicago',
+  '816': 'America/Chicago',   '817': 'America/Chicago',   '818': 'America/Los_Angeles',
+  '828': 'America/New_York',  '830': 'America/Chicago',   '831': 'America/Los_Angeles',
+  '832': 'America/Chicago',   '843': 'America/New_York',  '845': 'America/New_York',
+  '847': 'America/Chicago',   '848': 'America/New_York',  '850': 'America/Chicago',
+  '854': 'America/New_York',  '856': 'America/New_York',  '857': 'America/New_York',
+  '858': 'America/Los_Angeles','859': 'America/Kentucky/Louisville', '860': 'America/New_York',
+  '862': 'America/New_York',  '863': 'America/New_York',  '864': 'America/New_York',
+  '865': 'America/New_York',  '870': 'America/Chicago',   '872': 'America/Chicago',
+  '878': 'America/New_York',
+  '901': 'America/Chicago',   '903': 'America/Chicago',   '904': 'America/New_York',
+  '906': 'America/Detroit',   '907': 'America/Anchorage', '908': 'America/New_York',
+  '909': 'America/Los_Angeles','910': 'America/New_York',  '912': 'America/New_York',
+  '913': 'America/Chicago',   '914': 'America/New_York',  '915': 'America/Denver',
+  '916': 'America/Los_Angeles','917': 'America/New_York',  '918': 'America/Chicago',
+  '919': 'America/New_York',  '920': 'America/Chicago',   '925': 'America/Los_Angeles',
+  '928': 'America/Phoenix',   '929': 'America/New_York',  '930': 'America/Indiana/Indianapolis',
+  '931': 'America/Chicago',   '934': 'America/New_York',  '936': 'America/Chicago',
+  '937': 'America/New_York',  '938': 'America/Chicago',   '940': 'America/Chicago',
+  '941': 'America/New_York',  '945': 'America/Chicago',   '947': 'America/Detroit',
+  '949': 'America/Los_Angeles','951': 'America/Los_Angeles','952': 'America/Chicago',
+  '954': 'America/New_York',  '956': 'America/Chicago',   '959': 'America/New_York',
+  '970': 'America/Denver',    '971': 'America/Los_Angeles','972': 'America/Chicago',
+  '973': 'America/New_York',  '975': 'America/Chicago',   '978': 'America/New_York',
+  '979': 'America/Chicago',   '980': 'America/New_York',  '984': 'America/New_York',
+  '985': 'America/Chicago',   '989': 'America/Detroit',
+};
+
+function phoneToTimezone(phone) {
+  const digits   = (phone || '').replace(/\D/g, '');
+  const national = digits.startsWith('1') ? digits.slice(1) : digits;
+  return AREA_CODE_TZ[national.slice(0, 3)] || 'America/New_York';
+}
+
+function toE164(phone) {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits[0] === '1') return `+${digits}`;
+  if (digits.length >= 9 && digits.length <= 15) return `+${digits}`;
+  return null;
+}
+
+// How many ms until it is legal to call (8am–9pm local, TCPA).
+// Returns 0 if already within calling hours; positive ms to wait otherwise.
+// Uses hour-stepping via Intl — DST-safe without requiring an external library.
+function msUntilCallable(fromDate, tz) {
+  const safeZone = tz || 'America/New_York';
+  const target   = fromDate instanceof Date ? fromDate : new Date(fromDate);
+
+  function localHourAndWeekday(d) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: safeZone, hour: 'numeric', weekday: 'long', hour12: false,
+      }).formatToParts(d);
+      const hour    = parseInt(parts.find(p => p.type === 'hour')?.value ?? 'NaN', 10);
+      const weekday = parts.find(p => p.type === 'weekday')?.value ?? '';
+      return { hour, weekday };
+    } catch {
+      return { hour: 10, weekday: 'Monday' }; // safe default: mid-morning weekday
+    }
+  }
+
+  const { hour, weekday } = localHourAndWeekday(target);
+  if (isNaN(hour)) return 0; // parse failure: allow the call rather than block forever
+
+  const isWeekend = weekday === 'Saturday' || weekday === 'Sunday';
+  if (!isWeekend && hour >= 8 && hour < 21) return 0;
+
+  // Step forward 1 hour at a time until we land inside calling hours.
+  // This correctly handles DST transitions (no manual offset arithmetic).
+  for (let h = 1; h <= 72; h++) {
+    const candidate = new Date(target.getTime() + h * 3_600_000);
+    const { hour: cH, weekday: cW } = localHourAndWeekday(candidate);
+    if (cW !== 'Saturday' && cW !== 'Sunday' && cH >= 8 && cH < 21) {
+      return candidate.getTime() - target.getTime();
+    }
+  }
+
+  return 72 * 3_600_000; // absolute fallback: 72h
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILITY — DISTRIBUTED CRON LOCK
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Prevents two Railway instances running the same cron job simultaneously.
+// Pattern: upsert a row with locked_until = now+intervalMs, only if the current lock is expired.
+async function acquireCronLock(jobName, intervalMs = 5 * 60_000) {
+  if (!supabase) return false;
+  const lockUntil = new Date(Date.now() + intervalMs).toISOString();
+  const { data, error } = await supabase.rpc('try_acquire_cron_lock', {
+    p_job_name:    jobName,
+    p_lock_until:  lockUntil,
+  });
+  if (error) {
+    // Fallback: direct upsert if RPC doesn't exist yet (first deploy)
+    const { error: upErr } = await supabase.from('cron_locks')
+      .upsert({ job_name: jobName, locked_until: lockUntil }, { onConflict: 'job_name', ignoreDuplicates: false })
+      .lt('locked_until', new Date().toISOString()); // only update if expired
+    return !upErr;
+  }
+  return data === true;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GHL API HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GHL_BASE = 'https://services.leadconnectorhq.com';
+
+async function ghlRequest(method, path, body = null) {
+  const res = await fetch(`${GHL_BASE}${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${GHL_API_KEY}`,
+      'Content-Type': 'application/json',
+      Version: '2021-07-28',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(15_000),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`GHL ${method} ${path} → ${res.status}: ${JSON.stringify(data)}`);
+  return data;
+}
+
+async function ghlGetContact(contactId) {
+  const data = await ghlRequest('GET', `/contacts/${contactId}`);
+  return data.contact || data;
+}
+
+// Fetch available slots for the GHL calendar. Returns array of ISO strings.
+async function ghlGetSlots(startDate, endDate, timezone) {
+  const tz  = encodeURIComponent(timezone || 'America/New_York');
+  const url = `/calendars/${GHL_CALENDAR_ID}/free-slots?startDate=${startDate}&endDate=${endDate}&timezone=${tz}`;
+  const data = await ghlRequest('GET', url);
+  // Response: { _dates_: { "2025-01-20": { slots: [ "2025-01-20T09:00:00-05:00", ... ] } } }
+  const grouped = data._dates_ || data.dates || data;
+  const slots = [];
+  for (const day of Object.values(grouped)) {
+    if (Array.isArray(day?.slots)) slots.push(...day.slots);
+  }
+  return slots;
+}
+
+// Book a 30-min appointment in GHL calendar.
+async function ghlBookAppointment({ contactId, name, email, phone, slotIso, timezone }) {
+  const start = new Date(slotIso);
+  const end   = new Date(start.getTime() + 30 * 60 * 1000);
+  const body = {
+    calendarId:  GHL_CALENDAR_ID,
+    locationId:  GHL_LOCATION_ID,
+    contactId,
+    startTime:   start.toISOString(),
+    endTime:     end.toISOString(),
+    title:       `Strategy Call — ${name || 'Lead'}`,
+    appointmentStatus: 'confirmed',
+    address:     'Zoom',
+    ignoreDateRange:   false,
+    toNotify:    true,
+  };
+  const data = await ghlRequest('POST', '/calendars/events/appointments', body);
+  return data.appointment || data;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RETELL API HELPER
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function triggerRetellCall({ lead, agentId, callType, dynamicVars = {}, appointmentId = null }) {
+  if (!RETELL_API_KEY || !agentId) {
+    console.warn(`[retell] Cannot fire call — RETELL_API_KEY or agentId missing (type: ${callType})`);
+    return null;
+  }
+
+  const phone = toE164(lead.phone);
+  if (!phone) {
+    console.warn(`[retell] Invalid phone for lead ${lead.id}: ${lead.phone}`);
+    return null;
+  }
+
+  const payload = {
+    agent_id:    agentId,
+    from_number: RETELL_FROM_NUMBER,
+    to_number:   phone,
+    retell_llm_dynamic_variables: {
+      customer_name: lead.name  || '',
+      customer_email: lead.email || '',
+      lead_id:       String(lead.id),
+      call_type:     callType,
+      ...dynamicVars,
+    },
+    metadata: {
+      lead_id:        lead.id,
+      ghl_contact_id: lead.ghl_contact_id,
+      call_type:      callType,
+      appointment_id: appointmentId,
+    },
+  };
+
+  const res = await fetch('https://api.retellai.com/v2/create-phone-call', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RETELL_API_KEY}` },
+    body:    JSON.stringify(payload),
+    signal:  AbortSignal.timeout(15_000),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Retell API error ${res.status}: ${JSON.stringify(data)}`);
+
+  console.log(`[retell] ${callType} call to ${phone} — call_id: ${data.call_id}`);
+  await logEvent('retell_call_initiated', { lead_id: lead.id, call_id: data.call_id, call_type: callType, to: phone, appointment_id: appointmentId });
+
+  // Seed call_logs row immediately so the webhook can update it on call_ended/analyzed
+  if (supabase && data.call_id) {
+    const { error: logErr } = await supabase.from('call_logs').insert({
+      lead_id:        lead.id,
+      appointment_id: appointmentId,
+      call_type:      callType,
+      retell_call_id: data.call_id,
+      call_status:    'initiated',
+    });
+    if (logErr) {
+      console.error(`[retell] Failed to seed call_logs for ${data.call_id}:`, logErr.message);
+      await dlq('triggerRetellCall/call_logs', { lead_id: lead.id, call_id: data.call_id }, logErr);
+    }
+  }
+
+  return data;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEAD HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function findOrCreateLead({ ghlContactId, name, phone, email, timezone, source }) {
+  if (!supabase) throw new Error('Supabase not configured');
+
+  // Try to find by GHL contact ID first (idempotent)
+  const { data: existing } = await supabase
+    .from('leads').select('*').eq('ghl_contact_id', ghlContactId).maybeSingle();
+  if (existing) return { lead: existing, created: false };
+
+  const { data: created, error } = await supabase
+    .from('leads').insert({
+      ghl_contact_id: ghlContactId,
+      name,
+      phone,
+      email,
+      timezone: timezone || null,
+      source:   source   || null,
+      status:   'new',
+    }).select().single();
+
+  if (error) throw new Error(`Could not create lead: ${error.message}`);
+  console.log(`[lead] Created lead ${created.id} for GHL contact ${ghlContactId}`);
+  await logEvent('lead_created', { lead_id: created.id, ghl_contact_id: ghlContactId, source });
+  return { lead: created, created: true };
+}
+
+// Check if a phone number is on the DNC list
+async function isOnDNC(phone) {
+  if (!supabase || !phone) return false;
+  const e164 = toE164(phone);
+  const { data } = await supabase.from('dnc').select('phone').eq('phone', e164).maybeSingle();
+  return !!data;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APPOINTMENT HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Upsert appointment and generate (or replace) reminder rows.
+async function upsertAppointment({ ghlAppointmentId, leadId, startAt, endAt, timezone, zoomLink }) {
+  if (!supabase) throw new Error('Supabase not configured');
+
+  const { data: appt, error } = await supabase
+    .from('appointments')
+    .upsert({
+      ghl_appointment_id: ghlAppointmentId,
+      lead_id:   leadId,
+      start_at:  new Date(startAt).toISOString(),
+      end_at:    endAt ? new Date(endAt).toISOString() : null,
+      timezone:  timezone || 'America/New_York',
+      zoom_link: zoomLink || null,
+      status:    'booked',
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'ghl_appointment_id' })
+    .select().single();
+
+  if (error) throw new Error(`Could not upsert appointment: ${error.message}`);
+
+  // Delete old reminders and regenerate (handles reschedule case)
+  await supabase.from('appointment_reminders').delete().eq('appointment_id', appt.id);
+
+  const start   = new Date(startAt);
+  const h24     = new Date(start.getTime() - 24 * 60 * 60 * 1000);
+  const h1      = new Date(start.getTime() - 60 * 60 * 1000);
+  const now     = new Date();
+
+  const reminders = [];
+  if (h24 > now) reminders.push({ appointment_id: appt.id, reminder_type: 'reminder_24h', trigger_at: h24.toISOString() });
+  if (h1  > now) reminders.push({ appointment_id: appt.id, reminder_type: 'reminder_1h',  trigger_at: h1.toISOString() });
+
+  if (reminders.length) {
+    const { error: remErr } = await supabase.from('appointment_reminders').insert(reminders);
+    if (remErr) console.warn('[appt] Could not create reminders:', remErr.message);
+    else console.log(`[appt] Created ${reminders.length} reminder(s) for appt ${appt.id} (start: ${start.toISOString()})`);
+  } else {
+    console.log(`[appt] No reminders created — meeting too soon (< 1h from now)`);
+  }
+
+  await logEvent('appointment_upserted', { lead_id: leadId, appointment_id: appt.id, start_at: startAt });
+  return appt;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WEBHOOK — POST /webhook/new-lead
+// Triggered by GHL workflow when a new contact is created (form/opt-in).
+// GHL workflow config: Trigger = "Contact Created" | Action = Webhook POST to this URL
+// Payload expected: { contact_id, first_name, last_name, phone, email, timezone?, source? }
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/webhook/new-lead', requireWebhookSecret, async (req, res) => {
+  res.json({ received: true }); // Respond immediately to avoid GHL timeout
+  const body = req.body;
+  console.log('[webhook/new-lead] received:', JSON.stringify({ contact_id: body.contact_id, phone: body.phone }));
+
+  try {
+    const { contact_id, first_name, last_name, phone, email, timezone, source } = body;
+    if (!contact_id || !phone) {
+      await dlq('webhook/new-lead', body, new Error('Missing contact_id or phone'));
+      return;
+    }
+
+    // Validate phone — no point calling if it's garbage
+    const e164 = toE164(phone);
+    if (!e164) {
+      await dlq('webhook/new-lead', body, new Error(`Invalid phone: ${phone}`));
+      return;
+    }
+
+    // DNC check
+    if (await isOnDNC(e164)) {
+      console.log(`[webhook/new-lead] ${e164} is on DNC — skipping`);
+      await logEvent('lead_dnc_skipped', { ghl_contact_id: contact_id, phone: e164 });
+      return;
+    }
+
+    const name = [first_name, last_name].filter(Boolean).join(' ').trim() || 'there';
+    const tz   = timezone || phoneToTimezone(e164);
+
+    const { lead, created } = await findOrCreateLead({
+      ghlContactId: contact_id,
+      name, phone: e164, email, timezone: tz, source,
+    });
+
+    if (!created) {
+      // Lead already exists — could be a duplicate webhook; check if already called
+      if (['calling', 'booked', 'exhausted', 'dnc'].includes(lead.status)) {
+        console.log(`[webhook/new-lead] Lead ${lead.id} already in status ${lead.status} — skipping`);
+        return;
+      }
+    }
+
+    // Schedule call: delay RETELL_SPEED_TO_LEAD_DELAY_MS then check calling hours
+    scheduleSpeedToLeadCall(lead).catch(err =>
+      dlq('speed-to-lead-schedule', { lead_id: lead.id }, err)
+    );
+  } catch (err) {
+    await dlq('webhook/new-lead', body, err);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPEED-TO-LEAD CALL SCHEDULER
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function scheduleSpeedToLeadCall(lead) {
+  const baseDelayMs = parseInt(RETELL_SPEED_TO_LEAD_DELAY_MS, 10) || 90_000;
+  const tz          = lead.timezone || phoneToTimezone(lead.phone);
+  const callAt      = new Date(Date.now() + baseDelayMs);
+  const extraDelay  = msUntilCallable(callAt, tz);
+  const totalDelay  = baseDelayMs + extraDelay;
+
+  const scheduledAt = new Date(Date.now() + totalDelay);
+  const deferred    = extraDelay > 0;
+
+  // Always seed next_followup_at in DB so the cron safety net catches server restarts
+  await supabase?.from('leads').update({
+    status:          'calling',
+    followup_step:   1,
+    next_followup_at: scheduledAt.toISOString(),
+  }).eq('id', lead.id).in('status', ['new', 'calling']);
+
+  await logEvent('speed_to_lead_scheduled', { lead_id: lead.id, scheduled_at: scheduledAt.toISOString(), deferred });
+
+  if (deferred) {
+    console.log(`[speed-to-lead] Lead ${lead.id} deferred to ${scheduledAt.toISOString()} (outside calling hours) — cron will fire`);
+    return;
+  }
+
+  console.log(`[speed-to-lead] Lead ${lead.id} call in ${Math.round(totalDelay / 1000)}s`);
+  setTimeout(() => fireSpeedToLeadCall(lead.id).catch(err =>
+    dlq('speed-to-lead-timeout', { lead_id: lead.id }, err)
+  ), totalDelay);
+}
+
+async function fireSpeedToLeadCall(leadId) {
+  const { data: lead, error: fetchErr } = await supabase.from('leads').select('*').eq('id', leadId).single();
+  if (fetchErr) {
+    if (fetchErr.code === 'PGRST116') return console.warn(`[speed-to-lead] Lead ${leadId} not found`);
+    throw new Error(`DB error fetching lead ${leadId}: ${fetchErr.message}`);
+  }
+  if (!lead) return console.warn(`[speed-to-lead] Lead ${leadId} not found`);
+  if (lead.followup_paused || ['booked', 'not_interested', 'dnc', 'exhausted'].includes(lead.status)) {
+    return console.log(`[speed-to-lead] Skipping lead ${leadId} — ${lead.status}`);
+  }
+
+  await triggerRetellCall({
+    lead,
+    agentId:   RETELL_AGENT_ID_SPEED_TO_LEAD,
+    callType:  'speed_to_lead',
+    dynamicVars: {
+      call_attempt:   String(lead.followup_step || 1),
+      previous_outcome: lead.last_call_outcome || '',
+    },
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WEBHOOK — POST /webhook/appointment-booked
+// Triggered by GHL when a lead books a strategy call (via calendar widget or agent).
+// GHL workflow config: Trigger = "Appointment Created" → Webhook POST
+// Payload: { contact_id, appointment_id, start_time (ISO), end_time (ISO), timezone, zoom_link? }
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/webhook/appointment-booked', requireWebhookSecret, async (req, res) => {
+  res.json({ received: true });
+  const body = req.body;
+  console.log('[webhook/appointment-booked]', JSON.stringify({ contact_id: body.contact_id, appointment_id: body.appointment_id, start: body.start_time }));
+
+  try {
+    const { contact_id, appointment_id, start_time, end_time, timezone, zoom_link } = body;
+    if (!contact_id || !appointment_id || !start_time) {
+      await dlq('webhook/appointment-booked', body, new Error('Missing required fields'));
+      return;
+    }
+
+    // Ensure the lead record exists (create if it doesn't — e.g. GHL widget booking skipped new-lead webhook)
+    let { lead } = await findOrCreateLead({
+      ghlContactId: contact_id,
+      name:  body.first_name ? [body.first_name, body.last_name].filter(Boolean).join(' ') : undefined,
+      phone: body.phone ? toE164(body.phone) : undefined,
+      email: body.email,
+      timezone,
+    }).catch(async err => {
+      // If lead lookup fails, try fetching from GHL directly
+      const contact = await ghlGetContact(contact_id);
+      return findOrCreateLead({
+        ghlContactId: contact_id,
+        name:  [contact.firstName, contact.lastName].filter(Boolean).join(' '),
+        phone: toE164(contact.phone || contact.mobilePhone),
+        email: contact.email,
+        timezone: contact.timezone || timezone,
+      });
+    });
+
+    // Pause speed-to-lead follow-up now that they've booked
+    await supabase?.from('leads').update({
+      status:         'booked',
+      followup_paused: true,
+    }).eq('id', lead.id);
+
+    await upsertAppointment({
+      ghlAppointmentId: appointment_id,
+      leadId:    lead.id,
+      startAt:   start_time,
+      endAt:     end_time,
+      timezone:  timezone || lead.timezone || 'America/New_York',
+      zoomLink:  zoom_link,
+    });
+
+    await logEvent('appointment_booked', { lead_id: lead.id, appointment_id, start_time });
+    console.log(`[appointment-booked] Lead ${lead.id}, appt ${appointment_id} at ${start_time} — reminders scheduled`);
+  } catch (err) {
+    await dlq('webhook/appointment-booked', body, err);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WEBHOOK — POST /webhook/appointment-cancelled
+// Triggered by GHL when an appointment is cancelled or rescheduled.
+// GHL workflow config: Trigger = "Appointment Status Changed (Cancelled)" → Webhook POST
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/webhook/appointment-cancelled', requireWebhookSecret, async (req, res) => {
+  res.json({ received: true });
+  const { appointment_id, contact_id } = req.body;
+  console.log(`[webhook/appointment-cancelled] appt: ${appointment_id}`);
+
+  try {
+    if (!appointment_id) return;
+
+    const { data: appt } = await supabase?.from('appointments')
+      .select('id, lead_id').eq('ghl_appointment_id', appointment_id).maybeSingle();
+
+    if (!appt) {
+      console.warn(`[appointment-cancelled] Appointment ${appointment_id} not in DB — nothing to do`);
+      return;
+    }
+
+    // Cancel the appointment and delete all pending reminders
+    await supabase?.from('appointments').update({
+      status:       'cancelled',
+      cancelled_at: new Date().toISOString(),
+      updated_at:   new Date().toISOString(),
+    }).eq('id', appt.id);
+
+    await supabase?.from('appointment_reminders')
+      .update({ status: 'skipped' })
+      .eq('appointment_id', appt.id)
+      .eq('status', 'pending');
+
+    // Resume follow-up for speed-to-lead if they were booked but now cancelled
+    await supabase?.from('leads').update({
+      status:         'calling',
+      followup_paused: false,
+    }).eq('id', appt.lead_id).eq('status', 'booked');
+
+    await logEvent('appointment_cancelled', { lead_id: appt.lead_id, appointment_id });
+  } catch (err) {
+    await dlq('webhook/appointment-cancelled', req.body, err);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WEBHOOK — POST /webhook/retell
+// Retell post-call webhook. Fires for call_started, call_ended, call_analyzed.
+// Configure in Retell agent settings: webhook_url = https://<your-app>/webhook/retell
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/webhook/retell', validateRetell, async (req, res) => {
+  res.json({ received: true });
+  const { event, call } = req.body;
+  if (!call) return;
+
+  const { call_id, call_status, disconnection_reason, metadata = {}, transcript, call_analysis } = call;
+  const { lead_id, call_type, appointment_id } = metadata;
+
+  console.log(`[webhook/retell] event: ${event} | call_id: ${call_id} | lead_id: ${lead_id} | type: ${call_type}`);
+
+  try {
+    if (event === 'call_started') {
+      await supabase?.from('call_logs').update({ call_status: 'ongoing', started_at: new Date().toISOString() })
+        .eq('retell_call_id', call_id);
+      return;
+    }
+
+    if (event === 'call_ended') {
+      await supabase?.from('call_logs').update({
+        call_status:          call_status,
+        disconnection_reason: disconnection_reason,
+        ended_at:             new Date().toISOString(),
+      }).eq('retell_call_id', call_id);
+
+      // Double-dial logic — only for speed_to_lead, attempt 1, not yet double-dialed
+      if (call_type === 'speed_to_lead' && lead_id) {
+        await handleSpeedToLeadCallEnded({ leadId: lead_id, callId: call_id, disconnectionReason: disconnection_reason });
+      }
+      return;
+    }
+
+    if (event === 'call_analyzed') {
+      const summary  = call_analysis?.call_summary || '';
+      const outcome  = extractOutcome(call_analysis, transcript);
+
+      await supabase?.from('call_logs').update({
+        call_status:  call_status,
+        transcript:   formatTranscript(call?.transcript_object || []),
+        summary,
+        outcome,
+        raw_payload:  call,
+      }).eq('retell_call_id', call_id);
+
+      if (lead_id) await handleCallOutcome({ leadId: lead_id, callId: call_id, callType: call_type, outcome, appointmentId: appointment_id });
+      return;
+    }
+
+    // call_analyzed events from older firmware sometimes come as separate events
+    console.log(`[webhook/retell] Ignoring non-terminal event: ${event}`);
+  } catch (err) {
+    await dlq('webhook/retell', req.body, err);
+  }
+});
+
+// After a speed-to-lead call ends unanswered: schedule the double-dial.
+async function handleSpeedToLeadCallEnded({ leadId, callId, disconnectionReason }) {
+  const didAnswer = !['voicemail_reached', 'dial_no_answer', 'dial_failed', 'dial_busy'].includes(disconnectionReason);
+  if (didAnswer) return; // They picked up — don't double-dial
+
+  const { data: lead } = await supabase.from('leads')
+    .select('status, followup_step, followup_paused, double_dialed')
+    .eq('id', leadId).single();
+
+  if (!lead || lead.followup_paused || lead.double_dialed || (lead.followup_step ?? 1) > 1) return;
+
+  const doubleDialDelay = parseInt(RETELL_DOUBLE_DIAL_DELAY_MS, 10) || 45_000;
+  const tz              = (await supabase.from('leads').select('timezone, phone').eq('id', leadId).single())?.data;
+  const callableTz      = tz?.timezone || phoneToTimezone(tz?.phone);
+  const extraMs         = msUntilCallable(new Date(Date.now() + doubleDialDelay), callableTz);
+  const totalDelay      = doubleDialDelay + extraMs;
+
+  // Atomic guard: only update if double_dialed is still false.
+  // Must check count (not error) — Supabase returns error=null with 0 rows if condition not met.
+  const { data: claimed, error } = await supabase.from('leads').update({
+    double_dialed:   true,
+    next_followup_at: new Date(Date.now() + totalDelay + 3 * 60_000).toISOString(),
+  }).eq('id', leadId).eq('double_dialed', false).select('id');
+
+  if (error || !claimed?.length) {
+    console.log(`[double-dial] Race condition avoided for lead ${leadId} — already claimed or error: ${error?.message}`);
+    return;
+  }
+
+  console.log(`[double-dial] Lead ${leadId}: redial in ${Math.round(totalDelay / 1000)}s`);
+  await logEvent('retell_double_dial_scheduled', { lead_id: leadId, delay_ms: totalDelay });
+
+  setTimeout(() => fireSpeedToLeadCall(leadId).catch(err =>
+    dlq('double-dial', { lead_id: leadId }, err)
+  ), totalDelay);
+}
+
+// After call_analyzed: update lead status based on what happened.
+async function handleCallOutcome({ leadId, callId, callType, outcome, appointmentId }) {
+  const leadUpdate = { last_call_outcome: outcome };
+
+  if (outcome === 'booked') {
+    leadUpdate.status         = 'booked';
+    leadUpdate.followup_paused = true;
+  } else if (outcome === 'not_interested') {
+    leadUpdate.status         = 'not_interested';
+    leadUpdate.followup_paused = true;
+  } else if (outcome === 'dnc' || outcome === 'opt_out') {
+    leadUpdate.status         = 'dnc';
+    leadUpdate.followup_paused = true;
+    // Add to DNC table — critical: failure here means they could be called again
+    const { data: dncLead } = await supabase.from('leads').select('phone').eq('id', leadId).single();
+    if (dncLead?.phone) {
+      const { error: dncErr } = await supabase.from('dnc')
+        .upsert({ phone: dncLead.phone, reason: 'verbal opt-out', added_by: 'agent' }, { onConflict: 'phone' });
+      if (dncErr) {
+        console.error(`[call-outcome] CRITICAL: Failed to add ${dncLead.phone} to DNC:`, dncErr.message);
+        await dlq('handleCallOutcome/dnc', { lead_id: leadId, phone: dncLead.phone }, dncErr);
+      }
+    }
+  } else if (callType === 'speed_to_lead' && ['no_answer', 'voicemail'].includes(outcome)) {
+    // Advance the follow-up step so cron picks up the next attempt
+    const { data: lead } = await supabase.from('leads').select('followup_step').eq('id', leadId).single();
+    const step = (lead?.followup_step || 1) + 1;
+    leadUpdate.followup_step    = step;
+    // Follow-up schedule: attempt 1 → 2 (45s, handled by double-dial), attempt 3 at T+10min, attempt 4 at T+30min, attempt 5 at T+4h, attempt 6 at T+24h
+    const FOLLOWUP_DELAYS = [0, 0, 45_000, 10 * 60_000, 30 * 60_000, 4 * 60 * 60_000, 24 * 60 * 60_000];
+    const delay           = FOLLOWUP_DELAYS[Math.min(step, FOLLOWUP_DELAYS.length - 1)] || 24 * 60 * 60_000;
+    leadUpdate.next_followup_at = new Date(Date.now() + delay).toISOString();
+    if (step > 6) leadUpdate.status = 'exhausted';
+  }
+
+  await supabase?.from('leads').update(leadUpdate).eq('id', leadId);
+
+  // Mark appointment reminder as sent if this was a reminder call
+  if (appointmentId && ['reminder_24h', 'reminder_1h'].includes(callType)) {
+    await supabase?.from('appointment_reminders').update({ status: 'sent', sent_at: new Date().toISOString(), retell_call_id: callId })
+      .eq('appointment_id', appointmentId).eq('reminder_type', callType);
+  }
+
+  await logEvent('call_outcome_processed', { lead_id: leadId, call_id: callId, call_type: callType, outcome });
+}
+
+// Parse Retell call_analysis to extract a normalised outcome label.
+function extractOutcome(callAnalysis = {}, transcript = '') {
+  const summary = (callAnalysis?.call_summary || '').toLowerCase();
+  const intent  = (callAnalysis?.user_sentiment || '').toLowerCase();
+
+  if (summary.includes('booked') || summary.includes('appointment') || summary.includes('scheduled')) return 'booked';
+  if (summary.includes('not interested') || summary.includes('no thanks') || intent === 'negative') return 'not_interested';
+  if (summary.includes('call back') || summary.includes('callback')) return 'callback_requested';
+  if (summary.includes('stop') || summary.includes('do not call') || summary.includes('remove')) return 'dnc';
+  if (summary.includes('voicemail') || summary.includes('left a message')) return 'voicemail';
+  if (summary.includes('no answer') || summary.includes('didn\'t answer')) return 'no_answer';
+  if (summary.includes('confirmed') || summary.includes('see you then')) return 'confirmed';
+  if (summary.includes('reschedule')) return 'rescheduled';
+
+  const disconn = (transcript || '').toLowerCase();
+  if (disconn === '' || disconn.length < 50) return 'no_answer';
+  return 'completed';
+}
+
+function formatTranscript(transcriptObject = []) {
+  return transcriptObject
+    .map(t => `[${t.role?.toUpperCase() || 'UNKNOWN'}]: ${t.content}`)
+    .join('\n');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RETELL CUSTOM FUNCTION TOOLS
+// Called by the Retell agent DURING a live call. Must respond quickly (<3s).
+// Configure in Retell agent: Custom Function → URL = https://<your-app>/retell/function/...
+// ─────────────────────────────────────────────────────────────────────────────
+
+// POST /retell/function/check-availability
+// Agent calls this to get open calendar slots before offering times to the lead.
+// Args: { timezone?, days_ahead? }
+app.post('/retell/function/check-availability', validateRetell, async (req, res) => {
+  const { args = {} } = req.body;
+  const timezone  = args.timezone || 'America/New_York';
+  const daysAhead = Math.min(parseInt(args.days_ahead || '5', 10), 14);
+
+  try {
+    const startDate = new Date();
+    const endDate   = new Date(Date.now() + daysAhead * 24 * 60 * 60 * 1000);
+    const fmt       = d => d.toISOString().slice(0, 10); // YYYY-MM-DD
+
+    const slots = await ghlGetSlots(fmt(startDate), fmt(endDate), timezone);
+
+    // Return up to 6 slots in natural language so agent can speak them
+    const formatted = slots.slice(0, 6).map(iso => {
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: timezone });
+    });
+
+    return res.json({
+      slots_iso:       slots.slice(0, 6),
+      slots_formatted: formatted,
+      has_availability: slots.length > 0,
+    });
+  } catch (err) {
+    console.error('[retell/check-availability] error:', err.message);
+    return res.json({ has_availability: false, error: err.message });
+  }
+});
+
+// POST /retell/function/book-appointment
+// Agent calls this when the lead agrees to a time slot.
+// Args: { slot_iso, timezone?, lead_id }
+app.post('/retell/function/book-appointment', validateRetell, async (req, res) => {
+  const { args = {}, call } = req.body;
+  const { slot_iso, timezone, lead_id: argLeadId } = args;
+  const leadId = argLeadId || call?.metadata?.lead_id;
+
+  if (!slot_iso || !leadId) {
+    return res.json({ success: false, error: 'slot_iso and lead_id are required' });
+  }
+
+  try {
+    const { data: lead } = await supabase.from('leads').select('*').eq('id', leadId).single();
+    if (!lead) return res.json({ success: false, error: 'Lead not found' });
+
+    const appt = await ghlBookAppointment({
+      contactId: lead.ghl_contact_id,
+      name:      lead.name,
+      email:     lead.email,
+      phone:     lead.phone,
+      slotIso:   slot_iso,
+      timezone:  timezone || lead.timezone || 'America/New_York',
+    });
+
+    // Mirror to Supabase
+    await upsertAppointment({
+      ghlAppointmentId: appt.id,
+      leadId:   lead.id,
+      startAt:  slot_iso,
+      timezone: timezone || lead.timezone || 'America/New_York',
+    });
+
+    // Pause follow-up since they just booked
+    await supabase.from('leads').update({ status: 'booked', followup_paused: true }).eq('id', lead.id);
+
+    const confirmTime = new Date(slot_iso).toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit',
+      timeZone: timezone || 'America/New_York',
+    });
+
+    console.log(`[retell/book-appointment] Lead ${leadId} booked at ${slot_iso}`);
+    await logEvent('appointment_booked_via_agent', { lead_id: lead.id, slot_iso, ghl_appointment_id: appt.id });
+
+    return res.json({ success: true, confirmation: confirmTime, appointment_id: appt.id });
+  } catch (err) {
+    console.error('[retell/book-appointment] error:', err.message);
+    await dlq('retell/book-appointment', { args, lead_id: leadId }, err);
+    return res.json({ success: false, error: 'Could not book appointment — please try again' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CRON — POST /cron/speed-to-lead
+// Runs every 5 min. Safety net for leads whose setTimeout was lost (server restart)
+// and fires follow-up attempts 3–6 per the retry schedule.
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/cron/speed-to-lead', requireCronSecret, async (req, res) => {
+  res.json({ received: true });
+  runSpeedToLeadCron().catch(err => console.error('[cron/speed-to-lead]', err.message));
+});
+
+async function runSpeedToLeadCron() {
+  if (!await acquireCronLock('speed_to_lead_followup')) {
+    return console.log('[cron/speed-to-lead] Lock held by another instance — skipping');
+  }
+
+  if (!supabase) return console.warn('[cron/speed-to-lead] Supabase not configured');
+
+  const now = new Date().toISOString();
+
+  // Fetch leads due for a follow-up call
+  const { data: leads, error } = await supabase
+    .from('leads')
+    .select('*')
+    .eq('status', 'calling')
+    .eq('followup_paused', false)
+    .lte('next_followup_at', now)
+    .lte('followup_step', 6)
+    .order('next_followup_at')
+    .limit(50);
+
+  if (error) return console.error('[cron/speed-to-lead] DB error:', error.message);
+  if (!leads?.length) return console.log('[cron/speed-to-lead] No leads due');
+
+  console.log(`[cron/speed-to-lead] Processing ${leads.length} leads`);
+
+  for (const lead of leads) {
+    try {
+      // DNC check
+      if (await isOnDNC(lead.phone)) {
+        await supabase.from('leads').update({ status: 'dnc', followup_paused: true }).eq('id', lead.id);
+        continue;
+      }
+
+      const tz      = lead.timezone || phoneToTimezone(lead.phone);
+      const waitMs  = msUntilCallable(new Date(), tz);
+      if (waitMs > 0) {
+        // Outside calling hours — push next_followup_at to start of calling hours
+        await supabase.from('leads').update({
+          next_followup_at: new Date(Date.now() + waitMs).toISOString(),
+        }).eq('id', lead.id);
+        console.log(`[cron/speed-to-lead] Lead ${lead.id} deferred ${Math.round(waitMs / 60000)}min (calling hours)`);
+        continue;
+      }
+
+      await fireSpeedToLeadCall(lead.id);
+    } catch (err) {
+      console.error(`[cron/speed-to-lead] Lead ${lead.id} error:`, err.message);
+      await dlq('cron/speed-to-lead', { lead_id: lead.id }, err);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CRON — POST /cron/appointment-reminders
+// Runs every 5 min. Fires reminder calls for appointments within their window.
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/cron/appointment-reminders', requireCronSecret, async (req, res) => {
+  res.json({ received: true });
+  runAppointmentReminderCron().catch(err => console.error('[cron/appointment-reminders]', err.message));
+});
+
+async function runAppointmentReminderCron() {
+  if (!await acquireCronLock('appointment_reminders')) {
+    return console.log('[cron/appointment-reminders] Lock held by another instance — skipping');
+  }
+
+  if (!supabase) return console.warn('[cron/appointment-reminders] Supabase not configured');
+
+  const now = new Date().toISOString();
+
+  const { data: reminders, error } = await supabase
+    .from('appointment_reminders')
+    .select('*, appointments(*, leads(*))')
+    .eq('status', 'pending')
+    .lte('trigger_at', now)
+    .order('trigger_at')
+    .limit(30);
+
+  if (error) return console.error('[cron/appointment-reminders] DB error:', error.message);
+  if (!reminders?.length) return console.log('[cron/appointment-reminders] No reminders due');
+
+  console.log(`[cron/appointment-reminders] Processing ${reminders.length} reminders`);
+
+  for (const reminder of reminders) {
+    const appt = reminder.appointments;
+    const lead = appt?.leads;
+
+    if (!appt || !lead) {
+      await supabase.from('appointment_reminders').update({ status: 'skipped', error: 'missing appt or lead' }).eq('id', reminder.id);
+      continue;
+    }
+
+    if (appt.status === 'cancelled') {
+      await supabase.from('appointment_reminders').update({ status: 'skipped', error: 'appointment cancelled' }).eq('id', reminder.id);
+      continue;
+    }
+
+    // Claim atomically: check returned rows (error=null with 0 rows if already claimed)
+    const { data: claimed, error: claimErr } = await supabase.from('appointment_reminders')
+      .update({ status: 'sent', sent_at: now })
+      .eq('id', reminder.id).eq('status', 'pending')
+      .select('id');
+
+    if (claimErr || !claimed?.length) {
+      console.log(`[cron/appointment-reminders] Reminder ${reminder.id} already claimed — skipping`);
+      continue;
+    }
+
+    try {
+      const startLocal = new Date(appt.start_at).toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: '2-digit', timeZone: appt.timezone,
+        timeZoneName: 'short',
+      });
+      const startDate = new Date(appt.start_at).toLocaleDateString('en-US', {
+        weekday: 'long', month: 'long', day: 'numeric', timeZone: appt.timezone,
+      });
+
+      const callData = await triggerRetellCall({
+        lead,
+        agentId:       RETELL_AGENT_ID_REMINDER,
+        callType:      reminder.reminder_type,
+        appointmentId: appt.id,
+        dynamicVars: {
+          appointment_time:  startLocal,
+          appointment_date:  startDate,
+          appointment_iso:   appt.start_at,
+          timezone:          appt.timezone,
+          zoom_link:         appt.zoom_link || '',
+          reminder_type:     reminder.reminder_type,
+        },
+      });
+
+      if (callData?.call_id) {
+        await supabase.from('appointment_reminders').update({ retell_call_id: callData.call_id }).eq('id', reminder.id);
+      }
+    } catch (err) {
+      console.error(`[cron/appointment-reminders] Reminder ${reminder.id} failed:`, err.message);
+      await supabase.from('appointment_reminders').update({ status: 'failed', error: err.message }).eq('id', reminder.id);
+      await dlq('cron/appointment-reminders', { reminder_id: reminder.id, appointment_id: appt.id }, err);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN / DEBUG ENDPOINTS
+// All require x-admin-password header. Use these to inspect system state.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// GET /admin/leads?status=calling&limit=50
+// Returns leads with their latest call log.
+app.get('/admin/leads', requireAdminPassword, async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: 'Supabase not configured' });
+  const status = req.query.status;
+  const limit  = Math.min(parseInt(req.query.limit || '50', 10), 200);
+  let q = supabase.from('leads')
+    .select('*, call_logs(id, call_type, call_status, outcome, created_at)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (status) q = q.eq('status', status);
+  const { data, error, count } = await q;
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ total: count, leads: data });
+});
+
+// GET /admin/call-logs?lead_id=123&limit=50
+app.get('/admin/call-logs', requireAdminPassword, async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: 'Supabase not configured' });
+  const leadId = req.query.lead_id;
+  const limit  = Math.min(parseInt(req.query.limit || '50', 10), 200);
+  let q = supabase.from('call_logs')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (leadId) q = q.eq('lead_id', leadId);
+  const { data, error, count } = await q;
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ total: count, logs: data });
+});
+
+// GET /admin/lead-events?lead_id=123
+// Primary debugging endpoint: full audit trail for any lead.
+app.get('/admin/lead-events', requireAdminPassword, async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: 'Supabase not configured' });
+  const leadId = req.query.lead_id;
+  if (!leadId) return res.status(400).json({ error: 'lead_id is required' });
+  const { data, error } = await supabase.from('lead_events')
+    .select('*').eq('lead_id', leadId).order('created_at');
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ events: data });
+});
+
+// GET /admin/reminders?status=pending
+app.get('/admin/reminders', requireAdminPassword, async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: 'Supabase not configured' });
+  const status = req.query.status || 'pending';
+  const { data, error } = await supabase.from('appointment_reminders')
+    .select('*, appointments(ghl_appointment_id, start_at, timezone, leads(name, phone))')
+    .eq('status', status).order('trigger_at').limit(100);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ reminders: data });
+});
+
+// GET /admin/failed-webhooks
+// Check this when calls aren't firing or reminders are stuck.
+app.get('/admin/failed-webhooks', requireAdminPassword, async (req, res) => {
+  if (!supabase) return res.status(503).json({ error: 'Supabase not configured' });
+  const { data, error } = await supabase.from('failed_webhook_events')
+    .select('*').eq('resolved', false).order('created_at', { ascending: false }).limit(100);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ failed: data });
+});
+
+// POST /admin/dnc   { phone }
+app.post('/admin/dnc', requireAdminPassword, async (req, res) => {
+  const { phone, reason } = req.body;
+  if (!phone) return res.status(400).json({ error: 'phone is required' });
+  const e164 = toE164(phone);
+  if (!e164) return res.status(400).json({ error: 'Invalid phone number' });
+  const { error } = await supabase?.from('dnc').upsert({ phone: e164, reason, added_by: 'admin' }, { onConflict: 'phone' });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, phone: e164 });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HEALTH / PING
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.get('/health', (_req, res) => res.json({
+  status:    'ok',
+  service:   'dsn-call-orchestrator',
+  node:      process.version,
+  env:       NODE_ENV,
+  supabase:  !!supabase,
+  retell:    !!RETELL_API_KEY,
+  ghl:       !!GHL_API_KEY,
+  agents: {
+    speed_to_lead: !!RETELL_AGENT_ID_SPEED_TO_LEAD,
+    reminder:      !!RETELL_AGENT_ID_REMINDER,
+  },
+  uptime: Math.round(process.uptime()),
+}));
+
+app.get('/ping', (_req, res) => res.send('pong'));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// START
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.listen(PORT, () => {
+  console.log(`[startup] DSN Call Orchestrator running on :${PORT} (${NODE_ENV})`);
+  console.log(`[startup] Supabase: ${supabase ? 'connected' : 'MISSING'} | GHL: ${GHL_API_KEY ? 'configured' : 'MISSING'} | Retell: ${RETELL_API_KEY ? 'configured' : 'MISSING'}`);
+});

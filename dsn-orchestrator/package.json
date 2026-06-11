@@ -1,0 +1,16 @@
+{
+  "name": "dsn-call-orchestrator",
+  "version": "1.0.0",
+  "description": "DSN Retell AI calling orchestrator — speed-to-lead + appointment reminders",
+  "main": "index.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0"
+  }
+}
