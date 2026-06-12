@@ -723,48 +723,65 @@ app.post('/webhook/appointment-booked', requireWebhookSecret, async (req, res) =
   console.log('[webhook/appointment-booked]', JSON.stringify({ contact_id: body.contact_id, appointment_id: body.appointment_id, start: body.start_time }));
 
   try {
-    const { contact_id, appointment_id, start_time, end_time, timezone, zoom_link } = body;
+    const { contact_id, appointment_id, start_time, end_time, zoom_link } = body;
     if (!contact_id || !appointment_id || !start_time) {
       await dlq('webhook/appointment-booked', body, new Error('Missing required fields'));
       return;
     }
 
-    // Ensure the lead record exists (create if it doesn't — e.g. GHL widget booking skipped new-lead webhook)
-    let { lead } = await findOrCreateLead({
+    // Always fetch the GHL contact. For self-booked leads (30–80% of cases) GHL's booking
+    // widget captures and stores the contact's local timezone — this is the most accurate source.
+    // The webhook payload timezone may reflect the calendar's timezone, not the lead's.
+    let ghlContact = null;
+    try {
+      ghlContact = await ghlGetContact(contact_id);
+    } catch (err) {
+      console.warn(`[appointment-booked] GHL contact fetch failed for ${contact_id}: ${err.message} — falling back to webhook payload`);
+    }
+
+    // Timezone priority chain:
+    // 1. contact.timezone from GHL — set by booking widget from lead's browser locale (best for self-booked)
+    // 2. timezone from webhook payload — GHL may include the appointment's timezone
+    // 3. area-code lookup from phone — fallback when no GHL timezone available
+    // 4. America/New_York — final fallback
+    const contactPhone = toE164(ghlContact?.phone || ghlContact?.mobilePhone || body.phone);
+    const resolvedTz   = ghlContact?.timezone
+      || body.timezone
+      || (contactPhone ? phoneToTimezone(contactPhone) : null)
+      || 'America/New_York';
+
+    const { lead } = await findOrCreateLead({
       ghlContactId: contact_id,
-      name:  body.first_name ? [body.first_name, body.last_name].filter(Boolean).join(' ') : undefined,
-      phone: body.phone ? toE164(body.phone) : undefined,
-      email: body.email,
-      timezone,
-    }).catch(async err => {
-      // If lead lookup fails, try fetching from GHL directly
-      const contact = await ghlGetContact(contact_id);
-      return findOrCreateLead({
-        ghlContactId: contact_id,
-        name:  [contact.firstName, contact.lastName].filter(Boolean).join(' '),
-        phone: toE164(contact.phone || contact.mobilePhone),
-        email: contact.email,
-        timezone: contact.timezone || timezone,
-      });
+      name:  ghlContact
+        ? [ghlContact.firstName, ghlContact.lastName].filter(Boolean).join(' ')
+        : (body.first_name ? [body.first_name, body.last_name].filter(Boolean).join(' ') : undefined),
+      phone: contactPhone,
+      email: ghlContact?.email || body.email,
+      timezone: resolvedTz,
     });
+
+    // Back-fill lead.timezone if the record was created without one (e.g. came through new-lead webhook earlier)
+    if (resolvedTz && !lead.timezone) {
+      await supabase?.from('leads').update({ timezone: resolvedTz }).eq('id', lead.id);
+    }
 
     // Pause speed-to-lead follow-up now that they've booked
     await supabase?.from('leads').update({
-      status:         'booked',
+      status:          'booked',
       followup_paused: true,
     }).eq('id', lead.id);
 
     await upsertAppointment({
       ghlAppointmentId: appointment_id,
-      leadId:    lead.id,
-      startAt:   start_time,
-      endAt:     end_time,
-      timezone:  timezone || lead.timezone || 'America/New_York',
-      zoomLink:  zoom_link,
+      leadId:   lead.id,
+      startAt:  start_time,
+      endAt:    end_time,
+      timezone: resolvedTz,
+      zoomLink: zoom_link,
     });
 
-    await logEvent('appointment_booked', { lead_id: lead.id, appointment_id, start_time });
-    console.log(`[appointment-booked] Lead ${lead.id}, appt ${appointment_id} at ${start_time} — reminders scheduled`);
+    await logEvent('appointment_booked', { lead_id: lead.id, appointment_id, start_time, timezone: resolvedTz });
+    console.log(`[appointment-booked] Lead ${lead.id}, appt ${appointment_id} at ${start_time} tz=${resolvedTz} — reminders scheduled`);
   } catch (err) {
     await dlq('webhook/appointment-booked', body, err);
   }
@@ -1229,8 +1246,10 @@ async function runAppointmentReminderCron() {
       continue;
     }
 
-    // TCPA: check calling hours BEFORE claiming — defer trigger_at if outside window
-    const reminderTz = appt.timezone || 'America/New_York';
+    // TCPA: check calling hours BEFORE claiming — defer trigger_at if outside window.
+    // Timezone priority: appointment.timezone (set from GHL contact at booking time)
+    // → lead.timezone → area-code lookup → America/New_York
+    const reminderTz = appt.timezone || lead.timezone || phoneToTimezone(lead.phone) || 'America/New_York';
     const waitMs = msUntilCallable(new Date(), reminderTz);
     if (waitMs > 0) {
       await supabase.from('appointment_reminders')
@@ -1253,11 +1272,11 @@ async function runAppointmentReminderCron() {
 
     try {
       const startLocal = new Date(appt.start_at).toLocaleTimeString('en-US', {
-        hour: 'numeric', minute: '2-digit', timeZone: appt.timezone,
+        hour: 'numeric', minute: '2-digit', timeZone: reminderTz,
         timeZoneName: 'short',
       });
       const startDate = new Date(appt.start_at).toLocaleDateString('en-US', {
-        weekday: 'long', month: 'long', day: 'numeric', timeZone: appt.timezone,
+        weekday: 'long', month: 'long', day: 'numeric', timeZone: reminderTz,
       });
 
       const callData = await triggerRetellCall({
