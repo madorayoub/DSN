@@ -71,11 +71,11 @@
       ],
       "instruction": {
         "type": "prompt",
-        "text": "They can't make the current time. Express understanding: \"No worries at all — let me see what else we have.\"\n\nCall check_availability() immediately.\n\nIf has_availability is true: present 2-3 available days (not times yet). \"We've got Thursday or Friday open — either of those work?\" Keep re-asking until they commit to a day or decide to cancel.\nIf has_availability is false: \"It looks like we're pretty full right now — I'll have the team reach out to find a new time. You'll get an email shortly.\" Then end gracefully, which triggers the 'no availability' edge.\n\nDone when lead commits to a day OR has_availability is false OR lead decides to cancel."
+        "text": "They can't make the current time. Express understanding: \"No worries at all — let me see what else we have.\"\n\nCall check_availability(timezone={{timezone}}, days_ahead=5) immediately.\n\nIf the tool fails: \"I'll have the team reach out to find a new time — you'll get an email shortly.\" End gracefully.\nIf has_availability is true: present 2-3 available days (not times yet). \"We've got Thursday or Friday open — either of those work?\" Keep re-asking until they commit to a day or decide to cancel. If the lead is vague or keeps saying 'maybe' or 'not sure', say: \"No problem — I'll have the team follow up with some options by email.\" Then end gracefully.\nIf has_availability is false: \"It looks like we're pretty full right now — I'll have the team reach out to find a new time. You'll get an email shortly.\" Then end gracefully.\n\nDone when lead commits to a day OR has_availability is false OR lead decides to cancel OR lead is indecisive."
       },
       "edges": [
-        { "id": "e6", "destination_node_id": "reschedule_pick_time", "transition_condition": { "type": "prompt", "prompt": "Lead picked a preferred day for rescheduling" } },
-        { "id": "e7", "destination_node_id": "cancel", "transition_condition": { "type": "prompt", "prompt": "No availability (has_availability=false) or lead decides to cancel instead of reschedule" } }
+        { "id": "e6", "destination_node_id": "reschedule_pick_time", "transition_condition": { "type": "prompt", "prompt": "Lead picked a specific preferred day for rescheduling" } },
+        { "id": "e7", "destination_node_id": "cancel", "transition_condition": { "type": "prompt", "prompt": "No availability (has_availability=false), tool call failed, lead decides to cancel, or lead is indecisive and the agent offered to have the team follow up" } }
       ]
     },
     {
@@ -107,7 +107,7 @@
       ],
       "instruction": {
         "type": "prompt",
-        "text": "Call check_availability() for the day they chose. Use timezone={{timezone}}, days_ahead=5.\n\nPresent 2-3 specific times from that day. Remember the exact slot_iso for each. Say them naturally: \"We've got ten AM, one, or three thirty — which works?\"\n\nIf the lead wants different times on the SAME day: call check_availability() again and re-present slots.\nIf the lead wants a DIFFERENT day: that triggers the edge back to day selection.\n\nDone when they agree to a specific time."
+        "text": "Call check_availability(timezone={{timezone}}, days_ahead=5) for the day they chose.\n\nPresent 2-3 specific times from that day. Say them naturally: \"We've got ten AM, one, or three thirty — which works?\"\n\nCRITICAL: For each time you name, immediately note the corresponding slot_iso from available_slots_iso. When the lead picks one, recall the exact ISO string matched to that time — you will pass it to book_appointment. Never guess or reconstruct the ISO.\n\nIf the lead wants different times on the SAME day: call check_availability() again and re-present slots.\nIf the lead wants a DIFFERENT day: that triggers the edge back to day selection.\n\nDone when they agree to a specific time."
       },
       "edges": [
         { "id": "e8", "destination_node_id": "reschedule_book", "transition_condition": { "type": "prompt", "prompt": "Lead agreed to a specific new time" } },
@@ -145,11 +145,12 @@
       ],
       "instruction": {
         "type": "prompt",
-        "text": "Call book_appointment() with the new slot_iso, lead_id={{lead_id}}, and timezone.\n\nIf success: move to reschedule_confirmed.\nIf not success: apologize, that slot was just taken. Offer to try another — go back to reschedule_pick_time."
+        "text": "Call book_appointment() with the new slot_iso (the exact ISO string you retained for the chosen time), lead_id={{lead_id}}, and timezone={{timezone}}.\n\nIf success: move to reschedule_confirmed.\nIf not success: apologize, that slot was just taken. Offer to try another — go back to reschedule_pick_time.\nIf the tool call fails or returns an error: say 'Something went wrong — I'll have the team send you a new booking link by email.' End the call gracefully."
       },
       "edges": [
         { "id": "e11", "destination_node_id": "reschedule_confirmed", "transition_condition": { "type": "prompt", "prompt": "book_appointment returned success:true" } },
-        { "id": "e12", "destination_node_id": "reschedule_pick_time", "transition_condition": { "type": "prompt", "prompt": "book_appointment returned success:false" } }
+        { "id": "e12", "destination_node_id": "reschedule_pick_time", "transition_condition": { "type": "prompt", "prompt": "book_appointment returned success:false — slot unavailable" } },
+        { "id": "e12b", "destination_node_id": "cancel", "transition_condition": { "type": "prompt", "prompt": "book_appointment tool call failed with an error or the agent told the lead the team will follow up by email" } }
       ]
     },
     {

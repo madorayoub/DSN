@@ -88,7 +88,9 @@ function requireWebhookSecret(req, res, next) {
     console.warn('[auth] WEBHOOK_SECRET not set — request allowed (insecure)');
     return next();
   }
-  if (req.headers['x-webhook-secret'] !== WEBHOOK_SECRET) {
+  const provided = Buffer.from(req.headers['x-webhook-secret'] || '');
+  const expected = Buffer.from(WEBHOOK_SECRET);
+  if (provided.length !== expected.length || !crypto.timingSafeEqual(provided, expected)) {
     return res.status(403).json({ error: 'Forbidden' });
   }
   next();
@@ -344,11 +346,9 @@ async function acquireCronLock(jobName, intervalMs = 5 * 60_000) {
     p_lock_until:  lockUntil,
   });
   if (error) {
-    // Fallback: direct upsert if RPC doesn't exist yet (first deploy)
-    const { error: upErr } = await supabase.from('cron_locks')
-      .upsert({ job_name: jobName, locked_until: lockUntil }, { onConflict: 'job_name', ignoreDuplicates: false })
-      .lt('locked_until', new Date().toISOString()); // only update if expired
-    return !upErr;
+    // RPC failed — skip this tick rather than risk two instances running simultaneously
+    console.error(`[cron-lock] try_acquire_cron_lock RPC failed: ${error.message} — skipping tick`);
+    return false;
   }
   return data === true;
 }
@@ -627,6 +627,16 @@ app.post('/webhook/new-lead', requireWebhookSecret, async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function scheduleSpeedToLeadCall(lead) {
+  // Guard: don't transition to 'calling' if we can't actually make the call
+  if (!RETELL_AGENT_ID_SPEED_TO_LEAD) {
+    console.warn(`[speed-to-lead] RETELL_AGENT_ID_SPEED_TO_LEAD not set — not scheduling lead ${lead.id}`);
+    return;
+  }
+  if (!RETELL_FROM_NUMBER) {
+    console.warn(`[speed-to-lead] RETELL_FROM_NUMBER not set — not scheduling lead ${lead.id}`);
+    return;
+  }
+
   const baseDelayMs = parseInt(RETELL_SPEED_TO_LEAD_DELAY_MS, 10) || 90_000;
   const tz          = lead.timezone || phoneToTimezone(lead.phone);
   const callAt      = new Date(Date.now() + baseDelayMs);
@@ -748,13 +758,16 @@ app.post('/webhook/appointment-cancelled', requireWebhookSecret, async (req, res
   console.log(`[webhook/appointment-cancelled] appt: ${appointment_id}`);
 
   try {
-    if (!appointment_id) return;
+    if (!appointment_id) {
+      await dlq('webhook/appointment-cancelled', req.body, new Error('Missing appointment_id'));
+      return;
+    }
 
     const { data: appt } = await supabase?.from('appointments')
       .select('id, lead_id').eq('ghl_appointment_id', appointment_id).maybeSingle();
 
     if (!appt) {
-      console.warn(`[appointment-cancelled] Appointment ${appointment_id} not in DB — nothing to do`);
+      await dlq('webhook/appointment-cancelled', req.body, new Error(`Appointment ${appointment_id} not found in DB`));
       return;
     }
 
@@ -820,7 +833,7 @@ app.post('/webhook/retell', validateRetell, async (req, res) => {
 
     if (event === 'call_analyzed') {
       const summary  = call_analysis?.call_summary || '';
-      const outcome  = extractOutcome(call_analysis, transcript);
+      const outcome  = extractOutcome(call_analysis, transcript, disconnection_reason);
 
       await supabase?.from('call_logs').update({
         call_status:  call_status,
@@ -901,16 +914,32 @@ async function handleCallOutcome({ leadId, callId, callType, outcome, appointmen
         await dlq('handleCallOutcome/dnc', { lead_id: leadId, phone: dncLead.phone }, dncErr);
       }
     }
+  } else if (outcome === 'callback_requested') {
+    // Lead asked to be called back — reschedule 1 hour out, keep in calling rotation
+    leadUpdate.status           = 'calling';
+    leadUpdate.followup_paused  = false;
+    leadUpdate.next_followup_at = new Date(Date.now() + 60 * 60_000).toISOString();
+  } else if (outcome === 'rescheduled') {
+    // Reminder flow rescheduled — new appointment already booked by book-appointment endpoint
+    leadUpdate.status          = 'booked';
+    leadUpdate.followup_paused = true;
+  } else if (outcome === 'confirmed') {
+    // Reminder confirmed attendance — no status change needed
   } else if (callType === 'speed_to_lead' && ['no_answer', 'voicemail'].includes(outcome)) {
     // Advance the follow-up step so cron picks up the next attempt
     const { data: lead } = await supabase.from('leads').select('followup_step').eq('id', leadId).single();
     const step = (lead?.followup_step || 1) + 1;
-    leadUpdate.followup_step    = step;
+    leadUpdate.followup_step = step;
     // Follow-up schedule: attempt 1 → 2 (45s, handled by double-dial), attempt 3 at T+10min, attempt 4 at T+30min, attempt 5 at T+4h, attempt 6 at T+24h
     const FOLLOWUP_DELAYS = [0, 0, 45_000, 10 * 60_000, 30 * 60_000, 4 * 60 * 60_000, 24 * 60 * 60_000];
-    const delay           = FOLLOWUP_DELAYS[Math.min(step, FOLLOWUP_DELAYS.length - 1)] || 24 * 60 * 60_000;
-    leadUpdate.next_followup_at = new Date(Date.now() + delay).toISOString();
-    if (step > 6) leadUpdate.status = 'exhausted';
+    const delay = FOLLOWUP_DELAYS[Math.min(step, FOLLOWUP_DELAYS.length - 1)] || 24 * 60 * 60_000;
+    if (step > 6) {
+      leadUpdate.status          = 'exhausted';
+      leadUpdate.followup_paused = true;
+      // Don't schedule next_followup_at — exhausted leads are not picked up by cron
+    } else {
+      leadUpdate.next_followup_at = new Date(Date.now() + delay).toISOString();
+    }
   }
 
   await supabase?.from('leads').update(leadUpdate).eq('id', leadId);
@@ -925,21 +954,29 @@ async function handleCallOutcome({ leadId, callId, callType, outcome, appointmen
 }
 
 // Parse Retell call_analysis to extract a normalised outcome label.
-function extractOutcome(callAnalysis = {}, transcript = '') {
+// disconnectionReason (from Retell) is the most reliable signal — use it first.
+function extractOutcome(callAnalysis = {}, transcript = '', disconnectionReason = '') {
+  // Priority 1: Retell disconnect reason — objective, not LLM-interpreted
+  if (disconnectionReason === 'voicemail_reached') return 'voicemail';
+  if (['dial_no_answer', 'dial_failed', 'dial_busy'].includes(disconnectionReason)) return 'no_answer';
+
   const summary = (callAnalysis?.call_summary || '').toLowerCase();
   const intent  = (callAnalysis?.user_sentiment || '').toLowerCase();
 
+  // Priority 2: summary text patterns
   if (summary.includes('booked') || summary.includes('appointment') || summary.includes('scheduled')) return 'booked';
-  if (summary.includes('not interested') || summary.includes('no thanks') || intent === 'negative') return 'not_interested';
-  if (summary.includes('call back') || summary.includes('callback')) return 'callback_requested';
+  if (summary.includes('rescheduled') || summary.includes('reschedule')) return 'rescheduled';
+  if (summary.includes('confirmed') || summary.includes('see you then')) return 'confirmed';
+  if (summary.includes('callback') || summary.includes('call back') || summary.includes('call me back')) return 'callback_requested';
   if (summary.includes('stop') || summary.includes('do not call') || summary.includes('remove')) return 'dnc';
+  if (summary.includes('wrong number') || summary.includes('wrong person')) return 'not_interested';
+  if (summary.includes('not interested') || summary.includes('no thanks') || intent === 'negative') return 'not_interested';
   if (summary.includes('voicemail') || summary.includes('left a message')) return 'voicemail';
   if (summary.includes('no answer') || summary.includes('didn\'t answer')) return 'no_answer';
-  if (summary.includes('confirmed') || summary.includes('see you then')) return 'confirmed';
-  if (summary.includes('reschedule')) return 'rescheduled';
 
-  const disconn = (transcript || '').toLowerCase();
-  if (disconn === '' || disconn.length < 50) return 'no_answer';
+  // Priority 3: transcript length as last resort
+  const t = (transcript || '').trim();
+  if (!t || t.length < 50) return 'no_answer';
   return 'completed';
 }
 
@@ -1001,7 +1038,29 @@ app.post('/retell/function/book-appointment', validateRetell, async (req, res) =
 
   try {
     const { data: lead } = await supabase.from('leads').select('*').eq('id', leadId).single();
-    if (!lead) return res.json({ success: false, error: 'Lead not found' });
+    if (!lead) {
+      await dlq('retell/book-appointment', { args, lead_id: leadId }, new Error('Lead not found'));
+      return res.json({ success: false, error: 'Lead not found' });
+    }
+
+    // If called from a reminder context, cancel the old appointment before booking the new one
+    const oldAppointmentId = call?.metadata?.appointment_id;
+    if (oldAppointmentId) {
+      const { data: oldAppt } = await supabase.from('appointments')
+        .select('id').eq('id', oldAppointmentId).maybeSingle();
+      if (oldAppt) {
+        await supabase.from('appointments').update({
+          status:       'cancelled',
+          cancelled_at: new Date().toISOString(),
+          updated_at:   new Date().toISOString(),
+        }).eq('id', oldAppt.id);
+        await supabase.from('appointment_reminders')
+          .update({ status: 'skipped', error: 'appointment rescheduled' })
+          .eq('appointment_id', oldAppt.id)
+          .in('status', ['pending', 'sent']);
+        await logEvent('appointment_rescheduled_via_agent', { lead_id: lead.id, old_appointment_id: oldAppt.id, new_slot_iso: slot_iso });
+      }
+    }
 
     const appt = await ghlBookAppointment({
       contactId: lead.ghl_contact_id,
@@ -1012,11 +1071,12 @@ app.post('/retell/function/book-appointment', validateRetell, async (req, res) =
       timezone:  timezone || lead.timezone || 'America/New_York',
     });
 
-    // Mirror to Supabase
+    // Mirror to Supabase — include endAt from GHL response
     await upsertAppointment({
       ghlAppointmentId: appt.id,
       leadId:   lead.id,
       startAt:  slot_iso,
+      endAt:    appt.endTime || appt.end_time || null,
       timezone: timezone || lead.timezone || 'America/New_York',
     });
 
@@ -1143,6 +1203,17 @@ async function runAppointmentReminderCron() {
 
     if (appt.status === 'cancelled') {
       await supabase.from('appointment_reminders').update({ status: 'skipped', error: 'appointment cancelled' }).eq('id', reminder.id);
+      continue;
+    }
+
+    // TCPA: check calling hours BEFORE claiming — defer trigger_at if outside window
+    const reminderTz = appt.timezone || 'America/New_York';
+    const waitMs = msUntilCallable(new Date(), reminderTz);
+    if (waitMs > 0) {
+      await supabase.from('appointment_reminders')
+        .update({ trigger_at: new Date(Date.now() + waitMs).toISOString() })
+        .eq('id', reminder.id).eq('status', 'pending');
+      console.log(`[cron/appointment-reminders] Reminder ${reminder.id} deferred ${Math.round(waitMs / 60000)}min (outside calling hours)`);
       continue;
     }
 

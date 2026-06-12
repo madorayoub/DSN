@@ -169,7 +169,11 @@ end;
 $$;
 
 -- ── Composite index for cron query ────────────────────────────────────────────
--- Supports: WHERE status='calling' AND followup_paused=false AND next_followup_at <= now()
+-- Supports: WHERE status='calling' AND followup_paused=false AND next_followup_at <= now() AND followup_step <= 6
 create index if not exists idx_leads_cron_query
-  on leads(next_followup_at)
+  on leads(next_followup_at, followup_step)
   where status = 'calling' and followup_paused = false;
+
+-- ── Phone index for DNC checks ────────────────────────────────────────────────
+-- DNC checks run on every inbound lead and every cron tick — needs an index.
+create index if not exists idx_leads_phone on leads(phone);

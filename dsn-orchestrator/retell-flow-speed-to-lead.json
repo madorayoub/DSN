@@ -23,9 +23,10 @@
       },
       "edges": [
         { "id": "e1", "destination_node_id": "qualify", "transition_condition": { "type": "prompt", "prompt": "Lead confirmed identity and is willing to talk" } },
-        { "id": "e2", "destination_node_id": "not_interested", "transition_condition": { "type": "prompt", "prompt": "Lead says not interested, never filled a form, or wants to be removed" } },
+        { "id": "e2", "destination_node_id": "not_interested", "transition_condition": { "type": "prompt", "prompt": "Lead says not interested, never filled a form, wrong number, or wants to be removed" } },
         { "id": "e3", "destination_node_id": "callback", "transition_condition": { "type": "prompt", "prompt": "Lead is busy and asks to be called back later" } },
-        { "id": "e4", "destination_node_id": "voicemail", "transition_condition": { "type": "prompt", "prompt": "Call goes to voicemail" } }
+        { "id": "e4", "destination_node_id": "voicemail", "transition_condition": { "type": "prompt", "prompt": "Call goes to voicemail" } },
+        { "id": "e4b", "destination_node_id": "not_interested", "transition_condition": { "type": "prompt", "prompt": "Lead goes silent, hangs up, or the call drops before confirming identity" } }
       ]
     },
     {
@@ -38,7 +39,8 @@
       "edges": [
         { "id": "e5", "destination_node_id": "check_slots", "transition_condition": { "type": "prompt", "prompt": "Lead is open to booking or asks about availability" } },
         { "id": "e6", "destination_node_id": "not_interested", "transition_condition": { "type": "prompt", "prompt": "Lead clearly declines after the ask" } },
-        { "id": "e7", "destination_node_id": "callback", "transition_condition": { "type": "prompt", "prompt": "Lead asks to be called back later" } }
+        { "id": "e7", "destination_node_id": "callback", "transition_condition": { "type": "prompt", "prompt": "Lead asks to be called back later" } },
+        { "id": "e7b", "destination_node_id": "not_interested", "transition_condition": { "type": "prompt", "prompt": "Lead is confused, denies filling out a form, disputes the contact, or gives responses that suggest this is a wrong contact" } }
       ]
     },
     {
@@ -71,11 +73,11 @@
       ],
       "instruction": {
         "type": "prompt",
-        "text": "Call check_availability() immediately.\n\nIf has_availability is false: apologize, say the team will reach out via email to schedule. End call gracefully.\nIf has_availability is true: look at available_slots_formatted. Present 2-3 closest DAYS only (not times yet). \"We've got tomorrow and Wednesday open — which works better?\"\n\nNever list specific times yet. Days first, then stop and listen.\n\nDone when lead picks a day or says any time works."
+        "text": "Call check_availability(timezone={{timezone}}, days_ahead=5) immediately.\n\nIf the tool call fails or returns an error: say 'Let me have someone from the team reach out to find a time that works for you' and end gracefully.\nIf has_availability is false: apologize, say the team will reach out via email to schedule. End call gracefully.\nIf has_availability is true: look at available_slots_formatted. Present 2-3 closest DAYS only (not times yet). \"We've got tomorrow and Wednesday open — which works better?\"\n\nNever list specific times yet. Days first, then stop and listen.\n\nDone when lead picks a day or says any time works."
       },
       "edges": [
         { "id": "e8", "destination_node_id": "pick_time", "transition_condition": { "type": "prompt", "prompt": "Lead picked a preferred day or said any time works" } },
-        { "id": "e9", "destination_node_id": "not_interested", "transition_condition": { "type": "prompt", "prompt": "Lead says no days work or is no longer interested, OR check_availability returned has_availability=false" } }
+        { "id": "e9", "destination_node_id": "not_interested", "transition_condition": { "type": "prompt", "prompt": "Lead says no days work, is no longer interested, check_availability returned has_availability=false, or tool call failed" } }
       ]
     },
     {
@@ -107,7 +109,7 @@
       ],
       "instruction": {
         "type": "prompt",
-        "text": "Call check_availability() to get fresh slot data. Use timezone={{timezone}}, days_ahead=5.\n\nFrom the response, filter to the day the lead picked. Present exactly 2-3 specific times — spread across morning and afternoon if possible. Say them naturally: \"We've got ten AM, one thirty, or three — any of those work?\"\n\nRemember the exact slot_iso value for each time you name.\n\nIf the lead wants different times on the SAME day: call check_availability() again and re-present additional slots from that day.\nIf the lead wants a DIFFERENT day: that triggers the edge back to day selection.\n\nWait for their answer. Done when they agree to a specific time."
+        "text": "Call check_availability(timezone={{timezone}}, days_ahead=5) to get fresh slot data.\n\nFrom the response, filter to the day the lead picked. Present exactly 2-3 specific times — spread across morning and afternoon if possible. Say them naturally: \"We've got ten AM, one thirty, or three — any of those work?\"\n\nCRITICAL: For each time you name, immediately note the corresponding slot_iso from available_slots_iso. When the lead picks one (e.g. 'one thirty'), recall the exact ISO string you matched to that time — you will pass it to book_appointment. Never guess or reconstruct the ISO; use only the value from available_slots_iso.\n\nIf the lead wants different times on the SAME day: call check_availability() again and re-present additional slots from that day.\nIf the lead wants a DIFFERENT day: that triggers the edge back to day selection.\nIf the lead wants a day more than a week out: say 'Our calendar only shows the next few days right now — I can have the team reach out once more slots open up.' Then go to not_interested.\n\nWait for their answer. Done when they agree to a specific time."
       },
       "edges": [
         { "id": "e10", "destination_node_id": "book", "transition_condition": { "type": "prompt", "prompt": "Lead agreed to a specific time" } },
@@ -145,11 +147,12 @@
       ],
       "instruction": {
         "type": "prompt",
-        "text": "Call book_appointment() with slot_iso (exact ISO for chosen time), lead_id={{lead_id}}, and timezone.\n\nIf booking_success is true: move to confirmed.\nIf booking_success is false: apologize — that slot just got taken. Offer another time and go back to pick_time."
+        "text": "Call book_appointment() with slot_iso (the exact ISO string you retained for the chosen time), lead_id={{lead_id}}, and timezone={{timezone}}.\n\nIf booking_success is true: move to confirmed.\nIf booking_success is false: apologize — that slot just got taken. Offer another time and go back to pick_time.\nIf the tool call fails or returns an error: say 'Something went wrong on our end — I'll have the team send you a booking link by email.' End the call gracefully."
       },
       "edges": [
         { "id": "e13", "destination_node_id": "confirmed", "transition_condition": { "type": "prompt", "prompt": "book_appointment returned success:true with a confirmation time" } },
-        { "id": "e14", "destination_node_id": "pick_time", "transition_condition": { "type": "prompt", "prompt": "book_appointment returned success:false — slot unavailable" } }
+        { "id": "e14", "destination_node_id": "pick_time", "transition_condition": { "type": "prompt", "prompt": "book_appointment returned success:false — slot unavailable" } },
+        { "id": "e14b", "destination_node_id": "not_interested", "transition_condition": { "type": "prompt", "prompt": "book_appointment tool call failed with an error or the agent told the lead the team will follow up by email" } }
       ]
     },
     {
