@@ -1,5 +1,28 @@
 'use strict';
 
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  DSN CALL ORCHESTRATOR — Direct Sales Network ONLY                         ║
+// ║  DO NOT confuse with Task Force Garage (TFG) — separate company, separate  ║
+// ║  Railway project, separate Retell agents, separate GHL + Supabase.         ║
+// ║                                                                              ║
+// ║  DSN identifiers (this file):                                               ║
+// ║    Railway project : dsn-call-orchestrator                                  ║
+// ║    GHL location    : NgduPjDbvABP3zFIqnt4                                  ║
+// ║    GHL calendar    : DXh5uGCZVjFLPQNeKRZu  (Free Consultation)             ║
+// ║    Supabase project: kygcxlteriyctkzcpzvk                                   ║
+// ║    Retell STL agent: agent_d7bffee08f5962e2a0c5789fcd  (Morgan — STL)     ║
+// ║    Retell reminder : agent_1cf55115cf9e5477adb445c754  (Morgan — Reminder) ║
+// ║    Retell STL flow : conversation_flow_9ef584e2f263                         ║
+// ║    Retell rem flow : conversation_flow_68c0252a092d                         ║
+// ║                                                                              ║
+// ║  TFG identifiers (NEVER touch for DSN):                                    ║
+// ║    Railway project : fb-lead-orchestrator / heartfelt-expression            ║
+// ║    GHL location    : EK2GwCXGAzUxIDjqhQ9C                                  ║
+// ║    GHL calendar    : VbGrFLei6jzy154UaZaP                                   ║
+// ║    Supabase project: ewoftdovrrhcvliijyrl                                   ║
+// ║    Retell agents   : multi-city (Charlotte/Nashville/Scottsdale/Seattle)    ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
 const express   = require('express');
 const rateLimit = require('express-rate-limit');
 const crypto    = require('crypto');

@@ -20,8 +20,48 @@ The Railway account (`ayoubhighlevel3-arch`, ayoub.highlevel3@gmail.com) runs se
 
 **Rules:**
 - TFG services are COMPLETELY UNRELATED to DSN. Never reuse TFG's GHL location, calendars, Supabase projects, or phone numbers for DSN.
-- **`fb-lead-orchestrator` is the architectural reference** for the DSN build — same pattern (lead webhook → Retell `create-phone-call` → GHL calendar booking → Supabase state). Before building, pull its repo/code (check the Railway service source; likely under the `madorayoub` GitHub account) and mirror its structure, prompts, and retry logic, swapping in DSN's GHL location/calendar/branding. The Retell account/API key may be shared across companies — verify with Ayoub whether DSN gets its own Retell workspace or separate agents in the same one.
-- The new DSN orchestrator gets its **own Railway project** (suggested name: `dsn-call-orchestrator`).
+- The DSN orchestrator lives in its own Railway project (`dsn-call-orchestrator`, project ID `b15f53c2-10e3-48b1-a006-0557020f5499`).
+
+---
+
+## 2c. Retell account — DSN agents vs TFG agents (CRITICAL — never mix)
+
+The Retell account (`key_b94ce6795b1d70d2882779b2eb31`) is **shared** between DSN and TFG. Both companies' agents live in the same Retell workspace. **Only edit the DSN agents listed below.**
+
+### DSN agents (this repo — safe to edit)
+
+| ID | Name | Type | Conversation flow |
+|---|---|---|---|
+| `agent_d7bffee08f5962e2a0c5789fcd` | Morgan — DSN Speed to Lead | Speed-to-lead outbound | `conversation_flow_9ef584e2f263` |
+| `agent_1cf55115cf9e5477adb445c754` | Morgan — DSN Reminder | Appointment reminder | `conversation_flow_68c0252a092d` |
+
+Both flows call back to `https://dsn-call-orchestrator-production.up.railway.app/retell/function/`.
+
+### TFG agents (NEVER touch — separate company)
+
+TFG runs **multi-city** agents. Each city has its own agent ID + from-number + GHL pipeline. These are in the same Retell workspace but belong to Task Force Garage, not DSN:
+
+| City | Railway project | GHL location |
+|---|---|---|
+| Charlotte | `heartfelt-expression` (TFG-main) | `EK2GwCXGAzUxIDjqhQ9C` |
+| Nashville | same | same |
+| Scottsdale | same | same |
+| Seattle | same | same |
+
+**If you are ever looking at the Retell dashboard and see agents named after cities or "Task Force" — those are TFG. Do not edit, clone, or delete them for DSN work.**
+
+---
+
+## 2d. Timezone — area code lookup (already built)
+
+Phone number → IANA timezone is resolved automatically from the US area code. No external API needed.
+
+- Map: `AREA_CODE_TZ` in `dsn-orchestrator/index.js` (~330 US area codes → IANA tz)
+- Function: `phoneToTimezone(phone)` — strips country code, reads 3-digit area code, returns e.g. `America/Chicago`. Falls back to `America/New_York` for unknown codes.
+- Wired at all trigger points: new-lead webhook (line ~601), speed-to-lead cron (line ~641), reminder cron (line ~870)
+- GHL timezone field takes precedence if present; area-code lookup is the fallback when GHL doesn't send it.
+
+No ZIP codes required. All TCPA calling-hours checks (`msUntilCallable`) use the resolved IANA timezone.
 
 ---
 
