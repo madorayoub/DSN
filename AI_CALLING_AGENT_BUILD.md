@@ -2,7 +2,7 @@
 
 > **Purpose of this file:** Complete handoff document. If a build session is interrupted (usage limits, context loss), any engineer or AI agent can pick up from here with zero prior context. Read top to bottom before writing code.
 >
-> Last updated: 2026-06-11. Status: **IN PROGRESS — Supabase ✅, schema ✅, orchestrator code ✅, Retell flows + agents ✅. Next: Railway deploy + phone number.**
+> Last updated: 2026-06-12. Status: **DEPLOYED — orchestrator live on Railway, schema live on Supabase, Retell flows + agents active. Pending: DSN phone number purchase + 3 GHL webhooks.**
 >
 > **Revision 2 (2026-06-11, per Ayoub):** The orchestrator will be a **NEW standalone Railway service** (do NOT build inside the existing DSN server), and **Supabase is the single source of truth** (NOT Railway Postgres). See Sections 2b, 5, 6.
 
@@ -231,29 +231,55 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
 - [x] 3. Create Retell conversation flows via API — DONE
   - Speed-to-lead flow: `conversation_flow_9ef584e2f263`
   - Reminder flow: `conversation_flow_68c0252a092d`
+  - Both tool URLs set to `https://dsn-call-orchestrator-production.up.railway.app/retell/function/`
 - [x] 4. Create Retell agents via API — DONE
   - Speed-to-lead agent: `agent_d7bffee08f5962e2a0c5789fcd` ("Morgan — DSN Speed to Lead")
   - Reminder agent: `agent_1cf55115cf9e5477adb445c754` ("Morgan — DSN Reminder")
   - Both use voice `11labs-Adrian`, claude-4.5-sonnet model
-- [ ] 5. Get Supabase service-role key → Supabase dashboard → Project Settings → API → copy `service_role` (secret) key → add as SUPABASE_SECRET_KEY in Railway
-- [ ] 6. Create Railway project `dsn-call-orchestrator`, deploy from `dsn-orchestrator/` dir
-- [ ] 7. Set up Railway cron jobs (speed-to-lead every 5min, appointment-reminders every 5min)
-- [ ] 8. **Buy/import DSN phone number in Retell dashboard** → update `RETELL_FROM_NUMBER` env var in Railway → update tool URLs in both conversation flows (replace `REPLACE_WITH_RAILWAY_URL`)
-- [ ] 9. Set Retell agent webhook URL in dashboard: `https://<railway-url>/webhook/retell` (call_started, call_ended, call_analyzed)
-- [ ] 10. GHL workflows: new-lead → webhook, appointment-booked → webhook, appointment-cancelled → webhook
-- [ ] 11. Knowledge base: run `scripts/export_transcripts.py` + `scripts/build_knowledge_base.py` (not yet written)
-- [ ] 12. End-to-end test: submit test lead → call own phone → book → confirm reminder fires T-24h and T-1h
+- [x] 5. Supabase service-role key added as `SUPABASE_SECRET_KEY` in Railway
+- [x] 6. Railway project `dsn-call-orchestrator` deployed — `https://dsn-call-orchestrator-production.up.railway.app`
+- [x] 7. Railway cron jobs running — speed-to-lead every 5min, appointment-reminders every 5min
+- [x] 8a. Flow tool URLs updated (no longer placeholder) — both flows patched to live Railway URL
+- [ ] **8b. Buy DSN phone number in Retell dashboard** → then:
+  ```bash
+  railway variables set RETELL_FROM_NUMBER=+1XXXXXXXXXX --service dsn-call-orchestrator
+  ```
+- [x] 9. Retell agent webhook URL set: `https://dsn-call-orchestrator-production.up.railway.app/webhook/retell`
+- [ ] **10. Wire 3 GHL webhooks** (GHL → Settings → Integrations → Custom Webhooks):
+  - New lead created → `POST https://dsn-call-orchestrator-production.up.railway.app/webhook/new-lead`
+  - Appointment booked → `POST https://dsn-call-orchestrator-production.up.railway.app/webhook/appointment-booked`
+  - Appointment cancelled → `POST https://dsn-call-orchestrator-production.up.railway.app/webhook/appointment-cancelled`
+  - Header on all three: `x-webhook-secret: 3b4cf74321aff6778ece459be74646127ffcaef642dbb536`
+- [x] 11. Knowledge base — DONE. `scripts/build_playbook.py` synthesized 16 real Zoom strategy call transcripts (via Claude two-pass extraction → Opus synthesis) into a playbook injected into the speed-to-lead agent's `global_prompt`. Re-run anytime: `python scripts/build_playbook.py`
+- [x] 11a. 17 audit fixes applied (2026-06-12) — TCPA, cron lock, outcomes, flow edges, schema indexes. See commit `bb22627`.
+- [ ] **12. End-to-end test:** submit test lead → confirm call fires within 90s → book slot → confirm reminder rows appear in Supabase → confirm reminder calls fire at T-24h and T-1h
 - [ ] 13. Set up UptimeRobot monitor on `/ping`
 
-### After Railway deploy: update flow tool URLs
-Once Railway URL is known, PATCH both flows to replace `REPLACE_WITH_RAILWAY_URL` with the real URL:
-```bash
-# See dsn-orchestrator/retell-flow-speed-to-lead.json and retell-flow-reminder.json
-# PATCH https://api.retellai.com/update-conversation-flow/conversation_flow_9ef584e2f263
-# PATCH https://api.retellai.com/update-conversation-flow/conversation_flow_68c0252a092d
-```
+## 9. Audit fixes applied 2026-06-12 (commit bb22627)
 
-## 9. Key references
+17 distinct fixes across `index.js`, both Retell flow JSONs, and `supabase-setup.sql`. Key ones:
+
+| Fix | File | What changed |
+|---|---|---|
+| Timing-safe webhook secret | `index.js` | `crypto.timingSafeEqual()` — prevents timing oracle attack |
+| Cron lock fallback removed | `index.js` | `.lt()` after `.upsert()` was silently ignored by Supabase JS client; now returns false if RPC fails |
+| Agent ID guard | `index.js` | Guard `RETELL_AGENT_ID_SPEED_TO_LEAD` + `RETELL_FROM_NUMBER` before setting lead to `status='calling'` |
+| New outcomes | `index.js` | `callback_requested`, `rescheduled`, `confirmed` were silently unhandled in `handleCallOutcome` |
+| Exhausted lead fix | `index.js` | `step > 6` no longer sets `next_followup_at` — exhausted leads stay out of cron queue |
+| `disconnection_reason` primary signal | `index.js` | `extractOutcome` uses `voicemail_reached`, `dial_no_answer`, etc. before LLM summary parsing |
+| TCPA calling hours on reminders | `index.js` | `msUntilCallable()` check happens BEFORE claiming reminder row (can't un-claim a 'sent' row) |
+| DLQ for appointment-cancelled | `index.js` | Missing `appointment_id` or unknown appointment ID → dead-letter queue instead of silent drop |
+| Old appointment cancel on reschedule | `index.js` | Reminder flow reschedule now cancels old appointment row + skips old reminders |
+| `endAt` on upsertAppointment | `index.js` | Passes `appt.endTime \|\| appt.end_time` — was always null before |
+| Timezone in `check_slots` | `retell-flow-speed-to-lead.json` | Explicit `timezone={{timezone}}, days_ahead=5` in tool call instruction |
+| `slot_iso` retention | both flow JSONs | CRITICAL instruction added to `pick_time` / `reschedule_pick_time` nodes to retain exact ISO string |
+| Error edges for tool failures | both flow JSONs | Book node + reschedule_book node now have fallback edge when tool call fails |
+| Silence/hangup edge | `retell-flow-speed-to-lead.json` | `e4b` on intro node — silent/dropped call → `not_interested` instead of hanging |
+| Confused-lead edge | `retell-flow-speed-to-lead.json` | `e7b` on qualify node — wrong contact / disputes form fill → `not_interested` |
+| Indecisive lead handling | `retell-flow-reminder.json` | Offer email follow-up if lead keeps saying 'maybe' instead of looping forever |
+| Schema indexes | `supabase-setup.sql` | `idx_leads_cron_query` now composite with `followup_step`; new `idx_leads_phone` for DNC checks |
+
+## 10. Key references
 - Create Phone Call API: https://docs.retellai.com/api-references/create-phone-call (`POST /v2/create-phone-call`, Bearer auth, `retell_llm_dynamic_variables`, `metadata`)
 - Webhooks: https://docs.retellai.com/features/webhook-overview (call_started/ended/analyzed, `x-retell-signature`)
 - Knowledge Base: https://docs.retellai.com/build/knowledge-base + `POST /create-knowledge-base`
