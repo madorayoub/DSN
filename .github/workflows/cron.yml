@@ -1,0 +1,37 @@
+name: DSN Orchestrator Cron
+
+on:
+  schedule:
+    # Speed-to-lead follow-up + appointment reminders — every 5 minutes
+    - cron: '*/5 * * * *'
+    # No-show check — every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  speed-to-lead:
+    if: github.event.schedule == '*/5 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger /cron/speed-to-lead
+        run: |
+          curl -sf -X POST https://dsn-call-orchestrator-production.up.railway.app/cron/speed-to-lead \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+
+  appointment-reminders:
+    if: github.event.schedule == '*/5 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger /cron/appointment-reminders
+        run: |
+          curl -sf -X POST https://dsn-call-orchestrator-production.up.railway.app/cron/appointment-reminders \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+
+  no-show-check:
+    if: github.event.schedule == '*/15 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger /cron/no-show-check
+        run: |
+          curl -sf -X POST https://dsn-call-orchestrator-production.up.railway.app/cron/no-show-check \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
