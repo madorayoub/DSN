@@ -27,6 +27,18 @@ Requirements
 Credentials are loaded from:
   1. dsn-orchestrator/.env  (RETELL_API_KEY)
   2. server/.env            (ZOOM_*, ANTHROPIC_API_KEY)
+
+Note on retell-flow-speed-to-lead.json
+---------------------------------------
+This script reads/writes the LIVE global_prompt via the Retell API — it does
+not touch retell-flow-speed-to-lead.json. That file is checked-in documentation
+of the flow and currently mirrors the live global_prompt, including the
+"# === DSN CALL PLAYBOOK ===" section this script maintains. If you push this
+script's output, re-export the flow afterward (or copy the new global_prompt
+into the JSON) so the local file doesn't go stale. Conversely, do NOT push
+retell-flow-speed-to-lead.json wholesale to Retell unless its global_prompt
+field currently matches the live one — otherwise you'll overwrite the playbook
+section with whatever is in the file at that moment.
 """
 
 import argparse
@@ -57,7 +69,7 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 # RETELL_API_KEY lives in Railway env vars, not a local .env
 # Set it inline: RETELL_API_KEY=key_... python scripts/build_playbook.py --push-only
 # Or add it to server/.env temporarily
-RETELL_API_KEY    = os.environ.get("RETELL_API_KEY", "key_b94ce6795b1d70d2882779b2eb31")
+RETELL_API_KEY    = os.environ.get("RETELL_API_KEY", "")
 
 ZOOM_TOKEN_URL = "https://zoom.us/oauth/token"
 ZOOM_BASE      = "https://api.zoom.us/v2"

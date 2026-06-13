@@ -26,7 +26,7 @@ The Railway account (`ayoubhighlevel3-arch`, ayoub.highlevel3@gmail.com) runs se
 
 ## 2c. Retell account — DSN agents vs TFG agents (CRITICAL — never mix)
 
-The Retell account (`key_b94ce6795b1d70d2882779b2eb31`) is **shared** between DSN and TFG. Both companies' agents live in the same Retell workspace. **Only edit the DSN agents listed below.**
+The Retell account (API key stored as `RETELL_API_KEY` — see secrets manager) is **shared** between DSN and TFG. Both companies' agents live in the same Retell workspace. **Only edit the DSN agents listed below.**
 
 ### DSN agents (this repo — safe to edit)
 
@@ -56,7 +56,7 @@ TFG runs **multi-city** agents. Each city has its own agent ID + from-number + G
 
 Phone number → IANA timezone is resolved automatically from the US area code. No external API needed.
 
-- Map: `AREA_CODE_TZ` in `dsn-orchestrator/index.js` (~330 US area codes → IANA tz)
+- Map: `AREA_CODE_TZ` in `dsn-orchestrator/index.js` (~307 US area codes → IANA tz)
 - Function: `phoneToTimezone(phone)` — strips country code, reads 3-digit area code, returns e.g. `America/Chicago`. Falls back to `America/New_York` for unknown codes.
 - Wired at all trigger points: new-lead webhook (line ~601), speed-to-lead cron (line ~641), reminder cron (line ~870)
 - GHL timezone field takes precedence if present; area-code lookup is the fallback when GHL doesn't send it.
@@ -98,7 +98,7 @@ Why: leads called within 5 min are ~21x more likely to qualify vs 30 min ([sourc
 
 Flow:
 1. New lead enters GHL (form fill / opt-in that did NOT already book). Trigger: **GHL Workflow → Custom Webhook action** POSTing to our server: `POST /webhook/retell/new-lead` with `{contact_id, first_name, phone, email, source}`. (Configure in GHL UI: Automation → Workflow → trigger "Contact Created" or "Form Submitted", filter out leads who already have an appointment.)
-2. Server validates (has phone, not DNC, not already booked, within calling hours 8am–8pm lead-local time — derive timezone from area code or GHL contact field; if outside hours, queue for next morning).
+2. Server validates (has phone, not DNC, not already booked, within calling hours 8am–9pm lead-local time, Mon–Fri — derive timezone from area code or GHL contact field; if outside hours, queue for next available window).
 3. Call Retell: `POST https://api.retellai.com/v2/create-phone-call` (Bearer `RETELL_API_KEY`) with `from_number`, `to_number`, `override_agent_id` = speed-to-lead agent, `retell_llm_dynamic_variables` ({first_name, source, company info}), `metadata` ({contact_id, attempt: 1, function: "speed_to_lead"}).
 4. **Double-dial:** on Retell webhook `call_ended` with no answer/voicemail → wait ~60s → dial again (attempt 2). Recommended cadence if still no answer: attempt 3 at +10 min, attempt 4 at +30 min, then next-day attempt; cap at ~6 attempts over 48h, leave voicemail on final attempt only. Track attempts in DB.
 5. **Goal of the call: book the strategy call.** Give the Retell agent two **Custom Functions** (tools) that hit our server:
@@ -133,6 +133,8 @@ Retell supports **Knowledge Bases** linked to agents (retrieval at response time
 Rationale: raw sales transcripts are noisy, contain client PII, and waste retrieval chunks; distilled docs give the voice agent crisp, citable answers with low latency.
 
 ## 5. Database — Supabase (DECIDED)
+
+> **Note:** §§5-6 describe the original FastAPI/`dsn-call-orchestrator` design plan. The actual build (§8) is a Node.js/Express service at `dsn-orchestrator/index.js` — same Supabase project and schema, different language/framework. Treat §§5-6 as historical context for *why* Supabase was chosen, not as the current architecture; §8 onward reflects what's actually deployed.
 
 **Decision (Ayoub, 2026-06-11): Supabase is the single source of truth.** Rationale: the orchestrator (and other Railway services) get direct full DB access — easier to query/inspect than going through the GHL API every time, and it matches how TFG's `fb-lead-orchestrator` already works.
 
@@ -208,7 +210,7 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
 2. Create two agents in Retell (Conversation Flow or single-prompt): "DSN Speed-to-Lead" and "DSN Reminder". Set agent-level `webhook_url` to `https://<railway-app>/webhook/retell/events`, events: `call_started, call_ended, call_analyzed`. Add the two Custom Functions pointing at the Railway tool endpoints. Link the knowledge base once built. Enable voicemail detection (hang up or leave configured voicemail message).
 3. **GHL workflows**: (a) New-lead workflow → webhook to `/webhook/retell/new-lead` (exclude contacts with appointments); (b) Appointment workflow → wait-until-24h-before → webhook, wait-until-1h-before → webhook. Add a "DNC" tag check in both.
 4. **Supabase**: upgrade org to Pro (or create separate DSN org) → create `dsn-orchestrator` project. **Railway**: create new project `dsn-call-orchestrator`, connect the new repo, set env vars.
-5. **Compliance (US outbound AI calls):** only call leads who submitted their number (prior express consent — our forms qualify); disclose AI; honor opt-out ("stop calling" → add to `dnc` table + GHL DNC); respect 8am–9pm local-time window (TCPA); record-keeping via call_logs. Double-dial of a fresh inbound lead is standard practice and consent-covered, but do not exceed reasonable attempt caps.
+5. **Compliance (US outbound AI calls):** only call leads who submitted their number (prior express consent — our forms qualify); disclose AI; honor opt-out ("stop calling" → add to `dnc` table + GHL DNC); respect 8am–9pm local-time window, Mon–Fri (TCPA); record-keeping via call_logs. Double-dial of a fresh inbound lead is standard practice and consent-covered, but do not exceed reasonable attempt caps.
 
 ## 8. Build order (checklist — update as you go)
 
@@ -249,9 +251,11 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
   - New lead created → `POST https://dsn-call-orchestrator-production.up.railway.app/webhook/new-lead`
   - Appointment booked → `POST https://dsn-call-orchestrator-production.up.railway.app/webhook/appointment-booked`
   - Appointment cancelled → `POST https://dsn-call-orchestrator-production.up.railway.app/webhook/appointment-cancelled`
-  - Header on all three: `x-webhook-secret: 3b4cf74321aff6778ece459be74646127ffcaef642dbb536`
+  - Header on all three: `x-webhook-secret: <value of WEBHOOK_SECRET from Railway env vars>`
 - [x] 11. Knowledge base — DONE. `scripts/build_playbook.py` synthesized 16 real Zoom strategy call transcripts (via Claude two-pass extraction → Opus synthesis) into a playbook injected into the speed-to-lead agent's `global_prompt`. Re-run anytime: `python scripts/build_playbook.py`
 - [x] 11a. 17 audit fixes applied (2026-06-12) — TCPA, cron lock, outcomes, flow edges, schema indexes. See commit `bb22627`.
+- [x] 11b. `/cron/no-show-check` (every 15min) — marks past `booked` appointments `no_show`, re-enters lead into speed-to-lead at `followup_step=2`. See §11.
+- [x] 11c. Compliance + flow-drift fixes applied (2026-06-13) — AI disclosure on STL intro, off-script fallback rule, `previous_outcome` branches for `no_show`/`callback_requested`, `pick_time` week-out dead-end fix, local↔live flow sync. See §11.
 - [ ] **12. End-to-end test:** submit test lead → confirm call fires within 90s → book slot → confirm reminder rows appear in Supabase → confirm reminder calls fire at T-24h and T-1h
 - [ ] 13. Set up UptimeRobot monitor on `/ping`
 
@@ -278,6 +282,18 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
 | Confused-lead edge | `retell-flow-speed-to-lead.json` | `e7b` on qualify node — wrong contact / disputes form fill → `not_interested` |
 | Indecisive lead handling | `retell-flow-reminder.json` | Offer email follow-up if lead keeps saying 'maybe' instead of looping forever |
 | Schema indexes | `supabase-setup.sql` | `idx_leads_cron_query` now composite with `followup_step`; new `idx_leads_phone` for DNC checks |
+
+## 11. No-show cron + 2026-06-13 fixes
+
+**`/cron/no-show-check`** (Railway cron, `*/15 * * * *`, see `railway.toml`): finds `appointments` with `status='booked'` and `start_at` older than `NO_SHOW_GRACE_MS`, marks them `no_show`, and re-enters the lead into speed-to-lead follow-up at `followup_step=2, double_dialed=true, last_call_outcome='no_show'` — skips the immediate double-dial and resumes on the 10min/30min/4h/24h schedule. Requires the `('no_show_check')` row in `cron_locks` (added to `supabase-setup.sql`).
+
+**STL intro/qualify `previous_outcome` handling**: `no_show` and `callback_requested` now get distinct framing (no cold form-pitch — "we had a call on the books but must've missed each other" / "calling back like you asked"). `not_interested`/`dnc` don't need branches — those lead statuses are excluded from `fireSpeedToLeadCall` entirely, so they never re-enter a live call.
+
+**AI disclosure**: both flows' `intro` opening lines now say "This is Morgan, an AI assistant calling on behalf of Direct Sales Network" up front (CA AB 2905 compliance — effective 2025-01-01, $500/call exposure for undisclosed AI voice calls to CA residents).
+
+**`pick_time` week-out fix**: a lead who wants a slot more than ~5 days out (outside `check_availability`'s `days_ahead` window) used to route to `not_interested`, which sets `followup_paused=true` permanently. Now routes to `callback`, which sets `next_followup_at = now + 1h` and keeps the lead in rotation.
+
+**Off-script fallback rule**: both flows' `global_prompt` now has an explicit instruction for handling questions outside the current node's scope — acknowledge briefly, redirect once, then end gracefully if the lead keeps pushing.
 
 ## 10. Key references
 - Create Phone Call API: https://docs.retellai.com/api-references/create-phone-call (`POST /v2/create-phone-call`, Bearer auth, `retell_llm_dynamic_variables`, `metadata`)

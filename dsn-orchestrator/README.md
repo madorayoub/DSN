@@ -1,6 +1,6 @@
 # DSN Call Orchestrator
 
-Node.js/Express service deployed on Railway that handles DSN's outbound AI calling via Retell. Two functions: speed-to-lead (call new leads within 90s) and appointment reminders (T-24h + T-1h before strategy calls).
+Node.js/Express service deployed on Railway that handles DSN's outbound AI calling via Retell. Two functions: speed-to-lead (call new leads after a 5min buffer — gives self-bookers time to book before the AI calls) and appointment reminders (T-24h + T-1h before strategy calls).
 
 Live URL: `https://dsn-call-orchestrator-production.up.railway.app`
 
@@ -15,6 +15,7 @@ GHL Webhook ──► /webhook/new-lead          ──► Supabase leads table
 
 Railway Cron ──► /cron/speed-to-lead        ──► picks up leads where next_followup_at <= now()
 (every 5min)     /cron/appointment-reminders ──► picks up reminders where trigger_at <= now()
+(every 15min)    /cron/no-show-check         ──► marks past appointments 'no_show', resumes follow-up
                          │
                          ▼
                  Retell API create-phone-call
@@ -50,7 +51,7 @@ Railway Cron ──► /cron/speed-to-lead        ──► picks up leads where
 
 ```
 # Retell
-RETELL_API_KEY=key_b94ce6795b1d70d2882779b2eb31
+RETELL_API_KEY=                  # shared DSN/TFG Retell workspace key — see secrets manager
 RETELL_FROM_NUMBER=              # E.164 — buy in Retell dashboard, PENDING
 RETELL_AGENT_ID_SPEED_TO_LEAD=agent_d7bffee08f5962e2a0c5789fcd
 RETELL_AGENT_ID_REMINDER=agent_1cf55115cf9e5477adb445c754
@@ -65,10 +66,10 @@ GHL_LOCATION_ID=NgduPjDbvABP3zFIqnt4
 GHL_CALENDAR_ID=DXh5uGCZVjFLPQNeKRZu
 
 # Security
-WEBHOOK_SECRET=3b4cf74321aff6778ece459be74646127ffcaef642dbb536
+WEBHOOK_SECRET=                  # generate a random 32-char string — see secrets manager
 
 # Admin
-ADMIN_SECRET=                    # optional; gates /admin/* endpoints
+ADMIN_PASSWORD=                  # gates /admin/* endpoints — required, server fails closed if unset
 ```
 
 ---
@@ -81,8 +82,9 @@ ADMIN_SECRET=                    # optional; gates /admin/* endpoints
 | POST | `/webhook/new-lead` | GHL: new contact created |
 | POST | `/webhook/appointment-booked` | GHL: appointment booked |
 | POST | `/webhook/appointment-cancelled` | GHL: appointment cancelled |
+| POST | `/webhook/opt-out` | GHL: contact opts out / tagged DNC |
 
-All three require header `x-webhook-secret: <WEBHOOK_SECRET>`.
+All four require header `x-webhook-secret: <WEBHOOK_SECRET>`.
 
 ### Inbound webhooks (from Retell)
 | Method | Path | Events |
@@ -98,15 +100,16 @@ Verified via `x-retell-signature` HMAC (raw body required).
 | POST | `/retell/function/book-appointment` | Books slot on GHL calendar, creates appointment + reminder rows |
 
 ### Cron triggers (Railway hits these)
-| Method | Path |
-|---|---|
-| POST | `/cron/speed-to-lead` |
-| POST | `/cron/appointment-reminders` |
+| Method | Path | Schedule |
+|---|---|---|
+| POST | `/cron/speed-to-lead` | `*/5 * * * *` |
+| POST | `/cron/appointment-reminders` | `*/5 * * * *` |
+| POST | `/cron/no-show-check` | `*/15 * * * *` |
 
 ### Admin / debug
 | Path | Shows |
 |---|---|
-| GET `/health` | Service connection status (Supabase, GHL, Retell, agents) |
+| GET `/health` | Service connection status (Supabase, GHL, Retell, agents) + per-cron-job staleness (`status: "degraded"` if a cron job hasn't run in >2x its interval) |
 | GET `/ping` | 200 OK — use for uptime monitoring |
 | GET `/admin/leads` | All leads |
 | GET `/admin/call-logs` | All call logs |
@@ -124,9 +127,13 @@ new ──► calling ──► booked      (speed_to_lead call booked appointme
                 ──► not_interested
                 ──► exhausted   (6 attempts, no answer/voicemail)
                 ──► dnc         (asked to stop calling)
+
+booked ──► calling   (no_show: appointment time passed with no GHL status update —
+                       /cron/no-show-check re-enters lead at followup_step=2,
+                       last_call_outcome='no_show', skips the double-dial)
 ```
 
-Follow-up delays (speed_to_lead, steps 1–6): 1min, 10min, 30min, 4h, 8h, 24h.
+Follow-up delays (speed_to_lead, steps 1–6): immediate, 45s (double-dial), 10min, 30min, 4h, 24h.
 
 ---
 
@@ -136,7 +143,7 @@ On `appointment-booked` webhook, two rows are inserted into `appointment_reminde
 - `reminder_24h` — fires at `start_at - 24h`
 - `reminder_1h` — fires at `start_at - 1h`
 
-Cron picks up rows where `trigger_at <= now()` and `status = 'pending'`. Atomically claims each row (`status = 'sent'`) before calling Retell. TCPA calling hours (8am–9pm lead-local) are enforced — if outside hours, `trigger_at` is deferred forward rather than calling.
+Cron picks up rows where `trigger_at <= now()` and `status = 'pending'`. Before claiming, it checks the `dnc` table (a lead who opted out after booking gets the reminder skipped and is marked `dnc`) and TCPA calling hours (8am–9pm lead-local) — if outside hours, `trigger_at` is deferred forward rather than calling. Then it atomically claims the row (`status = 'sent'`) before calling Retell.
 
 ---
 
@@ -180,8 +187,8 @@ UPDATE cron_locks SET locked_until = '1970-01-01 00:00:00+00';
 ## Pending (as of 2026-06-12)
 
 1. **Buy DSN phone number in Retell** → `railway variables set RETELL_FROM_NUMBER=+1XXXXXXXXXX --service dsn-call-orchestrator`
-2. **Wire 3 GHL webhooks** with header `x-webhook-secret: 3b4cf74321aff6778ece459be74646127ffcaef642dbb536`:
+2. **Wire 3 GHL webhooks** with header `x-webhook-secret: <value of WEBHOOK_SECRET from Railway env vars>`:
    - New lead → `POST .../webhook/new-lead`
    - Appointment booked → `POST .../webhook/appointment-booked`
    - Appointment cancelled → `POST .../webhook/appointment-cancelled`
-3. **End-to-end test:** submit test lead → call fires within 90s → book slot → reminders appear in Supabase → reminder calls fire
+3. **End-to-end test:** submit test lead → call fires ~5min later (if not self-booked first) → book slot → reminders appear in Supabase → reminder calls fire

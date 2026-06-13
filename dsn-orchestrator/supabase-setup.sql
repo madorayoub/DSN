@@ -147,7 +147,8 @@ alter table cron_locks enable row level security;
 -- Pre-seed lock rows so upsert never has to insert in a race
 insert into cron_locks (job_name) values
   ('speed_to_lead_followup'),
-  ('appointment_reminders')
+  ('appointment_reminders'),
+  ('no_show_check')
 on conflict (job_name) do nothing;
 
 -- ── try_acquire_cron_lock RPC ─────────────────────────────────────────────────
@@ -157,6 +158,7 @@ create or replace function try_acquire_cron_lock(p_job_name text, p_lock_until t
 returns boolean
 language plpgsql
 security definer
+set search_path = public, pg_temp
 as $$
 begin
   update cron_locks
@@ -168,6 +170,12 @@ begin
 end;
 $$;
 
+-- Only the orchestrator server (service_role) should call this — revoke the
+-- default PUBLIC grant so anon/authenticated clients can't acquire/release locks.
+revoke execute on function try_acquire_cron_lock(text, timestamptz) from public;
+revoke execute on function try_acquire_cron_lock(text, timestamptz) from anon, authenticated;
+grant execute on function try_acquire_cron_lock(text, timestamptz) to service_role;
+
 -- ── Composite index for cron query ────────────────────────────────────────────
 -- Supports: WHERE status='calling' AND followup_paused=false AND next_followup_at <= now() AND followup_step <= 6
 create index if not exists idx_leads_cron_query
@@ -177,3 +185,6 @@ create index if not exists idx_leads_cron_query
 -- ── Phone index for DNC checks ────────────────────────────────────────────────
 -- DNC checks run on every inbound lead and every cron tick — needs an index.
 create index if not exists idx_leads_phone on leads(phone);
+
+-- ── Appointment index for call_logs lookups ──────────────────────────────────
+create index if not exists idx_call_logs_appointment on call_logs(appointment_id);

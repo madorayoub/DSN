@@ -71,7 +71,7 @@ const {
 
 // ── Startup checks ────────────────────────────────────────────────────────────
 // RETELL_FROM_NUMBER is intentionally excluded — server starts without it, calls just won't fire until it's set
-const REQUIRED = ['SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'GHL_API_KEY', 'RETELL_API_KEY', 'WEBHOOK_SECRET', 'CRON_SECRET'];
+const REQUIRED = ['SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'GHL_API_KEY', 'RETELL_API_KEY', 'WEBHOOK_SECRET', 'CRON_SECRET', 'RETELL_WEBHOOK_KEY'];
 const missing  = REQUIRED.filter(k => !process.env[k]);
 if (missing.length && NODE_ENV === 'production') {
   console.error(`[startup] FATAL: Missing required env vars in production: ${missing.join(', ')}`);
@@ -108,8 +108,8 @@ app.use((req, res, next) => {
 
 function requireWebhookSecret(req, res, next) {
   if (!WEBHOOK_SECRET) {
-    console.warn('[auth] WEBHOOK_SECRET not set — request allowed (insecure)');
-    return next();
+    console.error('[auth] WEBHOOK_SECRET not set — rejecting request (fail closed)');
+    return res.status(503).json({ error: 'Webhook auth not configured' });
   }
   const provided = Buffer.from(req.headers['x-webhook-secret'] || '');
   const expected = Buffer.from(WEBHOOK_SECRET);
@@ -121,8 +121,8 @@ function requireWebhookSecret(req, res, next) {
 
 function requireCronSecret(req, res, next) {
   if (!CRON_SECRET) {
-    console.warn('[auth] CRON_SECRET not set — cron request allowed (insecure)');
-    return next();
+    console.error('[auth] CRON_SECRET not set — rejecting request (fail closed)');
+    return res.status(503).json({ error: 'Cron auth not configured' });
   }
   if (req.headers['x-cron-secret'] !== CRON_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -142,7 +142,10 @@ function requireAdminPassword(req, res, next) {
 // IMPORTANT: must use raw request body bytes, not re-serialized JSON.
 // The retell webhook route and tool function routes use express.raw() via rawBodyMiddleware.
 function validateRetell(req, res, next) {
-  if (!RETELL_WEBHOOK_KEY) return next();
+  if (!RETELL_WEBHOOK_KEY) {
+    console.error('[auth] RETELL_WEBHOOK_KEY not set — rejecting request (fail closed)');
+    return res.status(503).json({ error: 'Retell webhook auth not configured' });
+  }
   const sig = req.headers['x-retell-signature'];
   if (!sig) return res.status(401).json({ error: 'Missing x-retell-signature' });
   const rawBody = req.rawBody;
@@ -382,20 +385,36 @@ async function acquireCronLock(jobName, intervalMs = 5 * 60_000) {
 
 const GHL_BASE = 'https://services.leadconnectorhq.com';
 
-async function ghlRequest(method, path, body = null) {
-  const res = await fetch(`${GHL_BASE}${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${GHL_API_KEY}`,
-      'Content-Type': 'application/json',
-      Version: '2021-07-28',
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(15_000),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`GHL ${method} ${path} → ${res.status}: ${JSON.stringify(data)}`);
-  return data;
+// retries: number of extra attempts on 429/5xx (with exponential backoff: 500ms, 1000ms, ...)
+async function ghlRequest(method, path, body = null, { timeoutMs = 15_000, retries = 2 } = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 500 * attempt));
+    let res;
+    try {
+      res = await fetch(`${GHL_BASE}${path}`, {
+        method,
+        headers: {
+          Authorization: `Bearer ${GHL_API_KEY}`,
+          'Content-Type': 'application/json',
+          Version: '2021-07-28',
+        },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+    } catch (err) {
+      lastErr = err;
+      continue; // network/timeout error — retry
+    }
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return data;
+    if ((res.status === 429 || res.status >= 500) && attempt < retries) {
+      lastErr = new Error(`GHL ${method} ${path} → ${res.status}: ${JSON.stringify(data)}`);
+      continue; // retryable — try again
+    }
+    throw new Error(`GHL ${method} ${path} → ${res.status}: ${JSON.stringify(data)}`);
+  }
+  throw lastErr || new Error(`GHL ${method} ${path} failed after ${retries + 1} attempts`);
 }
 
 async function ghlGetContact(contactId) {
@@ -403,11 +422,15 @@ async function ghlGetContact(contactId) {
   return data.contact || data;
 }
 
+// Tool-call paths (Retell custom functions must respond <3s) use a shorter timeout
+// and no retries so a slow/down GHL doesn't stall a live call.
+const GHL_TOOL_CALL_OPTS = { timeoutMs: 6_000, retries: 0 };
+
 // Fetch available slots for the GHL calendar. Returns array of ISO strings.
 async function ghlGetSlots(startDate, endDate, timezone) {
   const tz  = encodeURIComponent(timezone || 'America/New_York');
   const url = `/calendars/${GHL_CALENDAR_ID}/free-slots?startDate=${startDate}&endDate=${endDate}&timezone=${tz}`;
-  const data = await ghlRequest('GET', url);
+  const data = await ghlRequest('GET', url, null, GHL_TOOL_CALL_OPTS);
   // Response: { _dates_: { "2025-01-20": { slots: [ "2025-01-20T09:00:00-05:00", ... ] } } }
   const grouped = data._dates_ || data.dates || data;
   const slots = [];
@@ -433,8 +456,13 @@ async function ghlBookAppointment({ contactId, name, email, phone, slotIso, time
     ignoreDateRange:   false,
     toNotify:    true,
   };
-  const data = await ghlRequest('POST', '/calendars/events/appointments', body);
+  const data = await ghlRequest('POST', '/calendars/events/appointments', body, GHL_TOOL_CALL_OPTS);
   return data.appointment || data;
+}
+
+// Cancel an existing GHL appointment (used when rescheduling via the reminder agent).
+async function ghlCancelAppointment(ghlAppointmentId) {
+  return ghlRequest('PUT', `/calendars/events/appointments/${ghlAppointmentId}`, { appointmentStatus: 'cancelled' }, GHL_TOOL_CALL_OPTS);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -450,6 +478,8 @@ async function triggerRetellCall({ lead, agentId, callType, dynamicVars = {}, ap
   const phone = toE164(lead.phone);
   if (!phone) {
     console.warn(`[retell] Invalid phone for lead ${lead.id}: ${lead.phone}`);
+    await supabase?.from('leads').update({ status: 'invalid_phone', followup_paused: true, next_followup_at: null }).eq('id', lead.id);
+    await dlq('triggerRetellCall/invalid-phone', { lead_id: lead.id, phone: lead.phone, call_type: callType }, new Error(`Invalid phone: ${lead.phone}`));
     return null;
   }
 
@@ -514,6 +544,21 @@ async function findOrCreateLead({ ghlContactId, name, phone, email, timezone, so
   const { data: existing } = await supabase
     .from('leads').select('*').eq('ghl_contact_id', ghlContactId).maybeSingle();
   if (existing) return { lead: existing, created: false };
+
+  // Dedupe by phone — duplicate form submissions can create separate GHL contacts
+  // for the same person. Reuse the active lead so the attempt cap and double-dial
+  // state apply once per person, not once per duplicate contact.
+  const e164ForDedupe = toE164(phone);
+  if (e164ForDedupe) {
+    const { data: byPhone } = await supabase
+      .from('leads').select('*').eq('phone', e164ForDedupe)
+      .in('status', ['new', 'calling'])
+      .maybeSingle();
+    if (byPhone) {
+      console.log(`[lead] Duplicate phone ${e164ForDedupe} — reusing lead ${byPhone.id} (ghl_contact_id ${byPhone.ghl_contact_id}) instead of creating new for ${ghlContactId}`);
+      return { lead: byPhone, created: false };
+    }
+  }
 
   const { data: created, error } = await supabase
     .from('leads').insert({
@@ -593,14 +638,25 @@ async function upsertAppointment({ ghlAppointmentId, leadId, startAt, endAt, tim
 // Triggered by GHL workflow when a new contact is created (form/opt-in).
 // GHL workflow config: Trigger = "Contact Created" | Action = Webhook POST to this URL
 // Payload expected: { contact_id, first_name, last_name, phone, email, timezone?, source? }
+// GHL's "standard data" only reliably includes contact_id/first_name at the top level —
+// last_name/phone/email/timezone/source must be added as Custom Data on the webhook action,
+// which GHL nests under body.customData. Read both locations.
 // ─────────────────────────────────────────────────────────────────────────────
 app.post('/webhook/new-lead', requireWebhookSecret, async (req, res) => {
   res.json({ received: true }); // Respond immediately to avoid GHL timeout
   const body = req.body;
-  console.log('[webhook/new-lead] received:', JSON.stringify({ contact_id: body.contact_id, phone: body.phone }));
+  const cd   = body.customData || {};
+  console.log('[webhook/new-lead] received:', JSON.stringify({ contact_id: body.contact_id, phone: body.phone || cd.phone }));
 
   try {
-    const { contact_id, first_name, last_name, phone, email, timezone, source } = body;
+    const contact_id = body.contact_id;
+    const first_name = body.first_name ?? cd.first_name;
+    const last_name  = body.last_name  ?? cd.last_name;
+    const phone      = body.phone      ?? cd.phone;
+    const email      = body.email      ?? cd.email;
+    const timezone   = body.timezone   ?? cd.timezone;
+    const source     = body.source     ?? cd.source;
+
     if (!contact_id || !phone) {
       await dlq('webhook/new-lead', body, new Error('Missing contact_id or phone'));
       return;
@@ -620,8 +676,12 @@ app.post('/webhook/new-lead', requireWebhookSecret, async (req, res) => {
       return;
     }
 
-    const name = [first_name, last_name].filter(Boolean).join(' ').trim() || 'there';
-    const tz   = timezone || phoneToTimezone(e164);
+    const name = [first_name, last_name].filter(Boolean).join(' ').trim()
+      || cd.Full_name || cd.full_name || body.full_name || 'there';
+    // GHL's {{contact.timezone}} can return an abbreviation like "EDT" instead of an IANA
+    // zone (e.g. "America/New_York") — Retell/check-availability need IANA. Only trust it
+    // if it looks like one (contains '/'), otherwise derive from area code.
+    const tz   = (timezone && timezone.includes('/')) ? timezone : phoneToTimezone(e164);
 
     const { lead, created } = await findOrCreateLead({
       ghlContactId: contact_id,
@@ -669,12 +729,19 @@ async function scheduleSpeedToLeadCall(lead) {
   const scheduledAt = new Date(Date.now() + totalDelay);
   const deferred    = extraDelay > 0;
 
-  // Always seed next_followup_at in DB so the cron safety net catches server restarts
-  await supabase?.from('leads').update({
+  // Always seed next_followup_at in DB so the cron safety net catches server restarts.
+  // Atomic claim: only proceed if this lead is still 'new' — prevents duplicate GHL
+  // webhook deliveries from each scheduling their own setTimeout for attempt 1.
+  const { data: claimed, error: claimErr } = await supabase?.from('leads').update({
     status:          'calling',
     followup_step:   1,
     next_followup_at: scheduledAt.toISOString(),
-  }).eq('id', lead.id).in('status', ['new', 'calling']);
+  }).eq('id', lead.id).eq('status', 'new').select('id') ?? {};
+
+  if (claimErr || !claimed?.length) {
+    console.log(`[speed-to-lead] Lead ${lead.id} already claimed (not 'new') — skipping duplicate schedule`);
+    return;
+  }
 
   await logEvent('speed_to_lead_scheduled', { lead_id: lead.id, scheduled_at: scheduledAt.toISOString(), deferred });
 
@@ -700,15 +767,48 @@ async function fireSpeedToLeadCall(leadId) {
     return console.log(`[speed-to-lead] Skipping lead ${leadId} — ${lead.status}`);
   }
 
-  await triggerRetellCall({
-    lead,
-    agentId:   RETELL_AGENT_ID_SPEED_TO_LEAD,
-    callType:  'speed_to_lead',
-    dynamicVars: {
-      call_attempt:   String(lead.followup_step || 1),
-      previous_outcome: lead.last_call_outcome || '',
-    },
-  });
+  // DNC check — phone may have been added to the DNC list since this attempt was scheduled
+  if (await isOnDNC(lead.phone)) {
+    console.log(`[speed-to-lead] Lead ${leadId} phone is on DNC — pausing`);
+    await supabase.from('leads').update({ status: 'dnc', followup_paused: true, next_followup_at: null }).eq('id', leadId);
+    return;
+  }
+
+  // Atomic claim: setTimeout (from scheduleSpeedToLeadCall/double-dial) and the cron safety
+  // net can both target this attempt. Whichever runs first clears next_followup_at; the
+  // other sees it already null and skips, preventing a duplicate dial.
+  const { data: claimed, error: claimErr } = await supabase.from('leads')
+    .update({ next_followup_at: null })
+    .eq('id', leadId)
+    .eq('status', 'calling')
+    .not('next_followup_at', 'is', null)
+    .select('id');
+
+  if (claimErr || !claimed?.length) {
+    return console.log(`[speed-to-lead] Lead ${leadId} already claimed for this attempt — skipping`);
+  }
+
+  const tz = lead.timezone || phoneToTimezone(lead.phone);
+
+  try {
+    await triggerRetellCall({
+      lead,
+      agentId:   RETELL_AGENT_ID_SPEED_TO_LEAD,
+      callType:  'speed_to_lead',
+      dynamicVars: {
+        call_attempt:    String(lead.followup_step || 1),
+        previous_outcome: lead.last_call_outcome || '',
+        source:          lead.source || 'web form',
+        timezone:        tz || '',
+      },
+    });
+  } catch (err) {
+    // Claim above already cleared next_followup_at — if the call itself fails to
+    // fire (e.g. Retell API down), restore it so the cron safety net retries this
+    // lead instead of leaving it stuck in status='calling' forever.
+    await supabase.from('leads').update({ next_followup_at: new Date(Date.now() + 5 * 60_000).toISOString() }).eq('id', leadId);
+    throw err;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -720,10 +820,15 @@ async function fireSpeedToLeadCall(leadId) {
 app.post('/webhook/appointment-booked', requireWebhookSecret, async (req, res) => {
   res.json({ received: true });
   const body = req.body;
-  console.log('[webhook/appointment-booked]', JSON.stringify({ contact_id: body.contact_id, appointment_id: body.appointment_id, start: body.start_time }));
+  const cd   = body.customData || {};
+  console.log('[webhook/appointment-booked]', JSON.stringify({ contact_id: body.contact_id, appointment_id: body.appointment_id ?? cd.appointment_id, start: body.start_time ?? cd.start_time }));
 
   try {
-    const { contact_id, appointment_id, start_time, end_time, zoom_link } = body;
+    const contact_id     = body.contact_id ?? cd.contact_id;
+    const appointment_id = body.appointment_id ?? cd.appointment_id;
+    const start_time     = body.start_time     ?? cd.start_time;
+    const end_time       = body.end_time       ?? cd.end_time;
+    const zoom_link      = body.zoom_link      ?? cd.zoom_link;
     if (!contact_id || !appointment_id || !start_time) {
       await dlq('webhook/appointment-booked', body, new Error('Missing required fields'));
       return;
@@ -744,19 +849,19 @@ app.post('/webhook/appointment-booked', requireWebhookSecret, async (req, res) =
     // 2. timezone from webhook payload — GHL may include the appointment's timezone
     // 3. area-code lookup from phone — fallback when no GHL timezone available
     // 4. America/New_York — final fallback
-    const contactPhone = toE164(ghlContact?.phone || ghlContact?.mobilePhone || body.phone);
-    const resolvedTz   = ghlContact?.timezone
-      || body.timezone
-      || (contactPhone ? phoneToTimezone(contactPhone) : null)
+    const contactPhone = toE164(ghlContact?.phone || ghlContact?.mobilePhone || body.phone || cd.phone);
+    const rawTz        = ghlContact?.timezone || body.timezone || cd.timezone;
+    const resolvedTz   = (rawTz && rawTz.includes('/')) ? rawTz
+      : (contactPhone ? phoneToTimezone(contactPhone) : null)
       || 'America/New_York';
 
     const { lead } = await findOrCreateLead({
       ghlContactId: contact_id,
       name:  ghlContact
         ? [ghlContact.firstName, ghlContact.lastName].filter(Boolean).join(' ')
-        : (body.first_name ? [body.first_name, body.last_name].filter(Boolean).join(' ') : undefined),
+        : ([body.first_name, body.last_name].filter(Boolean).join(' ') || cd.Full_name || cd.full_name || body.full_name || undefined),
       phone: contactPhone,
-      email: ghlContact?.email || body.email,
+      email: ghlContact?.email || body.email || cd.email,
       timezone: resolvedTz,
     });
 
@@ -794,12 +899,14 @@ app.post('/webhook/appointment-booked', requireWebhookSecret, async (req, res) =
 // ─────────────────────────────────────────────────────────────────────────────
 app.post('/webhook/appointment-cancelled', requireWebhookSecret, async (req, res) => {
   res.json({ received: true });
-  const { appointment_id, contact_id } = req.body;
+  const body = req.body;
+  const cd   = body.customData || {};
+  const appointment_id = body.appointment_id ?? cd.appointment_id;
   console.log(`[webhook/appointment-cancelled] appt: ${appointment_id}`);
 
   try {
     if (!appointment_id) {
-      await dlq('webhook/appointment-cancelled', req.body, new Error('Missing appointment_id'));
+      await dlq('webhook/appointment-cancelled', body, new Error('Missing appointment_id'));
       return;
     }
 
@@ -807,7 +914,7 @@ app.post('/webhook/appointment-cancelled', requireWebhookSecret, async (req, res
       .select('id, lead_id').eq('ghl_appointment_id', appointment_id).maybeSingle();
 
     if (!appt) {
-      await dlq('webhook/appointment-cancelled', req.body, new Error(`Appointment ${appointment_id} not found in DB`));
+      await dlq('webhook/appointment-cancelled', body, new Error(`Appointment ${appointment_id} not found in DB`));
       return;
     }
 
@@ -831,7 +938,41 @@ app.post('/webhook/appointment-cancelled', requireWebhookSecret, async (req, res
 
     await logEvent('appointment_cancelled', { lead_id: appt.lead_id, appointment_id });
   } catch (err) {
-    await dlq('webhook/appointment-cancelled', req.body, err);
+    await dlq('webhook/appointment-cancelled', body, err);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WEBHOOK — POST /webhook/opt-out
+// Triggered by GHL when a contact is marked DNC / opts out (e.g. SMS "STOP" reply,
+// or a manual "Do Not Call" tag/workflow on the contact).
+// GHL workflow config: Trigger = "Tag Added" (tag = "DNC" / "do-not-call") → Webhook POST
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/webhook/opt-out', requireWebhookSecret, async (req, res) => {
+  res.json({ received: true });
+  const body = req.body;
+  const cd   = body.customData || {};
+  const contact_id = body.contact_id ?? cd.contact_id;
+  const phone       = toE164(body.phone ?? cd.phone);
+  console.log(`[webhook/opt-out] contact: ${contact_id}, phone: ${phone}`);
+
+  try {
+    if (!phone) {
+      await dlq('webhook/opt-out', body, new Error('Missing phone'));
+      return;
+    }
+
+    await supabase?.from('dnc')
+      .upsert({ phone, reason: 'ghl_opt_out', added_by: 'ghl_webhook' }, { onConflict: 'phone' });
+
+    const { data: lead } = await supabase?.from('leads')
+      .update({ status: 'dnc', followup_paused: true, next_followup_at: null })
+      .eq('phone', phone)
+      .select('id').maybeSingle() ?? {};
+
+    await logEvent('lead_dnc_opt_out', { ghl_contact_id: contact_id, phone, lead_id: lead?.id });
+  } catch (err) {
+    await dlq('webhook/opt-out', body, err);
   }
 });
 
@@ -965,19 +1106,55 @@ async function handleCallOutcome({ leadId, callId, callType, outcome, appointmen
     leadUpdate.followup_paused = true;
   } else if (outcome === 'confirmed') {
     // Reminder confirmed attendance — no status change needed
-  } else if (callType === 'speed_to_lead' && ['no_answer', 'voicemail'].includes(outcome)) {
-    // Advance the follow-up step so cron picks up the next attempt
-    const { data: lead } = await supabase.from('leads').select('followup_step').eq('id', leadId).single();
+  } else if (outcome === 'cancelled') {
+    // Reminder flow: lead wants to cancel just this appointment (not full DNC).
+    // Mirror /webhook/appointment-cancelled: cancel in GHL + Supabase, resume follow-up.
+    if (appointmentId) {
+      const { data: appt } = await supabase?.from('appointments').select('ghl_appointment_id').eq('id', appointmentId).maybeSingle();
+      if (appt?.ghl_appointment_id) {
+        try {
+          await ghlCancelAppointment(appt.ghl_appointment_id);
+        } catch (err) {
+          console.error(`[call-outcome] Failed to cancel GHL appointment ${appt.ghl_appointment_id}:`, err.message);
+          await dlq('handleCallOutcome/cancel-ghl', { appointment_id: appointmentId, ghl_appointment_id: appt.ghl_appointment_id }, err);
+        }
+      }
+
+      await supabase?.from('appointments').update({
+        status:       'cancelled',
+        cancelled_at: new Date().toISOString(),
+        updated_at:   new Date().toISOString(),
+      }).eq('id', appointmentId);
+
+      await supabase?.from('appointment_reminders')
+        .update({ status: 'skipped' })
+        .eq('appointment_id', appointmentId)
+        .eq('status', 'pending');
+    }
+
+    leadUpdate.status          = 'calling';
+    leadUpdate.followup_paused = false;
+  } else if (callType === 'speed_to_lead') {
+    // Advance the follow-up step so cron picks up the next attempt.
+    // Covers no_answer/voicemail as well as any unrecognized/completed outcome —
+    // without this catch-all, a lead could get stuck in status='calling' forever.
+    const { data: lead } = await supabase.from('leads').select('followup_step, double_dialed').eq('id', leadId).single();
     const step = (lead?.followup_step || 1) + 1;
     leadUpdate.followup_step = step;
     // Follow-up schedule: attempt 1 → 2 (45s, handled by double-dial), attempt 3 at T+10min, attempt 4 at T+30min, attempt 5 at T+4h, attempt 6 at T+24h
     const FOLLOWUP_DELAYS = [0, 0, 45_000, 10 * 60_000, 30 * 60_000, 4 * 60 * 60_000, 24 * 60 * 60_000];
-    const delay = FOLLOWUP_DELAYS[Math.min(step, FOLLOWUP_DELAYS.length - 1)] || 24 * 60 * 60_000;
     if (step > 6) {
       leadUpdate.status          = 'exhausted';
       leadUpdate.followup_paused = true;
       // Don't schedule next_followup_at — exhausted leads are not picked up by cron
+    } else if (step === 2 && lead?.double_dialed) {
+      // Attempt 2 is already scheduled via the double-dial setTimeout (handleSpeedToLeadCallEnded),
+      // which set next_followup_at = now + 45s + 3min as a cron-collision buffer. Don't shrink that
+      // buffer back down to 45s here — that would let cron fire a duplicate attempt-2 call
+      // before the setTimeout-driven attempt completes.
+      leadUpdate.next_followup_at = new Date(Date.now() + FOLLOWUP_DELAYS[2] + 3 * 60_000).toISOString();
     } else {
+      const delay = FOLLOWUP_DELAYS[Math.min(step, FOLLOWUP_DELAYS.length - 1)] || 24 * 60 * 60_000;
       leadUpdate.next_followup_at = new Date(Date.now() + delay).toISOString();
     }
   }
@@ -1004,11 +1181,14 @@ function extractOutcome(callAnalysis = {}, transcript = '', disconnectionReason 
   const intent  = (callAnalysis?.user_sentiment || '').toLowerCase();
 
   // Priority 2: summary text patterns
+  // DNC checked first — compliance-critical, must never be shadowed by an incidental "appointment" mention
+  if (summary.includes('stop') || summary.includes('do not call') || summary.includes('remove')) return 'dnc';
+  // Cancellation checked before booked/appointment — a "cancel this appointment" summary contains "appointment" too
+  if (summary.includes('cancel')) return 'cancelled';
   if (summary.includes('booked') || summary.includes('appointment') || summary.includes('scheduled')) return 'booked';
   if (summary.includes('rescheduled') || summary.includes('reschedule')) return 'rescheduled';
   if (summary.includes('confirmed') || summary.includes('see you then')) return 'confirmed';
   if (summary.includes('callback') || summary.includes('call back') || summary.includes('call me back')) return 'callback_requested';
-  if (summary.includes('stop') || summary.includes('do not call') || summary.includes('remove')) return 'dnc';
   if (summary.includes('wrong number') || summary.includes('wrong person')) return 'not_interested';
   if (summary.includes('not interested') || summary.includes('no thanks') || intent === 'negative') return 'not_interested';
   if (summary.includes('voicemail') || summary.includes('left a message')) return 'voicemail';
@@ -1083,23 +1263,15 @@ app.post('/retell/function/book-appointment', validateRetell, async (req, res) =
       return res.json({ success: false, error: 'Lead not found' });
     }
 
-    // If called from a reminder context, cancel the old appointment before booking the new one
+    // If called from a reminder context, look up the old appointment but DON'T cancel it yet —
+    // only cancel after the new booking succeeds, so a failed re-book never leaves the lead
+    // with zero appointments.
     const oldAppointmentId = call?.metadata?.appointment_id;
+    let oldAppt = null;
     if (oldAppointmentId) {
-      const { data: oldAppt } = await supabase.from('appointments')
-        .select('id').eq('id', oldAppointmentId).maybeSingle();
-      if (oldAppt) {
-        await supabase.from('appointments').update({
-          status:       'cancelled',
-          cancelled_at: new Date().toISOString(),
-          updated_at:   new Date().toISOString(),
-        }).eq('id', oldAppt.id);
-        await supabase.from('appointment_reminders')
-          .update({ status: 'skipped', error: 'appointment rescheduled' })
-          .eq('appointment_id', oldAppt.id)
-          .in('status', ['pending', 'sent']);
-        await logEvent('appointment_rescheduled_via_agent', { lead_id: lead.id, old_appointment_id: oldAppt.id, new_slot_iso: slot_iso });
-      }
+      const { data } = await supabase.from('appointments')
+        .select('id, ghl_appointment_id').eq('id', oldAppointmentId).maybeSingle();
+      oldAppt = data;
     }
 
     const appt = await ghlBookAppointment({
@@ -1119,6 +1291,28 @@ app.post('/retell/function/book-appointment', validateRetell, async (req, res) =
       endAt:    appt.endTime || appt.end_time || null,
       timezone: timezone || lead.timezone || 'America/New_York',
     });
+
+    // New booking succeeded — now safe to cancel the old appointment, in GHL and Supabase.
+    if (oldAppt) {
+      if (oldAppt.ghl_appointment_id) {
+        try {
+          await ghlCancelAppointment(oldAppt.ghl_appointment_id);
+        } catch (cancelErr) {
+          console.error(`[retell/book-appointment] Failed to cancel old GHL appointment ${oldAppt.ghl_appointment_id}:`, cancelErr.message);
+          await dlq('retell/book-appointment/cancel-old', { lead_id: lead.id, old_appointment_id: oldAppt.id, ghl_appointment_id: oldAppt.ghl_appointment_id }, cancelErr);
+        }
+      }
+      await supabase.from('appointments').update({
+        status:       'cancelled',
+        cancelled_at: new Date().toISOString(),
+        updated_at:   new Date().toISOString(),
+      }).eq('id', oldAppt.id);
+      await supabase.from('appointment_reminders')
+        .update({ status: 'skipped', error: 'appointment rescheduled' })
+        .eq('appointment_id', oldAppt.id)
+        .in('status', ['pending', 'sent']);
+      await logEvent('appointment_rescheduled_via_agent', { lead_id: lead.id, old_appointment_id: oldAppt.id, new_slot_iso: slot_iso });
+    }
 
     // Pause follow-up since they just booked
     await supabase.from('leads').update({ status: 'booked', followup_paused: true }).eq('id', lead.id);
@@ -1217,6 +1411,10 @@ async function runAppointmentReminderCron() {
 
   if (!supabase) return console.warn('[cron/appointment-reminders] Supabase not configured');
 
+  if (!RETELL_AGENT_ID_REMINDER || !RETELL_FROM_NUMBER) {
+    return console.warn('[cron/appointment-reminders] RETELL_AGENT_ID_REMINDER or RETELL_FROM_NUMBER not set — skipping (reminders stay pending)');
+  }
+
   const now = new Date().toISOString();
 
   const { data: reminders, error } = await supabase
@@ -1243,6 +1441,13 @@ async function runAppointmentReminderCron() {
 
     if (appt.status === 'cancelled') {
       await supabase.from('appointment_reminders').update({ status: 'skipped', error: 'appointment cancelled' }).eq('id', reminder.id);
+      continue;
+    }
+
+    // DNC check — lead may have opted out (verbally or via GHL tag) after the appointment was booked
+    if (await isOnDNC(lead.phone)) {
+      await supabase.from('appointment_reminders').update({ status: 'skipped', error: 'lead on DNC list' }).eq('id', reminder.id);
+      await supabase.from('leads').update({ status: 'dnc', followup_paused: true }).eq('id', lead.id);
       continue;
     }
 
@@ -1302,6 +1507,67 @@ async function runAppointmentReminderCron() {
       await supabase.from('appointment_reminders').update({ status: 'failed', error: err.message }).eq('id', reminder.id);
       await dlq('cron/appointment-reminders', { reminder_id: reminder.id, appointment_id: appt.id }, err);
     }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CRON — POST /cron/no-show-check
+// Runs every 15 min. Without this, a lead who books, gets reminders, and never
+// joins stays status='booked'/followup_paused=true forever — they silently fall
+// out of the pipeline. This marks the appointment 'no_show' and re-enters the
+// lead into the speed-to-lead rotation for one more rebooking attempt.
+// ─────────────────────────────────────────────────────────────────────────────
+const NO_SHOW_GRACE_MS = 15 * 60_000; // wait 15min after appt start before declaring no-show
+
+app.post('/cron/no-show-check', requireCronSecret, async (req, res) => {
+  res.json({ received: true });
+  runNoShowCron().catch(err => console.error('[cron/no-show-check]', err.message));
+});
+
+async function runNoShowCron() {
+  if (!await acquireCronLock('no_show_check', 15 * 60_000)) {
+    return console.log('[cron/no-show-check] Lock held by another instance — skipping');
+  }
+
+  if (!supabase) return console.warn('[cron/no-show-check] Supabase not configured');
+
+  const cutoff = new Date(Date.now() - NO_SHOW_GRACE_MS).toISOString();
+
+  const { data: appts, error } = await supabase
+    .from('appointments')
+    .select('id, lead_id, start_at')
+    .eq('status', 'booked')
+    .lt('start_at', cutoff)
+    .limit(50);
+
+  if (error) return console.error('[cron/no-show-check] DB error:', error.message);
+  if (!appts?.length) return console.log('[cron/no-show-check] No appointments to check');
+
+  console.log(`[cron/no-show-check] Processing ${appts.length} appointment(s)`);
+
+  for (const appt of appts) {
+    // Atomic claim — avoids double-processing if two cron ticks overlap
+    const { data: claimed, error: claimErr } = await supabase.from('appointments')
+      .update({ status: 'no_show', updated_at: new Date().toISOString() })
+      .eq('id', appt.id).eq('status', 'booked').select('id');
+
+    if (claimErr || !claimed?.length) continue;
+
+    await logEvent('appointment_no_show', { lead_id: appt.lead_id, appointment_id: appt.id, start_at: appt.start_at });
+
+    if (!appt.lead_id) continue;
+
+    // Re-enter the lead into speed-to-lead with a reduced cadence: skip the double-dial
+    // (followup_step=2, double_dialed=true so the next no-answer goes straight to the
+    // 10-min/30-min/4h/24h schedule rather than restarting from attempt 1).
+    await supabase.from('leads').update({
+      status:            'calling',
+      followup_paused:   false,
+      followup_step:     2,
+      double_dialed:     true,
+      next_followup_at:  new Date().toISOString(),
+      last_call_outcome: 'no_show',
+    }).eq('id', appt.lead_id).eq('status', 'booked');
   }
 }
 
@@ -1389,20 +1655,53 @@ app.post('/admin/dnc', requireAdminPassword, async (req, res) => {
 // HEALTH / PING
 // ─────────────────────────────────────────────────────────────────────────────
 
-app.get('/health', (_req, res) => res.json({
-  status:    'ok',
-  service:   'dsn-call-orchestrator',
-  node:      process.version,
-  env:       NODE_ENV,
-  supabase:  !!supabase,
-  retell:    !!RETELL_API_KEY,
-  ghl:       !!GHL_API_KEY,
-  agents: {
-    speed_to_lead: !!RETELL_AGENT_ID_SPEED_TO_LEAD,
-    reminder:      !!RETELL_AGENT_ID_REMINDER,
-  },
-  uptime: Math.round(process.uptime()),
-}));
+// Expected cron intervals — used to flag cron jobs that haven't run recently.
+// locked_until is set to (now + interval) on each successful tick, so
+// (now - locked_until) growing past ~2x the interval means the job has stalled.
+const CRON_INTERVALS_MS = {
+  speed_to_lead_followup: 5 * 60_000,
+  appointment_reminders:  5 * 60_000,
+  no_show_check:          15 * 60_000,
+};
+
+app.get('/health', async (_req, res) => {
+  const base = {
+    service:   'dsn-call-orchestrator',
+    node:      process.version,
+    env:       NODE_ENV,
+    retell:    !!RETELL_API_KEY,
+    ghl:       !!GHL_API_KEY,
+    agents: {
+      speed_to_lead: !!RETELL_AGENT_ID_SPEED_TO_LEAD,
+      reminder:      !!RETELL_AGENT_ID_REMINDER,
+    },
+    uptime: Math.round(process.uptime()),
+  };
+
+  if (!supabase) {
+    return res.status(503).json({ ...base, status: 'error', supabase: false, error: 'Supabase not configured' });
+  }
+
+  try {
+    const { error } = await supabase.from('leads').select('id', { head: true, count: 'exact' }).limit(1);
+    if (error) throw error;
+
+    const cron = {};
+    let cronStale = false;
+    const { data: locks } = await supabase.from('cron_locks').select('job_name, locked_until');
+    for (const lock of locks || []) {
+      const interval  = CRON_INTERVALS_MS[lock.job_name] || 5 * 60_000;
+      const staleMs   = Date.now() - new Date(lock.locked_until).getTime();
+      const stale     = staleMs > interval * 2;
+      if (stale) cronStale = true;
+      cron[lock.job_name] = { locked_until: lock.locked_until, stale };
+    }
+
+    res.json({ ...base, status: cronStale ? 'degraded' : 'ok', supabase: true, cron });
+  } catch (err) {
+    res.status(503).json({ ...base, status: 'error', supabase: false, error: err.message });
+  }
+});
 
 app.get('/ping', (_req, res) => res.send('pong'));
 

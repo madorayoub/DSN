@@ -21,6 +21,11 @@ healthcheckTimeout = 120
 #   Command: curl -s -X POST https://<your-app>.up.railway.app/cron/appointment-reminders
 #            -H "x-cron-secret: $CRON_SECRET"
 #
+#   Name: no-show-check
+#   Schedule: */15 * * * *
+#   Command: curl -s -X POST https://<your-app>.up.railway.app/cron/no-show-check
+#            -H "x-cron-secret: $CRON_SECRET"
+#
 # ── Uptime monitor ──────────────────────────────────────────────────────────────
 # Set up UptimeRobot (free) → https://uptimerobot.com
 # URL: https://<your-app>.up.railway.app/ping   Interval: 5 minutes
