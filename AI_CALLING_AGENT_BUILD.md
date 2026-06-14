@@ -2,7 +2,7 @@
 
 > **Purpose of this file:** Complete handoff document. If a build session is interrupted (usage limits, context loss), any engineer or AI agent can pick up from here with zero prior context. Read top to bottom before writing code.
 >
-> Last updated: 2026-06-12. Status: **DEPLOYED — orchestrator live on Railway, schema live on Supabase, Retell flows + agents active. Pending: DSN phone number purchase + 3 GHL webhooks.**
+> Last updated: 2026-06-14. Status: **DEPLOYED & WIRED — orchestrator live on Railway, schema live on Supabase, Retell flows + agents active, Twilio SIP trunk fully configured, phone number +15618340099 live. Pending: publish 4 GHL Automation Workflows in GHL dashboard + end-to-end test.**
 >
 > **Revision 2 (2026-06-11, per Ayoub):** The orchestrator will be a **NEW standalone Railway service** (do NOT build inside the existing DSN server), and **Supabase is the single source of truth** (NOT Railway Postgres). See Sections 2b, 5, 6.
 
@@ -242,10 +242,7 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
 - [x] 6. Railway project `dsn-call-orchestrator` deployed — `https://dsn-call-orchestrator-production.up.railway.app`
 - [x] 7. Railway cron jobs running — speed-to-lead every 5min, appointment-reminders every 5min
 - [x] 8a. Flow tool URLs updated (no longer placeholder) — both flows patched to live Railway URL
-- [ ] **8b. Buy DSN phone number in Retell dashboard** → then:
-  ```bash
-  railway variables set RETELL_FROM_NUMBER=+1XXXXXXXXXX --service dsn-call-orchestrator
-  ```
+- [x] **8b. DSN phone number configured** — `+15618340099` purchased in Twilio, imported into Retell as `custom` type, linked to both agents. `RETELL_FROM_NUMBER=+15618340099` set in Railway.
 - [x] 9. Retell agent webhook URL set: `https://dsn-call-orchestrator-production.up.railway.app/webhook/retell`
 - [ ] **10. Publish 4 GHL Automation Workflows** (GHL → Automation → Workflows — the 4 drafts already exist):
   > ⚠️ The orchestrator expects **GHL Workflow webhook payloads** (with `customData`), NOT native GHL webhook subscriptions. The draft workflows below were created in a prior session; you just need to open each one, verify the trigger + webhook action fields match the table below, and publish.
@@ -262,6 +259,8 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
 - [x] 11a. 17 audit fixes applied (2026-06-12) — TCPA, cron lock, outcomes, flow edges, schema indexes. See commit `bb22627`.
 - [x] 11b. `/cron/no-show-check` (every 15min) — marks past `booked` appointments `no_show`, re-enters lead into speed-to-lead at `followup_step=2`. See §11.
 - [x] 11c. Compliance + flow-drift fixes applied (2026-06-13) — AI disclosure on STL intro, off-script fallback rule, `previous_outcome` branches for `no_show`/`callback_requested`, `pick_time` week-out dead-end fix, local↔live flow sync. See §11.
+- [x] 11d. Code fixes applied (2026-06-14) — reminder race dedup (`upsert + ignoreDuplicates`), appointment-cancel re-entry reset (`followup_step=1, double_dialed=false`), health endpoint exposes `from_number`. Both Retell flows patched (v1 draft) via API. Commit `6cd0eb0`.
+- [x] 11e. Twilio SIP trunk fully configured (2026-06-14) — DSN trunk `TK5a0c87c46e7da48a3069f0291a0c9c96`: origination URI `sip:sip.retellai.com` added, IP ACL `18.98.16.120/30` verified. `+15618340099` uses GHL webhook for inbound + Retell SIP trunk for outbound. See §12 (Twilio/call routing).
 - [ ] **12. End-to-end test:** submit test lead → confirm call fires within 90s → book slot → confirm reminder rows appear in Supabase → confirm reminder calls fire at T-24h and T-1h
 - [ ] 13. Set up UptimeRobot monitor on `/ping`
 
@@ -300,6 +299,53 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
 **`pick_time` week-out fix**: a lead who wants a slot more than ~5 days out (outside `check_availability`'s `days_ahead` window) used to route to `not_interested`, which sets `followup_paused=true` permanently. Now routes to `callback`, which sets `next_followup_at = now + 1h` and keeps the lead in rotation.
 
 **Off-script fallback rule**: both flows' `global_prompt` now has an explicit instruction for handling questions outside the current node's scope — acknowledge briefly, redirect once, then end gracefully if the lead keeps pushing.
+
+## 12. Twilio / call routing architecture (as of 2026-06-14)
+
+Phone number `+15618340099` serves three roles from a single Twilio number:
+
+```
++15618340099
+    │
+    ├── INBOUND (lead calls the number back)
+    │   └── Twilio webhook → GHL leadconnectorhq.com/phone-system/voice-call/inbound
+    │       GHL agents answer / see it in the conversations inbox
+    │
+    ├── GHL OUTBOUND (human agent dials manually from GHL)
+    │   └── GHL → Twilio programmable voice → PSTN
+    │       Shows +15618340099 as caller ID
+    │
+    └── RETELL OUTBOUND (AI calls a lead)
+        └── Retell → SIP INVITE → dsn-retellai.pstn.twilio.com
+            Twilio authenticates via IP ACL (18.98.16.120/30) ✅
+            Routes to PSTN with +15618340099 as caller ID
+```
+
+### Twilio Elastic SIP Trunk — DSN - Retell AI
+
+| Field | Value |
+|---|---|
+| Trunk SID | `TK5a0c87c46e7da48a3069f0291a0c9c96` |
+| Termination URI | `dsn-retellai.pstn.twilio.com` |
+| Active region | United States (US1) |
+| Origination URI | `sip:sip.retellai.com` (priority 10, enabled) |
+| IP ACL | `18.98.16.120/30` — Retell SIP SBC range |
+| Credential list | None (IP ACL is sufficient) |
+
+### Retell number config for +15618340099
+
+| Field | Value |
+|---|---|
+| Type | `custom` (imported from Twilio) |
+| Nickname | DSN - Direct Sales Network |
+| Outbound agents | STL agent + Reminder agent (50/50 weight) |
+| SIP termination URI | `dsn-retellai.pstn.twilio.com` |
+| Auth | IP ACL (no username/password needed) |
+| Transport | TCP |
+
+GHL contact deduplication: **not our concern** — we never call `POST /contacts` from the orchestrator. GHL creates contacts upstream (form fill / opt-in). We only receive `contact_id` from GHL webhook payloads. GHL's "Allow Duplicate Contact" setting handles upstream dedup by email → phone priority.
+
+---
 
 ## 10. Key references
 - Create Phone Call API: https://docs.retellai.com/api-references/create-phone-call (`POST /v2/create-phone-call`, Bearer auth, `retell_llm_dynamic_variables`, `metadata`)

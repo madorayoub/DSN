@@ -53,7 +53,7 @@ scheduler        /cron/appointment-reminders ──► picks up reminders where 
 ```
 # Retell
 RETELL_API_KEY=                  # shared DSN/TFG Retell workspace key — see secrets manager
-RETELL_FROM_NUMBER=              # E.164 — buy in Retell dashboard, PENDING
+RETELL_FROM_NUMBER=+15618340099  # set ✅
 RETELL_AGENT_ID_SPEED_TO_LEAD=agent_d7bffee08f5962e2a0c5789fcd
 RETELL_AGENT_ID_REMINDER=agent_1cf55115cf9e5477adb445c754
 
@@ -199,10 +199,45 @@ UPDATE cron_locks SET locked_until = '1970-01-01 00:00:00+00';
 
 ## Pending (as of 2026-06-14)
 
-1. **Publish 4 GHL Automation Workflows** — the drafts already exist in GHL, they just need configuration verified and Published. See the table below.
+1. **Publish 4 GHL Automation Workflows** — the drafts already exist in GHL, they just need configuration verified and Published. See the table below. *(Dashboard action — cannot be done via API.)*
 2. **End-to-end test:** submit test lead → call fires ~5min later (if not self-booked first) → book slot → reminders appear in Supabase → reminder calls fire
+3. **UptimeRobot monitor** — point at `GET /ping` for uptime alerting.
+4. **Retell flow v1 publish** *(optional)* — v1 drafts were patched 2026-06-14 with flow improvements; v0 is live and working. Publish v1 from the Retell dashboard when ready to go live with the improvements.
 
-Phone number (`+15618340099`) and all Railway env vars are already set.
+Everything else is fully wired: phone number `+15618340099` set, Twilio SIP trunk configured, all Railway env vars set.
+
+---
+
+## Twilio / call routing
+
+Phone number `+15618340099` serves three roles simultaneously:
+
+```
++15618340099
+    │
+    ├── INBOUND (lead calls back)
+    │   └── Twilio voice webhook → GHL (leadconnectorhq.com)
+    │       Agents answer in GHL conversations inbox
+    │
+    ├── GHL OUTBOUND (human agent dials from GHL)
+    │   └── GHL → Twilio programmable voice → PSTN
+    │
+    └── RETELL OUTBOUND (AI speed-to-lead / reminder calls)
+        └── Retell → SIP INVITE to dsn-retellai.pstn.twilio.com
+            Authenticated via IP ACL 18.98.16.120/30 (Retell SBC range)
+            Exits to PSTN showing +15618340099 as caller ID
+```
+
+**Twilio Elastic SIP Trunk — DSN - Retell AI** (`TK5a0c87c46e7da48a3069f0291a0c9c96`):
+
+| Setting | Value |
+|---|---|
+| Termination URI | `dsn-retellai.pstn.twilio.com` |
+| Origination URI | `sip:sip.retellai.com` (priority 10) |
+| IP ACL | `18.98.16.120/30` — Retell SIP SBC |
+| Active region | United States (US1) |
+
+No credentials needed — IP ACL authentication is sufficient for Retell's SBC range.
 
 ---
 
