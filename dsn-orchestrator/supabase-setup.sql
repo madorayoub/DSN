@@ -13,7 +13,8 @@ create table if not exists leads (
   email               text,
   timezone            text,                        -- e.g. 'America/New_York'; null = derive from area code
   source              text,                        -- landing page / funnel
-  status              text not null default 'new', -- new|calling|booked|no_answer|exhausted|dnc|not_interested
+  status              text not null default 'new'
+    check (status in ('new','calling','booked','not_interested','exhausted','dnc','invalid_phone')),
   followup_step       int  not null default 0,
   next_followup_at    timestamptz,
   followup_paused     boolean not null default false,
@@ -33,11 +34,12 @@ create index if not exists idx_leads_status         on leads(status);
 create table if not exists appointments (
   id                  bigint generated always as identity primary key,
   ghl_appointment_id  text unique not null,
-  lead_id             bigint references leads(id),
+  lead_id             bigint references leads(id) on delete cascade,
   start_at            timestamptz not null,
   end_at              timestamptz,
   timezone            text not null default 'America/New_York',
-  status              text not null default 'booked',   -- booked|confirmed|completed|no_show|cancelled
+  status              text not null default 'booked'
+    check (status in ('booked','cancelled','no_show')),
   zoom_link           text,
   cancelled_at        timestamptz,
   created_at          timestamptz not null default now(),
@@ -71,15 +73,16 @@ create index if not exists idx_reminders_trigger on appointment_reminders(trigge
 -- One row per Retell call. raw_payload stores the full Retell webhook body for debugging.
 create table if not exists call_logs (
   id                    bigint generated always as identity primary key,
-  lead_id               bigint references leads(id),
-  appointment_id        bigint references appointments(id),
+  lead_id               bigint references leads(id) on delete cascade,
+  appointment_id        bigint references appointments(id) on delete cascade,
   call_type             text not null,              -- speed_to_lead|reminder_24h|reminder_1h
   retell_call_id        text unique,
   call_status           text,                       -- ended|error
   disconnection_reason  text,
   transcript            text,
   summary               text,
-  outcome               text,                       -- booked|not_interested|no_answer|voicemail|rescheduled|confirmed|callback_requested
+  outcome               text                        -- set by extractOutcome() in index.js
+    check (outcome in ('voicemail','no_answer','dnc','cancelled','booked','rescheduled','confirmed','callback_requested','not_interested','completed')),
   started_at            timestamptz,
   ended_at              timestamptz,
   raw_payload           jsonb,                      -- full Retell call_analyzed payload for debugging
@@ -97,9 +100,10 @@ create index if not exists idx_call_logs_created     on call_logs(created_at des
 -- This is the primary debugging tool: SELECT * FROM lead_events WHERE lead_id=X ORDER BY created_at.
 create table if not exists lead_events (
   id              bigint generated always as identity primary key,
-  lead_id         bigint references leads(id),
-  appointment_id  bigint references appointments(id),
-  event_type      text not null,
+  lead_id         bigint references leads(id) on delete cascade,
+  appointment_id  bigint references appointments(id) on delete cascade,
+  event_type      text not null
+    check (event_type in ('retell_call_initiated','lead_created','appointment_upserted','lead_dnc_skipped','speed_to_lead_scheduled','appointment_booked','appointment_cancelled','lead_dnc_opt_out','retell_double_dial_scheduled','call_outcome_processed','appointment_rescheduled_via_agent','appointment_booked_via_agent','appointment_no_show')),
   payload         jsonb default '{}',
   created_at      timestamptz not null default now()
 );

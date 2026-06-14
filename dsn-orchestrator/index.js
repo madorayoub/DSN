@@ -67,6 +67,7 @@ const {
   RETELL_WEBHOOK_KEY,
   RETELL_SPEED_TO_LEAD_DELAY_MS = '90000',
   RETELL_DOUBLE_DIAL_DELAY_MS   = '45000',
+  MAX_CALLS_PER_HOUR            = '300',
 } = process.env;
 
 // ── Startup checks ────────────────────────────────────────────────────────────
@@ -560,6 +561,10 @@ async function findOrCreateLead({ ghlContactId, name, phone, email, timezone, so
     }
   }
 
+  // If the phone doesn't resolve to a valid E.164 number, don't let this lead enter the
+  // speed-to-lead pipeline at all — mark it invalid_phone up front (same status
+  // triggerRetellCall falls back to mid-pipeline) rather than relying on every caller
+  // to notice next_followup_at never advances.
   const { data: created, error } = await supabase
     .from('leads').insert({
       ghl_contact_id: ghlContactId,
@@ -568,10 +573,12 @@ async function findOrCreateLead({ ghlContactId, name, phone, email, timezone, so
       email,
       timezone: timezone || null,
       source:   source   || null,
-      status:   'new',
+      status:          e164ForDedupe ? 'new' : 'invalid_phone',
+      followup_paused: !e164ForDedupe,
     }).select().single();
 
   if (error) throw new Error(`Could not create lead: ${error.message}`);
+  if (!e164ForDedupe) console.warn(`[lead] Created lead ${created.id} with invalid/missing phone (${phone}) — status=invalid_phone`);
   console.log(`[lead] Created lead ${created.id} for GHL contact ${ghlContactId}`);
   await logEvent('lead_created', { lead_id: created.id, ghl_contact_id: ghlContactId, source });
   return { lead: created, created: true };
@@ -583,6 +590,54 @@ async function isOnDNC(phone) {
   const e164 = toE164(phone);
   const { data } = await supabase.from('dnc').select('phone').eq('phone', e164).maybeSingle();
   return !!data;
+}
+
+// Retry DNC upserts that failed in handleCallOutcome — a verbal opt-out where the lead
+// row got marked 'dnc' but the shared dnc table insert failed (DLQ'd). Without this,
+// the same phone number could re-enter as a new lead and get called again.
+async function retryFailedDncUpserts() {
+  if (!supabase) return;
+
+  const { data: failed, error } = await supabase
+    .from('failed_webhook_events')
+    .select('id, payload')
+    .eq('source', 'handleCallOutcome/dnc')
+    .eq('resolved', false)
+    .limit(20);
+
+  if (error || !failed?.length) return;
+
+  for (const entry of failed) {
+    const phone = entry.payload?.phone;
+    if (!phone) continue;
+
+    const { error: dncErr } = await supabase.from('dnc')
+      .upsert({ phone, reason: 'verbal opt-out', added_by: 'agent' }, { onConflict: 'phone' });
+
+    if (!dncErr) {
+      await supabase.from('failed_webhook_events').update({ resolved: true }).eq('id', entry.id);
+      console.log(`[dnc-retry] Resolved DNC upsert for ${phone}`);
+    } else {
+      console.error(`[dnc-retry] Still failing for ${phone}:`, dncErr.message);
+    }
+  }
+}
+
+// Circuit breaker: count Retell calls placed in the last hour across all call types.
+// Used by both crons to pause firing new calls if volume looks runaway (e.g. a lead
+// looping without followup_step advancing).
+async function getRecentCallCount(sinceMs = 60 * 60_000) {
+  if (!supabase) return 0;
+  const since = new Date(Date.now() - sinceMs).toISOString();
+  const { count, error } = await supabase
+    .from('call_logs')
+    .select('id', { count: 'exact', head: true })
+    .gte('created_at', since);
+  if (error) {
+    console.error('[circuit-breaker] Could not count recent calls:', error.message);
+    return 0; // fail open — don't block calling on a count-query error
+  }
+  return count || 0;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -991,19 +1046,33 @@ app.post('/webhook/retell', validateRetell, async (req, res) => {
 
   console.log(`[webhook/retell] event: ${event} | call_id: ${call_id} | lead_id: ${lead_id} | type: ${call_type}`);
 
+  // Common identifying fields for call_logs — included in every upsert below so a
+  // missing seed row (triggerRetellCall's insert failed/DLQ'd) self-heals instead of
+  // silently updating 0 rows.
+  const callLogIdentity = {
+    retell_call_id: call_id,
+    lead_id:        lead_id || null,
+    appointment_id: appointment_id || null,
+    call_type:      call_type || 'unknown',
+  };
+
   try {
     if (event === 'call_started') {
-      await supabase?.from('call_logs').update({ call_status: 'ongoing', started_at: new Date().toISOString() })
-        .eq('retell_call_id', call_id);
+      await supabase?.from('call_logs').upsert({
+        ...callLogIdentity,
+        call_status: 'ongoing',
+        started_at:  new Date().toISOString(),
+      }, { onConflict: 'retell_call_id' });
       return;
     }
 
     if (event === 'call_ended') {
-      await supabase?.from('call_logs').update({
+      await supabase?.from('call_logs').upsert({
+        ...callLogIdentity,
         call_status:          call_status,
         disconnection_reason: disconnection_reason,
         ended_at:             new Date().toISOString(),
-      }).eq('retell_call_id', call_id);
+      }, { onConflict: 'retell_call_id' });
 
       // Double-dial logic — only for speed_to_lead, attempt 1, not yet double-dialed
       if (call_type === 'speed_to_lead' && lead_id) {
@@ -1016,13 +1085,14 @@ app.post('/webhook/retell', validateRetell, async (req, res) => {
       const summary  = call_analysis?.call_summary || '';
       const outcome  = extractOutcome(call_analysis, transcript, disconnection_reason);
 
-      await supabase?.from('call_logs').update({
+      await supabase?.from('call_logs').upsert({
+        ...callLogIdentity,
         call_status:  call_status,
         transcript:   formatTranscript(call?.transcript_object || []),
         summary,
         outcome,
         raw_payload:  call,
-      }).eq('retell_call_id', call_id);
+      }, { onConflict: 'retell_call_id' });
 
       if (lead_id) await handleCallOutcome({ leadId: lead_id, callId: call_id, callType: call_type, outcome, appointmentId: appointment_id });
       return;
@@ -1153,6 +1223,13 @@ async function handleCallOutcome({ leadId, callId, callType, outcome, appointmen
       // buffer back down to 45s here — that would let cron fire a duplicate attempt-2 call
       // before the setTimeout-driven attempt completes.
       leadUpdate.next_followup_at = new Date(Date.now() + FOLLOWUP_DELAYS[2] + 3 * 60_000).toISOString();
+    } else if (step === 2) {
+      // The lead picked up on attempt 1 (no double-dial fired — double_dialed is still
+      // false) but the outcome still fell through to this catch-all, e.g. 'completed'
+      // with no matching summary keyword, or a near-empty transcript. Don't apply the
+      // 45s no-answer redial cadence to someone who just answered the phone — skip
+      // ahead to the attempt-3 delay instead.
+      leadUpdate.next_followup_at = new Date(Date.now() + FOLLOWUP_DELAYS[3]).toISOString();
     } else {
       const delay = FOLLOWUP_DELAYS[Math.min(step, FOLLOWUP_DELAYS.length - 1)] || 24 * 60 * 60_000;
       leadUpdate.next_followup_at = new Date(Date.now() + delay).toISOString();
@@ -1350,6 +1427,18 @@ async function runSpeedToLeadCron() {
 
   if (!supabase) return console.warn('[cron/speed-to-lead] Supabase not configured');
 
+  await retryFailedDncUpserts();
+
+  // Circuit breaker — if call volume looks runaway (e.g. a lead looping without
+  // followup_step advancing), pause firing new calls and flag it for review.
+  const maxCallsPerHour = parseInt(MAX_CALLS_PER_HOUR, 10) || 300;
+  const recentCalls     = await getRecentCallCount();
+  if (recentCalls >= maxCallsPerHour) {
+    console.error(`[cron/speed-to-lead] Circuit breaker: ${recentCalls} calls in the last hour >= limit ${maxCallsPerHour} — skipping this tick`);
+    await dlq('cron/speed-to-lead/circuit-breaker', { recent_calls: recentCalls, limit: maxCallsPerHour }, new Error('Call volume circuit breaker tripped'));
+    return;
+  }
+
   const now = new Date().toISOString();
 
   // Fetch leads due for a follow-up call
@@ -1413,6 +1502,15 @@ async function runAppointmentReminderCron() {
 
   if (!RETELL_AGENT_ID_REMINDER || !RETELL_FROM_NUMBER) {
     return console.warn('[cron/appointment-reminders] RETELL_AGENT_ID_REMINDER or RETELL_FROM_NUMBER not set — skipping (reminders stay pending)');
+  }
+
+  // Circuit breaker — shared with /cron/speed-to-lead (counts calls across all types).
+  const maxCallsPerHour = parseInt(MAX_CALLS_PER_HOUR, 10) || 300;
+  const recentCalls     = await getRecentCallCount();
+  if (recentCalls >= maxCallsPerHour) {
+    console.error(`[cron/appointment-reminders] Circuit breaker: ${recentCalls} calls in the last hour >= limit ${maxCallsPerHour} — skipping this tick`);
+    await dlq('cron/appointment-reminders/circuit-breaker', { recent_calls: recentCalls, limit: maxCallsPerHour }, new Error('Call volume circuit breaker tripped'));
+    return;
   }
 
   const now = new Date().toISOString();

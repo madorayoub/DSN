@@ -147,6 +147,14 @@ Cron picks up rows where `trigger_at <= now()` and `status = 'pending'`. Before 
 
 ---
 
+## Timezone handling (US-only assumption)
+
+`phoneToTimezone()` maps US area codes to IANA timezones and falls back to `America/New_York` for any number it doesn't recognize (including all non-US numbers). This is used as the last resort in the timezone priority chain (GHL contact timezone → webhook payload timezone → area-code lookup → `America/New_York`) for both TCPA calling-hours checks and the times spoken in reminder calls.
+
+**This is a deliberate US-only assumption.** If DSN ever calls leads outside the US/Canada NANP area codes, those leads will be scheduled and reminded in Eastern time regardless of their actual timezone — an 8am "TCPA-compliant" call could land at 1am or 1pm their time, and reminder calls will state the wrong local appointment time. No code change is needed unless/until DSN's lead geography expands beyond North America.
+
+---
+
 ## Knowledge base / playbook
 
 `scripts/build_playbook.py` pulls Zoom strategy call transcripts, runs two-pass Claude synthesis (per-call JSON extraction → Opus playbook), and injects the result into the speed-to-lead agent's `global_prompt`.
@@ -166,6 +174,8 @@ python scripts/build_playbook.py --push-only
 ```
 
 Zoom credentials are read from `server/.env` (`ZOOM_ACCOUNT_ID`, `ZOOM_CLIENT_ID`, `ZOOM_CLIENT_SECRET`, `ANTHROPIC_API_KEY`).
+
+**Cadence & ownership — this is a manual, on-demand script, not a scheduled job.** Nothing runs it automatically, and nothing alerts if it goes stale — if no one runs it, the speed-to-lead agent silently keeps using last week's (or last month's) objection-handling playbook with no error. Whoever owns the STL prompt should re-run `python scripts/build_playbook.py` periodically (e.g. monthly, or after a batch of new strategy-call transcripts lands in Zoom) and spot-check the diff in `playbook.json` before/after — it's pushed straight into the *live* agent's `global_prompt` via `--push-only`/full run, so a bad synthesis run affects production calls immediately.
 
 ---
 
