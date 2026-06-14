@@ -139,9 +139,18 @@ function requireAdminPassword(req, res, next) {
   next();
 }
 
-// Retell signed-webhook verification (optional — enable by setting RETELL_WEBHOOK_KEY)
+// Retell signed-webhook verification (enable by setting RETELL_WEBHOOK_KEY to the
+// Retell dashboard API key that has the "webhook" badge).
 // IMPORTANT: must use raw request body bytes, not re-serialized JSON.
 // The retell webhook route and tool function routes use express.raw() via rawBodyMiddleware.
+//
+// Header format: "v={timestamp_ms},d={hex_hmac_sha256}" where digest =
+// HMAC-SHA256(rawBody + timestamp, key) hex-encoded, with a 5-minute replay window.
+// This matches Retell's own SDK algorithm exactly:
+// https://github.com/RetellAI/retell-python-sdk/blob/main/src/retell/lib/webhook_auth.py
+// https://docs.retellai.com/features/secure-webhook
+const RETELL_SIGNATURE_TIMEOUT_MS = 5 * 60 * 1000;
+
 function validateRetell(req, res, next) {
   if (!RETELL_WEBHOOK_KEY) {
     console.error('[auth] RETELL_WEBHOOK_KEY not set — rejecting request (fail closed)');
@@ -151,12 +160,21 @@ function validateRetell(req, res, next) {
   if (!sig) return res.status(401).json({ error: 'Missing x-retell-signature' });
   const rawBody = req.rawBody;
   if (!rawBody) return res.status(401).json({ error: 'Missing raw body for signature verification' });
+
+  const match = /^v=(\d+),d=(.+)$/.exec(sig);
+  if (!match) return res.status(401).json({ error: 'Malformed Retell signature' });
+  const [, timestamp, digest] = match;
+
+  if (Math.abs(Date.now() - Number(timestamp)) > RETELL_SIGNATURE_TIMEOUT_MS) {
+    return res.status(401).json({ error: 'Retell signature timestamp expired' });
+  }
+
   try {
     const expected = crypto.createHmac('sha256', RETELL_WEBHOOK_KEY)
-      .update(rawBody)
-      .digest('base64');
-    const sigBuf  = Buffer.from(sig,      'base64');
-    const expBuf  = Buffer.from(expected, 'base64');
+      .update(rawBody.toString('utf8') + timestamp)
+      .digest('hex');
+    const sigBuf = Buffer.from(digest,   'hex');
+    const expBuf = Buffer.from(expected, 'hex');
     if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
       return res.status(401).json({ error: 'Invalid Retell signature' });
     }
@@ -1804,10 +1822,33 @@ app.get('/health', async (_req, res) => {
 app.get('/ping', (_req, res) => res.send('pong'));
 
 // ─────────────────────────────────────────────────────────────────────────────
+// IN-PROCESS SCHEDULER
+// Drives the 3 cron jobs directly from this always-on process so they don't
+// depend on an external trigger's schedule actually firing on time. The
+// cron_locks distributed lock makes this safe to run alongside the
+// /cron/* HTTP endpoints (GitHub Actions, manual curl, etc.) — whichever
+// fires first wins each tick, the other skips.
+// ─────────────────────────────────────────────────────────────────────────────
+function startInProcessScheduler() {
+  const jobs = [
+    ['speed_to_lead_followup', runSpeedToLeadCron],
+    ['appointment_reminders',  runAppointmentReminderCron],
+    ['no_show_check',          runNoShowCron],
+  ];
+  for (const [name, fn] of jobs) {
+    const interval = CRON_INTERVALS_MS[name];
+    fn().catch(err => console.error(`[scheduler/${name}]`, err.message));
+    setInterval(() => fn().catch(err => console.error(`[scheduler/${name}]`, err.message)), interval);
+  }
+  console.log('[startup] In-process scheduler started (speed_to_lead/appointment_reminders every 5min, no_show_check every 15min)');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // START
 // ─────────────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
   console.log(`[startup] DSN Call Orchestrator running on :${PORT} (${NODE_ENV})`);
   console.log(`[startup] Supabase: ${supabase ? 'connected' : 'MISSING'} | GHL: ${GHL_API_KEY ? 'configured' : 'MISSING'} | Retell: ${RETELL_API_KEY ? 'configured' : 'MISSING'}`);
+  startInProcessScheduler();
 });

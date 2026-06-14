@@ -13,9 +13,10 @@ GHL Webhook ──► /webhook/new-lead          ──► Supabase leads table
                 /webhook/appointment-booked ──► Supabase appointments + reminders
                 /webhook/appointment-cancelled ──► cancel appointment + reminders
 
-Railway Cron ──► /cron/speed-to-lead        ──► picks up leads where next_followup_at <= now()
-(every 5min)     /cron/appointment-reminders ──► picks up reminders where trigger_at <= now()
-(every 15min)    /cron/no-show-check         ──► marks past appointments 'no_show', resumes follow-up
+In-process    ──► /cron/speed-to-lead        ──► picks up leads where next_followup_at <= now()
+scheduler        /cron/appointment-reminders ──► picks up reminders where trigger_at <= now()
+(setInterval,    /cron/no-show-check         ──► marks past appointments 'no_show', resumes follow-up
+ every 5/5/15min)
                          │
                          ▼
                  Retell API create-phone-call
@@ -99,12 +100,14 @@ Verified via `x-retell-signature` HMAC (raw body required).
 | POST | `/retell/function/check-availability` | Returns free GHL slots for the next N days |
 | POST | `/retell/function/book-appointment` | Books slot on GHL calendar, creates appointment + reminder rows |
 
-### Cron triggers (Railway hits these)
+### Cron triggers
+The server runs all three jobs itself via an in-process `setInterval` scheduler (started in `app.listen`'s callback) — no external scheduler is required for the service to function. The `/cron/*` endpoints below remain available, secured by `x-cron-secret: <CRON_SECRET>`, and are also hit on the same schedule by the `.github/workflows/cron.yml` GitHub Actions workflow as a redundant trigger (handy if the service restarts right as a tick is due). `cron_locks` (distributed lock) ensures only one trigger actually runs a given tick.
+
 | Method | Path | Schedule |
 |---|---|---|
-| POST | `/cron/speed-to-lead` | `*/5 * * * *` |
-| POST | `/cron/appointment-reminders` | `*/5 * * * *` |
-| POST | `/cron/no-show-check` | `*/15 * * * *` |
+| POST | `/cron/speed-to-lead` | every 5min |
+| POST | `/cron/appointment-reminders` | every 5min |
+| POST | `/cron/no-show-check` | every 15min |
 
 ### Admin / debug
 | Path | Shows |
