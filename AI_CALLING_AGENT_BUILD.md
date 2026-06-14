@@ -247,11 +247,17 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
   railway variables set RETELL_FROM_NUMBER=+1XXXXXXXXXX --service dsn-call-orchestrator
   ```
 - [x] 9. Retell agent webhook URL set: `https://dsn-call-orchestrator-production.up.railway.app/webhook/retell`
-- [ ] **10. Wire 3 GHL webhooks** (GHL → Settings → Integrations → Custom Webhooks):
-  - New lead created → `POST https://dsn-call-orchestrator-production.up.railway.app/webhook/new-lead`
-  - Appointment booked → `POST https://dsn-call-orchestrator-production.up.railway.app/webhook/appointment-booked`
-  - Appointment cancelled → `POST https://dsn-call-orchestrator-production.up.railway.app/webhook/appointment-cancelled`
-  - Header on all three: `x-webhook-secret: <value of WEBHOOK_SECRET from Railway env vars>`
+- [ ] **10. Publish 4 GHL Automation Workflows** (GHL → Automation → Workflows — the 4 drafts already exist):
+  > ⚠️ The orchestrator expects **GHL Workflow webhook payloads** (with `customData`), NOT native GHL webhook subscriptions. The draft workflows below were created in a prior session; you just need to open each one, verify the trigger + webhook action fields match the table below, and publish.
+  >
+  > Header on all 4 webhook actions: `x-webhook-secret: 3b4cf74321aff6778ece459be76462127ffcaef642dbb536`
+
+  | Workflow name | GHL trigger | Webhook URL | Required custom data fields |
+  |---|---|---|---|
+  | New Lead → Retell AI | Contact Created | `.../webhook/new-lead` | `contact_id={{contact.id}}`, `first_name={{contact.first_name}}`, `last_name={{contact.last_name}}`, `phone={{contact.phone}}`, `email={{contact.email}}` |
+  | Appointment Booked → Retell AI | Appointment Created | `.../webhook/appointment-booked` | `contact_id={{contact.id}}`, `appointment_id={{appointment.id}}`, `start_time={{appointment.start_time}}`, `end_time={{appointment.end_time}}` |
+  | Appointment Cancelled → Retell AI | Appointment Status Changed (Cancelled) | `.../webhook/appointment-cancelled` | `appointment_id={{appointment.id}}` |
+  | Opt-out (DND) → Retell AI | Tag Added (tag = "DNC") | `.../webhook/opt-out` | `contact_id={{contact.id}}`, `phone={{contact.phone}}` |
 - [x] 11. Knowledge base — DONE. `scripts/build_playbook.py` synthesized 16 real Zoom strategy call transcripts (via Claude two-pass extraction → Opus synthesis) into a playbook injected into the speed-to-lead agent's `global_prompt`. Re-run anytime: `python scripts/build_playbook.py`
 - [x] 11a. 17 audit fixes applied (2026-06-12) — TCPA, cron lock, outcomes, flow edges, schema indexes. See commit `bb22627`.
 - [x] 11b. `/cron/no-show-check` (every 15min) — marks past `booked` appointments `no_show`, re-enters lead into speed-to-lead at `followup_step=2`. See §11.

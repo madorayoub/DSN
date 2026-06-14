@@ -68,6 +68,7 @@ const {
   RETELL_SPEED_TO_LEAD_DELAY_MS = '90000',
   RETELL_DOUBLE_DIAL_DELAY_MS   = '45000',
   MAX_CALLS_PER_HOUR            = '300',
+  CLOSER_NAME                   = 'Brian',
 } = process.env;
 
 // ── Startup checks ────────────────────────────────────────────────────────────
@@ -90,8 +91,12 @@ const supabase = (SUPABASE_URL && SUPABASE_SECRET_KEY)
 if (!supabase) console.warn('[startup] ⚠️  Supabase not configured — all DB operations will fail');
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
-const webhookLimiter = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false });
+// Live-call tool routes (/retell/function/*) get a much higher limit — they fire
+// during active calls and a 429 here means Morgan fails to book mid-conversation.
+const webhookLimiter  = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false });
+const toolCallLimiter = rateLimit({ windowMs: 60_000, max: 600, standardHeaders: true, legacyHeaders: false });
 app.use('/webhook/', webhookLimiter);
+app.use('/retell/function/', toolCallLimiter);
 app.use('/retell/',  webhookLimiter);
 
 // ── CORS (admin dashboard uses fetch from browser) ────────────────────────────
@@ -125,7 +130,9 @@ function requireCronSecret(req, res, next) {
     console.error('[auth] CRON_SECRET not set — rejecting request (fail closed)');
     return res.status(503).json({ error: 'Cron auth not configured' });
   }
-  if (req.headers['x-cron-secret'] !== CRON_SECRET) {
+  const provided = Buffer.from(req.headers['x-cron-secret'] || '');
+  const expected = Buffer.from(CRON_SECRET);
+  if (provided.length !== expected.length || !crypto.timingSafeEqual(provided, expected)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   next();
@@ -443,7 +450,8 @@ async function ghlGetContact(contactId) {
 
 // Tool-call paths (Retell custom functions must respond <3s) use a shorter timeout
 // and no retries so a slow/down GHL doesn't stall a live call.
-const GHL_TOOL_CALL_OPTS = { timeoutMs: 6_000, retries: 0 };
+// 2,500ms keeps us under Retell's 3s expectation even accounting for network overhead.
+const GHL_TOOL_CALL_OPTS = { timeoutMs: 2_500, retries: 0 };
 
 // Fetch available slots for the GHL calendar. Returns array of ISO strings.
 async function ghlGetSlots(startDate, endDate, timezone) {
@@ -455,6 +463,23 @@ async function ghlGetSlots(startDate, endDate, timezone) {
   const slots = [];
   for (const day of Object.values(grouped)) {
     if (Array.isArray(day?.slots)) slots.push(...day.slots);
+  }
+  return slots;
+}
+
+// In-memory slot cache for check-availability (key: timezone+date range, TTL: 90s).
+// Prevents double GHL round-trips when pick_time re-fetches slots check_slots already loaded.
+const _slotCache = new Map();
+async function ghlGetSlotsWithCache(startDate, endDate, timezone) {
+  const key = `${timezone}|${startDate}|${endDate}`;
+  const hit = _slotCache.get(key);
+  if (hit && Date.now() - hit.ts < 90_000) return hit.slots;
+  const slots = await ghlGetSlots(startDate, endDate, timezone);
+  _slotCache.set(key, { slots, ts: Date.now() });
+  // Prune stale entries to cap memory usage
+  if (_slotCache.size > 200) {
+    const cutoff = Date.now() - 120_000;
+    for (const [k, v] of _slotCache) if (v.ts < cutoff) _slotCache.delete(k);
   }
   return slots;
 }
@@ -507,10 +532,11 @@ async function triggerRetellCall({ lead, agentId, callType, dynamicVars = {}, ap
     from_number: RETELL_FROM_NUMBER,
     to_number:   phone,
     retell_llm_dynamic_variables: {
-      customer_name: lead.name  || '',
-      customer_email: lead.email || '',
-      lead_id:       String(lead.id),
-      call_type:     callType,
+      customer_name:   lead.name  || '',
+      customer_email:  lead.email || '',
+      lead_id:         String(lead.id),
+      call_type:       callType,
+      callback_number: RETELL_FROM_NUMBER || '',
       ...dynamicVars,
     },
     metadata: {
@@ -682,7 +708,12 @@ async function upsertAppointment({ ghlAppointmentId, leadId, startAt, endAt, tim
 
   if (error) throw new Error(`Could not upsert appointment: ${error.message}`);
 
-  // Delete old reminders and regenerate (handles reschedule case)
+  // Delete old reminders and regenerate. Handles two cases:
+  // (a) Reschedule: same appointment, new time — sent reminders must also be deleted so a fresh
+  //     reminder fires at the new T-24h/T-1h rather than silently skipping (status='sent').
+  // (b) Concurrent calls (book-appointment tool + GHL appointment-created webhook racing on the
+  //     same appointment): both DELETE (second is a no-op), then upsert with ignoreDuplicates so
+  //     the second INSERT does ON CONFLICT DO NOTHING instead of throwing a unique violation.
   await supabase.from('appointment_reminders').delete().eq('appointment_id', appt.id);
 
   const start   = new Date(startAt);
@@ -695,9 +726,10 @@ async function upsertAppointment({ ghlAppointmentId, leadId, startAt, endAt, tim
   if (h1  > now) reminders.push({ appointment_id: appt.id, reminder_type: 'reminder_1h',  trigger_at: h1.toISOString() });
 
   if (reminders.length) {
-    const { error: remErr } = await supabase.from('appointment_reminders').insert(reminders);
-    if (remErr) console.warn('[appt] Could not create reminders:', remErr.message);
-    else console.log(`[appt] Created ${reminders.length} reminder(s) for appt ${appt.id} (start: ${start.toISOString()})`);
+    const { error: remErr } = await supabase.from('appointment_reminders')
+      .upsert(reminders, { onConflict: 'appointment_id,reminder_type', ignoreDuplicates: true });
+    if (remErr) console.warn('[appt] Could not upsert reminders:', remErr.message);
+    else console.log(`[appt] Upserted ${reminders.length} reminder(s) for appt ${appt.id} (start: ${start.toISOString()})`);
   } else {
     console.log(`[appt] No reminders created — meeting too soon (< 1h from now)`);
   }
@@ -1003,10 +1035,16 @@ app.post('/webhook/appointment-cancelled', requireWebhookSecret, async (req, res
       .eq('appointment_id', appt.id)
       .eq('status', 'pending');
 
-    // Resume follow-up for speed-to-lead if they were booked but now cancelled
+    // Resume follow-up for speed-to-lead if they were booked but now cancelled.
+    // Reset followup_step and double_dialed so the lead restarts the full STL cadence
+    // (attempt 1 → double-dial → 10min → 30min → 4h → 24h) rather than resuming mid-sequence
+    // at whatever step they were at when they first booked, which could exhaust them in one call.
     await supabase?.from('leads').update({
-      status:         'calling',
-      followup_paused: false,
+      status:           'calling',
+      followup_paused:  false,
+      followup_step:    1,
+      double_dialed:    false,
+      next_followup_at: new Date().toISOString(),
     }).eq('id', appt.lead_id).eq('status', 'booked');
 
     await logEvent('appointment_cancelled', { lead_id: appt.lead_id, appointment_id });
@@ -1129,14 +1167,13 @@ async function handleSpeedToLeadCallEnded({ leadId, callId, disconnectionReason 
   if (didAnswer) return; // They picked up — don't double-dial
 
   const { data: lead } = await supabase.from('leads')
-    .select('status, followup_step, followup_paused, double_dialed')
+    .select('status, followup_step, followup_paused, double_dialed, timezone, phone')
     .eq('id', leadId).single();
 
   if (!lead || lead.followup_paused || lead.double_dialed || (lead.followup_step ?? 1) > 1) return;
 
   const doubleDialDelay = parseInt(RETELL_DOUBLE_DIAL_DELAY_MS, 10) || 45_000;
-  const tz              = (await supabase.from('leads').select('timezone, phone').eq('id', leadId).single())?.data;
-  const callableTz      = tz?.timezone || phoneToTimezone(tz?.phone);
+  const callableTz      = lead.timezone || phoneToTimezone(lead.phone);
   const extraMs         = msUntilCallable(new Date(Date.now() + doubleDialDelay), callableTz);
   const totalDelay      = doubleDialDelay + extraMs;
 
@@ -1184,10 +1221,19 @@ async function handleCallOutcome({ leadId, callId, callType, outcome, appointmen
       }
     }
   } else if (outcome === 'callback_requested') {
-    // Lead asked to be called back — reschedule 1 hour out, keep in calling rotation
-    leadUpdate.status           = 'calling';
-    leadUpdate.followup_paused  = false;
-    leadUpdate.next_followup_at = new Date(Date.now() + 60 * 60_000).toISOString();
+    // Lead asked to be called back — reschedule 1 hour out, keep in calling rotation.
+    // Advance followup_step so repeated callbacks count toward the exhaustion cap (step > 6).
+    const { data: cbLead } = await supabase.from('leads').select('followup_step').eq('id', leadId).single();
+    const cbStep = (cbLead?.followup_step || 1) + 1;
+    if (cbStep > 6) {
+      leadUpdate.status          = 'exhausted';
+      leadUpdate.followup_paused = true;
+    } else {
+      leadUpdate.status           = 'calling';
+      leadUpdate.followup_paused  = false;
+      leadUpdate.followup_step    = cbStep;
+      leadUpdate.next_followup_at = new Date(Date.now() + 60 * 60_000).toISOString();
+    }
   } else if (outcome === 'rescheduled') {
     // Reminder flow rescheduled — new appointment already booked by book-appointment endpoint
     leadUpdate.status          = 'booked';
@@ -1226,7 +1272,7 @@ async function handleCallOutcome({ leadId, callId, callType, outcome, appointmen
     // Advance the follow-up step so cron picks up the next attempt.
     // Covers no_answer/voicemail as well as any unrecognized/completed outcome —
     // without this catch-all, a lead could get stuck in status='calling' forever.
-    const { data: lead } = await supabase.from('leads').select('followup_step, double_dialed').eq('id', leadId).single();
+    const { data: lead } = await supabase.from('leads').select('followup_step, double_dialed, next_followup_at').eq('id', leadId).single();
     const step = (lead?.followup_step || 1) + 1;
     leadUpdate.followup_step = step;
     // Follow-up schedule: attempt 1 → 2 (45s, handled by double-dial), attempt 3 at T+10min, attempt 4 at T+30min, attempt 5 at T+4h, attempt 6 at T+24h
@@ -1237,10 +1283,14 @@ async function handleCallOutcome({ leadId, callId, callType, outcome, appointmen
       // Don't schedule next_followup_at — exhausted leads are not picked up by cron
     } else if (step === 2 && lead?.double_dialed) {
       // Attempt 2 is already scheduled via the double-dial setTimeout (handleSpeedToLeadCallEnded),
-      // which set next_followup_at = now + 45s + 3min as a cron-collision buffer. Don't shrink that
-      // buffer back down to 45s here — that would let cron fire a duplicate attempt-2 call
-      // before the setTimeout-driven attempt completes.
-      leadUpdate.next_followup_at = new Date(Date.now() + FOLLOWUP_DELAYS[2] + 3 * 60_000).toISOString();
+      // which set next_followup_at = now + 45s + 3min as a cron-collision buffer.
+      // Only set next_followup_at if it is currently null — meaning call_ended hasn't committed
+      // its write yet (rare race). If it's already set, don't overwrite: the setTimeout's claim
+      // (which nulls it) plus cron safety net handle the rest. Overwriting could cause cron to
+      // see a re-populated next_followup_at after the setTimeout claimed it and fire a duplicate.
+      if (!lead.next_followup_at) {
+        leadUpdate.next_followup_at = new Date(Date.now() + FOLLOWUP_DELAYS[2] + 3 * 60_000).toISOString();
+      }
     } else if (step === 2) {
       // The lead picked up on attempt 1 (no double-dial fired — double_dialed is still
       // false) but the outcome still fell through to this catch-all, e.g. 'completed'
@@ -1276,12 +1326,14 @@ function extractOutcome(callAnalysis = {}, transcript = '', disconnectionReason 
   const intent  = (callAnalysis?.user_sentiment || '').toLowerCase();
 
   // Priority 2: summary text patterns
-  // DNC checked first — compliance-critical, must never be shadowed by an incidental "appointment" mention
+  // DNC checked first — compliance-critical, must never be shadowed by an incidental mention
   if (summary.includes('stop') || summary.includes('do not call') || summary.includes('remove')) return 'dnc';
-  // Cancellation checked before booked/appointment — a "cancel this appointment" summary contains "appointment" too
-  if (summary.includes('cancel')) return 'cancelled';
-  if (summary.includes('booked') || summary.includes('appointment') || summary.includes('scheduled')) return 'booked';
+  // Rescheduled before cancel — reschedule summaries often contain "cancelled the previous appointment"
   if (summary.includes('rescheduled') || summary.includes('reschedule')) return 'rescheduled';
+  // Cancel before booked — "cancel this appointment" contains "appointment" too
+  if (summary.includes('cancel')) return 'cancelled';
+  // 'booked'/'scheduled' only — 'appointment' alone is too broad (voicemail summaries say "left a message about scheduling an appointment")
+  if (summary.includes('booked') || summary.includes('scheduled')) return 'booked';
   if (summary.includes('confirmed') || summary.includes('see you then')) return 'confirmed';
   if (summary.includes('callback') || summary.includes('call back') || summary.includes('call me back')) return 'callback_requested';
   if (summary.includes('wrong number') || summary.includes('wrong person')) return 'not_interested';
@@ -1320,7 +1372,7 @@ app.post('/retell/function/check-availability', validateRetell, async (req, res)
     const endDate   = new Date(Date.now() + daysAhead * 24 * 60 * 60 * 1000);
     const fmt       = d => d.toISOString().slice(0, 10); // YYYY-MM-DD
 
-    const slots = await ghlGetSlots(fmt(startDate), fmt(endDate), timezone);
+    const slots = await ghlGetSlotsWithCache(fmt(startDate), fmt(endDate), timezone);
 
     // Return up to 6 slots in natural language so agent can speak them
     const formatted = slots.slice(0, 6).map(iso => {
@@ -1387,15 +1439,15 @@ app.post('/retell/function/book-appointment', validateRetell, async (req, res) =
       timezone: timezone || lead.timezone || 'America/New_York',
     });
 
-    // New booking succeeded — now safe to cancel the old appointment, in GHL and Supabase.
+    // New booking succeeded — now safe to cancel the old appointment in GHL and Supabase.
+    // GHL cancel is fire-and-forget: awaiting it adds a full extra GHL round-trip to the
+    // live-call tool response. Supabase mirror still awaited (fast, <200ms total).
     if (oldAppt) {
       if (oldAppt.ghl_appointment_id) {
-        try {
-          await ghlCancelAppointment(oldAppt.ghl_appointment_id);
-        } catch (cancelErr) {
+        ghlCancelAppointment(oldAppt.ghl_appointment_id).catch(cancelErr => {
           console.error(`[retell/book-appointment] Failed to cancel old GHL appointment ${oldAppt.ghl_appointment_id}:`, cancelErr.message);
-          await dlq('retell/book-appointment/cancel-old', { lead_id: lead.id, old_appointment_id: oldAppt.id, ghl_appointment_id: oldAppt.ghl_appointment_id }, cancelErr);
-        }
+          dlq('retell/book-appointment/cancel-old', { lead_id: lead.id, old_appointment_id: oldAppt.id, ghl_appointment_id: oldAppt.ghl_appointment_id }, cancelErr);
+        });
       }
       await supabase.from('appointments').update({
         status:       'cancelled',
@@ -1612,6 +1664,7 @@ async function runAppointmentReminderCron() {
           timezone:          appt.timezone,
           zoom_link:         appt.zoom_link || '',
           reminder_type:     reminder.reminder_type,
+          closer_name:       CLOSER_NAME,
         },
       });
 
@@ -1620,7 +1673,11 @@ async function runAppointmentReminderCron() {
       }
     } catch (err) {
       console.error(`[cron/appointment-reminders] Reminder ${reminder.id} failed:`, err.message);
-      await supabase.from('appointment_reminders').update({ status: 'failed', error: err.message }).eq('id', reminder.id);
+      // Reset to 'pending' so the next cron tick retries — 'failed' is never re-queried.
+      // The retry window is naturally bounded by the appointment time (no-show cron takes over after).
+      await supabase.from('appointment_reminders')
+        .update({ status: 'pending', sent_at: null, error: err.message })
+        .eq('id', reminder.id);
       await dlq('cron/appointment-reminders', { reminder_id: reminder.id, appointment_id: appt.id }, err);
     }
   }
@@ -1786,6 +1843,7 @@ app.get('/health', async (_req, res) => {
     node:      process.version,
     env:       NODE_ENV,
     retell:    !!RETELL_API_KEY,
+    from_number: !!RETELL_FROM_NUMBER,
     ghl:       !!GHL_API_KEY,
     agents: {
       speed_to_lead: !!RETELL_AGENT_ID_SPEED_TO_LEAD,

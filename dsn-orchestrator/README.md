@@ -197,11 +197,31 @@ UPDATE cron_locks SET locked_until = '1970-01-01 00:00:00+00';
 
 ---
 
-## Pending (as of 2026-06-12)
+## Pending (as of 2026-06-14)
 
-1. **Buy DSN phone number in Retell** → `railway variables set RETELL_FROM_NUMBER=+1XXXXXXXXXX --service dsn-call-orchestrator`
-2. **Wire 3 GHL webhooks** with header `x-webhook-secret: <value of WEBHOOK_SECRET from Railway env vars>`:
-   - New lead → `POST .../webhook/new-lead`
-   - Appointment booked → `POST .../webhook/appointment-booked`
-   - Appointment cancelled → `POST .../webhook/appointment-cancelled`
-3. **End-to-end test:** submit test lead → call fires ~5min later (if not self-booked first) → book slot → reminders appear in Supabase → reminder calls fire
+1. **Publish 4 GHL Automation Workflows** — the drafts already exist in GHL, they just need configuration verified and Published. See the table below.
+2. **End-to-end test:** submit test lead → call fires ~5min later (if not self-booked first) → book slot → reminders appear in Supabase → reminder calls fire
+
+Phone number (`+15618340099`) and all Railway env vars are already set.
+
+---
+
+## GHL Workflow configuration
+
+The orchestrator expects **GHL Automation Workflow** webhooks — NOT native GHL webhook subscriptions (Settings → Integrations → Webhooks). The payload field names differ; the code reads `contact_id`, `appointment_id`, `start_time` which only Workflow custom data sends.
+
+Header on all 4 webhook actions:
+```
+x-webhook-secret: 3b4cf74321aff6778ece459be76462127ffcaef642dbb536
+```
+
+| Workflow | Trigger | URL | Custom data fields to configure |
+|---|---|---|---|
+| New Lead → Retell AI | Contact Created | `.../webhook/new-lead` | `contact_id`, `first_name`, `last_name`, `phone`, `email` |
+| Appointment Booked → Retell AI | Appointment Created | `.../webhook/appointment-booked` | `contact_id`, `appointment_id`, `start_time`, `end_time` |
+| Appointment Cancelled → Retell AI | Appointment Status Changed (Cancelled) | `.../webhook/appointment-cancelled` | `appointment_id` |
+| Opt-out (DND) → Retell AI | Tag Added ("DNC") | `.../webhook/opt-out` | `contact_id`, `phone` |
+
+GHL variable tokens to use in the custom data values: `{{contact.id}}`, `{{contact.phone}}`, `{{contact.first_name}}`, `{{contact.last_name}}`, `{{contact.email}}`, `{{appointment.id}}`, `{{appointment.start_time}}`, `{{appointment.end_time}}`.
+
+**Note:** when Morgan books an appointment during a speed-to-lead call (via the `book-appointment` tool), GHL will also fire the Appointment Created workflow. The handler is idempotent — the upsert is safe to run twice on the same appointment.
