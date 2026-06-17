@@ -3970,20 +3970,23 @@
           $dates.appendChild(frag);
           $times.innerHTML = '<div class="bk-spin"></div>';
 
-          fetch(API + '?startDate=' + toYMD(today) + '&endDate=' + toYMD(end) + '&timezone=' + encodeURIComponent(TZ))
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-              cache = data.dates || {};
-              $dates.querySelectorAll('.bk-d').forEach(function (b) {
-                b.disabled = !(cache[b.dataset.date] || []).length;
+          // 100ms delay avoids Safari 18 "Load failed" fetch bug on page show
+          setTimeout(function () {
+            fetch(API + '?startDate=' + toYMD(today) + '&endDate=' + toYMD(end) + '&timezone=' + encodeURIComponent(TZ))
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                cache = data.dates || {};
+                $dates.querySelectorAll('.bk-d').forEach(function (b) {
+                  b.disabled = !(cache[b.dataset.date] || []).length;
+                });
+                var first = $dates.querySelector('.bk-d:not(:disabled)');
+                if (first) pickDate(first.dataset.date);
+                else $times.innerHTML = '<p class="bk-empty">No availability in the next 14 days.<br>Call us at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
+              })
+              .catch(function () {
+                $times.innerHTML = '<p class="bk-empty">Could not load availability. Please refresh the page.</p>';
               });
-              var first = $dates.querySelector('.bk-d:not(:disabled)');
-              if (first) pickDate(first.dataset.date);
-              else $times.innerHTML = '<p class="bk-empty">No availability in the next 14 days.<br>Call us at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
-            })
-            .catch(function () {
-              $times.innerHTML = '<p class="bk-empty">Could not load availability. Please refresh the page.</p>';
-            });
+          }, 100);
         }
 
         function pickDate(ymd) {
@@ -4108,7 +4111,7 @@
           })
           .catch(function (err) {
             clearTimeout(timeout); pendingAbort = null; submitting = false;
-            showErr(err && err.name === 'AbortError' ? 'Request timed out. Please try again.' : 'Network error. Please try again.');
+            showErr(err && err.name === 'AbortError' ? 'Request timed out. Please try again.' : 'Connection interrupted. Tap "Book My Strategy Call" again to retry.');
             resetBtn();
           });
         });

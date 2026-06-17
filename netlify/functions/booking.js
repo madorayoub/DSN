@@ -29,7 +29,7 @@ function corsHeaders(origin) {
 function json(statusCode, body, origin) {
   return {
     statusCode,
-    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json', 'Connection': 'close' },
     body: JSON.stringify(body),
   };
 }
@@ -164,7 +164,7 @@ exports.handler = async (event) => {
       const dates = await getSlots(startDate, end, timezone);
       return {
         statusCode: 200,
-        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Connection': 'close' },
         body: JSON.stringify({ dates }),
       };
     } catch (err) {
