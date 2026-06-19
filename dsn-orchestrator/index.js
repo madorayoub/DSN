@@ -539,6 +539,41 @@ async function ghlGetSlotsWithCache(startDate, endDate, timezone) {
   return slots;
 }
 
+// Pre-fetch open slots BEFORE a call so the agent already has them in context as
+// dynamic variables — no mid-call check_availability round-trip (latency) and nothing
+// for the model to hallucinate. On any failure returns blank vars so the flow falls
+// back to the live check_availability tool.
+async function buildSlotVars(timezone) {
+  try {
+    const startMs = Date.now();
+    const endMs   = startMs + 5 * 24 * 60 * 60 * 1000;
+    const slots   = await ghlGetSlotsWithCache(startMs, endMs, timezone);
+    if (!slots.length) {
+      return { has_availability: 'false', available_slots_formatted: '', available_slots_iso: '' };
+    }
+    const top = slots.slice(0, 8);
+    // Group by day for a speakable summary, e.g.
+    // "Monday, June 22: 2:00 PM, 3:30 PM | Tuesday, June 23: 10:00 AM, 12:00 PM"
+    const byDay = new Map();
+    for (const iso of top) {
+      const d    = new Date(iso);
+      const day  = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: timezone });
+      const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: timezone });
+      if (!byDay.has(day)) byDay.set(day, []);
+      byDay.get(day).push(time);
+    }
+    const formatted = [...byDay.entries()].map(([day, times]) => `${day}: ${times.join(', ')}`).join(' | ');
+    return {
+      has_availability:          'true',
+      available_slots_formatted: formatted,    // speakable, lead's timezone
+      available_slots_iso:       top.join(','), // exact ISO strings for book_appointment
+    };
+  } catch (err) {
+    console.error('[retell/prefetch-slots] error:', err.message);
+    return { has_availability: '', available_slots_formatted: '', available_slots_iso: '' };
+  }
+}
+
 // Book a Zoom call with Brian in GHL calendar (30-min slot; agent tells the lead 15 min).
 async function ghlBookAppointment({ contactId, name, email, phone, slotIso, timezone }) {
   const start = new Date(slotIso);
@@ -582,6 +617,11 @@ async function triggerRetellCall({ lead, agentId, callType, dynamicVars = {}, ap
     return null;
   }
 
+  // Resolve the lead's timezone (caller usually passes it; fall back to area code)
+  // and pre-fetch open calendar slots so the agent has them in-context at call start.
+  const tz = dynamicVars.timezone || phoneToTimezone(lead.phone) || 'America/New_York';
+  const slotVars = await buildSlotVars(tz);
+
   const payload = {
     agent_id:    agentId,
     from_number: RETELL_FROM_NUMBER,
@@ -593,6 +633,7 @@ async function triggerRetellCall({ lead, agentId, callType, dynamicVars = {}, ap
       call_type:       callType,
       callback_number: RETELL_FROM_NUMBER || '',
       ...dynamicVars,
+      ...slotVars,
     },
     metadata: {
       lead_id:        lead.id,
