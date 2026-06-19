@@ -524,7 +524,9 @@ async function ghlGetSlots(startDate, endDate, timezone) {
 // Prevents double GHL round-trips when pick_time re-fetches slots check_slots already loaded.
 const _slotCache = new Map();
 async function ghlGetSlotsWithCache(startDate, endDate, timezone) {
-  const key = `${timezone}|${startDate}|${endDate}`;
+  // Bucket epoch-ms timestamps to the hour so the two calls in one booking
+  // (check_slots then pick_time, seconds apart) still share the cache entry.
+  const key = `${timezone}|${Math.floor(startDate / 3_600_000)}|${Math.floor(endDate / 3_600_000)}`;
   const hit = _slotCache.get(key);
   if (hit && Date.now() - hit.ts < 90_000) return hit.slots;
   const slots = await ghlGetSlots(startDate, endDate, timezone);
@@ -1485,11 +1487,12 @@ app.post('/retell/function/check-availability', validateRetell, async (req, res)
   const daysAhead = Math.min(parseInt(args.days_ahead || '5', 10), 14);
 
   try {
-    const startDate = new Date();
-    const endDate   = new Date(Date.now() + daysAhead * 24 * 60 * 60 * 1000);
-    const fmt       = d => d.toISOString().slice(0, 10); // YYYY-MM-DD
+    // GHL free-slots requires epoch-millisecond timestamps, NOT YYYY-MM-DD strings
+    // (a date string returns HTTP 422 "startDate must be a number conforming to ...").
+    const startMs = Date.now();
+    const endMs   = startMs + daysAhead * 24 * 60 * 60 * 1000;
 
-    const slots = await ghlGetSlotsWithCache(fmt(startDate), fmt(endDate), timezone);
+    const slots = await ghlGetSlotsWithCache(startMs, endMs, timezone);
 
     // Return up to 6 slots in natural language so agent can speak them
     const formatted = slots.slice(0, 6).map(iso => {
