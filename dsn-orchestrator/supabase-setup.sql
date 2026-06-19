@@ -51,6 +51,9 @@ create index if not exists idx_appts_ghl         on appointments(ghl_appointment
 create index if not exists idx_appts_lead        on appointments(lead_id);
 create index if not exists idx_appts_start       on appointments(start_at);
 
+-- Supports the no-show cron: WHERE status='booked' AND start_at < cutoff AND start_at > lookback
+create index if not exists idx_appts_noshow_query on appointments(start_at) where status = 'booked';
+
 -- ── appointment_reminders ─────────────────────────────────────────────────────
 -- One row per (appointment, type). Cron fires calls when trigger_at <= now() and status='pending'.
 create table if not exists appointment_reminders (
@@ -119,7 +122,7 @@ create index if not exists idx_lead_events_type    on lead_events(event_type);
 create table if not exists dnc (
   phone       text primary key,
   reason      text,
-  added_by    text,                   -- 'lead' | 'agent' | 'admin'
+  added_by    text,                   -- 'lead' | 'agent' | 'admin' | 'ghl_webhook'
   created_at  timestamptz not null default now()
 );
 alter table dnc enable row level security;
@@ -179,6 +182,27 @@ $$;
 revoke execute on function try_acquire_cron_lock(text, timestamptz) from public;
 revoke execute on function try_acquire_cron_lock(text, timestamptz) from anon, authenticated;
 grant execute on function try_acquire_cron_lock(text, timestamptz) to service_role;
+
+-- ── release_cron_lock RPC ───────────────────────────────────────────────────
+-- Called at the end of each cron run so the next tick/instance doesn't have to
+-- wait out the full TTL. Best-effort — if a tick crashes before calling this,
+-- the lock still expires naturally via locked_until.
+create or replace function release_cron_lock(p_job_name text)
+returns void
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  update cron_locks
+  set    locked_until = now()
+  where  job_name      = p_job_name;
+end;
+$$;
+
+revoke execute on function release_cron_lock(text) from public;
+revoke execute on function release_cron_lock(text) from anon, authenticated;
+grant execute on function release_cron_lock(text) to service_role;
 
 -- ── Composite index for cron query ────────────────────────────────────────────
 -- Supports: WHERE status='calling' AND followup_paused=false AND next_followup_at <= now() AND followup_step <= 6
