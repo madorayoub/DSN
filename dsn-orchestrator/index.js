@@ -556,6 +556,19 @@ async function ghlGetSlots(startDate, endDate, timezone) {
   return slots;
 }
 
+// Keep only top-of-the-hour slots (11:00, 1:00, 3:00 …) — the agent offers clean
+// o'clock times, never :30 or :15. Minute is computed in the lead's local timezone
+// so half-hour-offset zones (e.g. Newfoundland) are handled correctly. Falls back to
+// the unfiltered list if filtering would leave nothing, so we never lose all slots.
+function topOfHourSlots(slots, timezone) {
+  const onHour = slots.filter(iso => {
+    const parts = new Intl.DateTimeFormat('en-US', { minute: '2-digit', timeZone: timezone || 'America/New_York' })
+      .formatToParts(new Date(iso));
+    return parseInt(parts.find(p => p.type === 'minute')?.value ?? 'NaN', 10) === 0;
+  });
+  return onHour.length ? onHour : slots;
+}
+
 // In-memory slot cache for check-availability (key: timezone+date range, TTL: 90s).
 // Prevents double GHL round-trips when pick_time re-fetches slots check_slots already loaded.
 const _slotCache = new Map();
@@ -587,7 +600,7 @@ async function buildSlotVars(timezone) {
     if (!slots.length) {
       return { has_availability: 'false', available_slots_formatted: '', available_slots_iso: '' };
     }
-    const top = slots.slice(0, 8);
+    const top = topOfHourSlots(slots, timezone).slice(0, 8);
     // Group by day for a speakable summary, e.g.
     // "Monday, June 22: 2:00 PM, 3:30 PM | Tuesday, June 23: 10:00 AM, 12:00 PM"
     const byDay = new Map();
@@ -610,7 +623,9 @@ async function buildSlotVars(timezone) {
   }
 }
 
-// Book a Zoom call with Brian in GHL calendar (30-min slot; agent tells the lead 15 min).
+// Book a Zoom call with Brian in GHL calendar.
+// INTENTIONAL: book a 30-min slot even though the agent tells the lead "15 minutes" —
+// the extra buffer is for Brian. Do NOT "fix" this to 15 to match the script.
 async function ghlBookAppointment({ contactId, name, email, phone, slotIso, timezone }) {
   const start = new Date(slotIso);
   const end   = new Date(start.getTime() + 30 * 60 * 1000);
@@ -1569,7 +1584,8 @@ app.post('/retell/function/check-availability', validateRetell, async (req, res)
     const startMs = Date.now();
     const endMs   = startMs + daysAhead * 24 * 60 * 60 * 1000;
 
-    const slots = await ghlGetSlotsWithCache(startMs, endMs, timezone);
+    const allSlots = await ghlGetSlotsWithCache(startMs, endMs, timezone);
+    const slots    = topOfHourSlots(allSlots, timezone); // offer clean o'clock times only
 
     // Return up to 6 slots in natural language so agent can speak them
     const formatted = slots.slice(0, 6).map(iso => {
