@@ -211,7 +211,12 @@ function validateRetell(req, res, next) {
 // Primary debugging tool: SELECT * FROM lead_events WHERE lead_id=X ORDER BY created_at;
 async function logEvent(eventType, payload = {}) {
   if (!supabase) return;
-  const { error } = await supabase.from('lead_events').insert({ event_type: eventType, payload });
+  const { error } = await supabase.from('lead_events').insert({
+    event_type: eventType,
+    payload,
+    lead_id:        payload.lead_id        || null,
+    appointment_id: payload.appointment_id || null,
+  });
   if (error) console.error(`[logEvent] Failed to write ${eventType}:`, error.message);
 }
 
@@ -470,9 +475,14 @@ async function acquireCronLock(jobName, intervalMs = 5 * 60_000) {
 // Releases a held lock immediately (sets locked_until = now()) so the next instance/tick
 // doesn't have to wait out the full TTL. Best-effort — if this fails, the lock just
 // expires naturally via its TTL.
+// Uses a direct table update rather than the release_cron_lock RPC to avoid PostgREST
+// schema-cache issues with void-returning functions (the RPC exists but may not be
+// visible to PostgREST after certain migrations).
 async function releaseCronLock(jobName) {
   if (!supabase) return;
-  const { error } = await supabase.rpc('release_cron_lock', { p_job_name: jobName });
+  const { error } = await supabase.from('cron_locks')
+    .update({ locked_until: new Date().toISOString() })
+    .eq('job_name', jobName);
   if (error) {
     console.error(`[cron-lock] release_cron_lock RPC failed for ${jobName}: ${error.message}`);
   }
@@ -674,11 +684,12 @@ async function triggerRetellCall({ lead, agentId, callType, dynamicVars = {}, ap
   const slotVars = await buildSlotVars(tz);
 
   const payload = {
-    agent_id:    agentId,
+    override_agent_id: agentId,   // Retell's create-phone-call ignores `agent_id`; must use override_agent_id
     from_number: RETELL_FROM_NUMBER,
     to_number:   phone,
     retell_llm_dynamic_variables: {
-      customer_name:   lead.name  || '',
+      customer_name:       lead.name  || '',
+      customer_first_name: (lead.name || '').trim().split(/\s+/)[0] || 'there',
       customer_email:  lead.email || '',
       lead_id:         String(lead.id),
       call_type:       callType,
@@ -1342,6 +1353,12 @@ app.post('/webhook/retell', validateRetell, async (req, res) => {
       if (call_type === 'speed_to_lead' && lead_id) {
         await handleSpeedToLeadCallEnded({ leadId: lead_id, callId: call_id, disconnectionReason: disconnection_reason });
       }
+
+      // 1-hour reminder double-dial — redial once if the lead didn't pick up the 1h reminder.
+      // The 24h reminder is intentionally one-shot (no redial).
+      if (call_type === 'reminder_1h' && appointment_id) {
+        await handleReminderCallEnded({ appointmentId: appointment_id, reminderType: call_type, callId: call_id, disconnectionReason: disconnection_reason });
+      }
       return;
     }
 
@@ -1369,10 +1386,28 @@ app.post('/webhook/retell', validateRetell, async (req, res) => {
   }
 });
 
-// After a speed-to-lead call ends unanswered: schedule the double-dial.
+// Retell disconnection_reason values that mean a real human actually engaged on the
+// call — the ONLY cases where we must NOT double-dial. Everything else (no-answer, busy,
+// voicemail, IVR, dial/telephony failures, capacity/billing/abuse, LLM/Retell errors, or
+// any NEW reason Retell adds later) means we never reached a person → eligible for redial.
+// Allowlist (not denylist) so unknown/new failure reasons fail safe toward "try again".
+// Enum verified against https://docs.retellai.com/reliability/debug-call-disconnect (34 values).
+const HUMAN_ANSWERED_REASONS = new Set([
+  'user_hangup',          // user talked, then hung up
+  'agent_hangup',         // agent ended after a conversation
+  'call_transfer',        // agent transferred a live call
+  'transfer_bridged',     // transfer completed, legs bridged
+  'transfer_cancelled',   // a live call existed before the transfer was aborted
+  'call_take_over',       // a human took over the call
+  'inactivity',           // answered, then went silent past end_call_after_silence_ms
+  'max_duration_reached', // answered and ran to the max-duration cap
+  'manual_stopped',       // operator/API stopped the call — don't auto-redial
+]);
+
+// After a speed-to-lead call ends without reaching a human: schedule the double-dial.
 async function handleSpeedToLeadCallEnded({ leadId, callId, disconnectionReason }) {
-  const didAnswer = !['voicemail_reached', 'dial_no_answer', 'dial_failed', 'dial_busy'].includes(disconnectionReason);
-  if (didAnswer) return; // They picked up — don't double-dial
+  const didAnswer = HUMAN_ANSWERED_REASONS.has(disconnectionReason);
+  if (didAnswer) return; // A human engaged — don't double-dial
 
   const { data: lead } = await supabase.from('leads')
     .select('status, followup_step, followup_paused, double_dialed, timezone, phone')
@@ -1403,6 +1438,71 @@ async function handleSpeedToLeadCallEnded({ leadId, callId, disconnectionReason 
   setTimeout(() => fireSpeedToLeadCall(leadId).catch(err =>
     dlq('double-dial', { lead_id: leadId }, err)
   ), totalDelay);
+}
+
+// After a 1-hour reminder call ends without reaching a human: redial it once.
+// Mirrors the speed-to-lead double-dial. Only reminder_1h reaches here (see webhook branch);
+// the 24h reminder stays one-shot. The redial fires triggerRetellCall directly — the reminder
+// row is already 'sent', so it must NOT go back through the cron (which only reads 'pending').
+async function handleReminderCallEnded({ appointmentId, reminderType, callId, disconnectionReason }) {
+  const didAnswer = HUMAN_ANSWERED_REASONS.has(disconnectionReason);
+  if (didAnswer) return; // A human engaged — don't redial
+
+  const { data: reminder } = await supabase.from('appointment_reminders')
+    .select('id, status, redialed, appointments(*, leads(*))')
+    .eq('appointment_id', appointmentId).eq('reminder_type', reminderType).maybeSingle();
+
+  if (!reminder || reminder.redialed || reminder.status !== 'sent') return;
+  const appt = reminder.appointments;
+  const lead = appt?.leads;
+  if (!appt || !lead || appt.status === 'cancelled') return;
+
+  const redialDelay = parseInt(RETELL_DOUBLE_DIAL_DELAY_MS, 10) || 45_000;
+  const reminderTz  = appt.timezone || lead.timezone || phoneToTimezone(lead.phone) || 'America/New_York';
+  const extraMs     = msUntilCallable(new Date(Date.now() + redialDelay), reminderTz);
+  const totalDelay  = redialDelay + extraMs;
+
+  // Atomic guard: only schedule if redialed is still false (defends against duplicate webhook deliveries).
+  const { data: claimed, error } = await supabase.from('appointment_reminders')
+    .update({ redialed: true })
+    .eq('id', reminder.id).eq('redialed', false).select('id');
+
+  if (error || !claimed?.length) {
+    console.log(`[reminder-redial] Race avoided for reminder ${reminder.id} — already claimed or error: ${error?.message}`);
+    return;
+  }
+
+  console.log(`[reminder-redial] Appt ${appt.id} (reminder_1h): redial in ${Math.round(totalDelay / 1000)}s`);
+  await logEvent('retell_reminder_redial_scheduled', { appointment_id: appt.id, reminder_type: reminderType, delay_ms: totalDelay });
+
+  setTimeout(() => {
+    (async () => {
+      const startLocal = new Date(appt.start_at).toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: '2-digit', timeZone: reminderTz, timeZoneName: 'short',
+      });
+      const startDate = new Date(appt.start_at).toLocaleDateString('en-US', {
+        weekday: 'long', month: 'long', day: 'numeric', timeZone: reminderTz,
+      });
+      const callData = await triggerRetellCall({
+        lead,
+        agentId:       RETELL_AGENT_ID_REMINDER,
+        callType:      reminderType,
+        appointmentId: appt.id,
+        dynamicVars: {
+          appointment_time:  startLocal,
+          appointment_date:  startDate,
+          appointment_iso:   appt.start_at,
+          timezone:          appt.timezone,
+          zoom_link:         appt.zoom_link || '',
+          reminder_type:     reminderType,
+          closer_name:       CLOSER_NAME,
+        },
+      });
+      if (callData?.call_id) {
+        await supabase.from('appointment_reminders').update({ retell_call_id: callData.call_id }).eq('id', reminder.id);
+      }
+    })().catch(err => dlq('reminder-redial', { appointment_id: appt.id, reminder_type: reminderType }, err));
+  }, totalDelay);
 }
 
 // After call_analyzed: update lead status based on what happened.
@@ -1770,6 +1870,50 @@ async function runSpeedToLeadCronBody() {
     .limit(50);
 
   if (error) return console.error('[cron/speed-to-lead] DB error:', error.message);
+
+  // Recover stranded leads: status='calling' with next_followup_at=NULL (e.g. lost
+  // setTimeout after Railway restart). These are invisible to the normal cron query
+  // which filters next_followup_at <= now() — NULLs never match.
+  const { data: stranded, error: strandedErr } = await supabase
+    .from('leads')
+    .select('id')
+    .eq('status', 'calling')
+    .eq('followup_paused', false)
+    .is('next_followup_at', null)
+    .lte('followup_step', 6)
+    .limit(20);
+
+  if (strandedErr) {
+    console.error('[cron/speed-to-lead] Stranded-lead query error:', strandedErr.message);
+  } else if (stranded?.length) {
+    console.log(`[cron/speed-to-lead] Recovering ${stranded.length} stranded lead(s)`);
+    for (const s of stranded) {
+      await supabase.from('leads').update({
+        next_followup_at: new Date().toISOString(),
+      }).eq('id', s.id);
+    }
+  }
+
+  // Recover leads stuck in 'new' for over 1 hour (scheduleSpeedToLeadCall failed silently).
+  const newStaleCutoff = new Date(Date.now() - 60 * 60_000).toISOString();
+  const { data: staleNew } = await supabase
+    .from('leads')
+    .select('id')
+    .eq('status', 'new')
+    .lte('created_at', newStaleCutoff)
+    .limit(10);
+
+  if (staleNew?.length) {
+    console.log(`[cron/speed-to-lead] Recovering ${staleNew.length} stale 'new' lead(s)`);
+    for (const s of staleNew) {
+      await supabase.from('leads').update({
+        status:           'calling',
+        followup_step:    1,
+        next_followup_at: new Date().toISOString(),
+      }).eq('id', s.id).eq('status', 'new');
+    }
+  }
+
   if (!leads?.length) return console.log('[cron/speed-to-lead] No leads due');
 
   console.log(`[cron/speed-to-lead] Processing ${leads.length} leads`);
@@ -1824,6 +1968,8 @@ async function runAppointmentReminderCron() {
 
 async function runAppointmentReminderCronBody() {
   if (!supabase) return console.warn('[cron/appointment-reminders] Supabase not configured');
+
+  await retryFailedDncUpserts();
 
   if (!RETELL_AGENT_ID_REMINDER || !RETELL_FROM_NUMBER) {
     return console.warn('[cron/appointment-reminders] RETELL_AGENT_ID_REMINDER or RETELL_FROM_NUMBER not set — skipping (reminders stay pending)');
@@ -1967,6 +2113,8 @@ async function runNoShowCron() {
 
 async function runNoShowCronBody() {
   if (!supabase) return console.warn('[cron/no-show-check] Supabase not configured');
+
+  await retryFailedDncUpserts();
 
   const cutoff   = new Date(Date.now() - NO_SHOW_GRACE_MS).toISOString();
   // Lower bound avoids resurrecting long-stale 'booked' appointments whose reminder
@@ -2156,7 +2304,14 @@ app.get('/health', async (_req, res) => {
       cron[lock.job_name] = { locked_until: lock.locked_until, stale };
     }
 
-    res.json({ ...base, status: cronStale ? 'degraded' : 'ok', supabase: true, cron });
+    // Unresolved DLQ entries indicate webhook/processing failures that need attention
+    const { count: dlqCount } = await supabase.from('failed_webhook_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('resolved', false);
+    const dlqDegraded = (dlqCount || 0) > 5;
+
+    const degraded = cronStale || dlqDegraded;
+    res.json({ ...base, status: degraded ? 'degraded' : 'ok', supabase: true, cron, dlq_unresolved: dlqCount || 0 });
   } catch (err) {
     res.status(503).json({ ...base, status: 'error', supabase: false, error: err.message });
   }

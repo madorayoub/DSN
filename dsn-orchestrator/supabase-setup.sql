@@ -21,7 +21,8 @@ create table if not exists leads (
   double_dialed       boolean not null default false,
   last_call_outcome   text,                        -- booked|voicemail|no_answer|not_interested|callback_requested
   notes               text,
-  created_at          timestamptz not null default now()
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now()
 );
 alter table leads enable row level security;
 
@@ -65,10 +66,33 @@ create table if not exists appointment_reminders (
   retell_call_id  text,
   sent_at         timestamptz,
   error           text,
+  redialed        boolean not null default false,  -- 1-hour reminder double-dial: set true once a no-answer redial has been scheduled
   created_at      timestamptz not null default now(),
   unique (appointment_id, reminder_type)   -- prevents duplicate reminder rows
 );
 alter table appointment_reminders enable row level security;
+-- Idempotent migrations for existing databases (create table if not exists won't add new columns/constraints):
+alter table appointment_reminders add column if not exists redialed boolean not null default false;
+
+-- Add retell_reminder_redial_scheduled to the lead_events event_type check constraint.
+-- PostgreSQL requires dropping and recreating the constraint to add a new allowed value.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.table_constraints
+    where table_name = 'lead_events' and constraint_name = 'lead_events_event_type_check'
+  ) then
+    alter table lead_events drop constraint lead_events_event_type_check;
+  end if;
+  alter table lead_events add constraint lead_events_event_type_check
+    check (event_type in (
+      'retell_call_initiated','lead_created','appointment_upserted','lead_dnc_skipped',
+      'speed_to_lead_scheduled','appointment_booked','appointment_cancelled','lead_dnc_opt_out',
+      'retell_double_dial_scheduled','retell_reminder_redial_scheduled','call_outcome_processed',
+      'appointment_rescheduled_via_agent','appointment_booked_via_agent','appointment_no_show'
+    ));
+end;
+$$;
 
 create index if not exists idx_reminders_trigger on appointment_reminders(trigger_at) where status = 'pending';
 
@@ -106,7 +130,7 @@ create table if not exists lead_events (
   lead_id         bigint references leads(id) on delete cascade,
   appointment_id  bigint references appointments(id) on delete cascade,
   event_type      text not null
-    check (event_type in ('retell_call_initiated','lead_created','appointment_upserted','lead_dnc_skipped','speed_to_lead_scheduled','appointment_booked','appointment_cancelled','lead_dnc_opt_out','retell_double_dial_scheduled','call_outcome_processed','appointment_rescheduled_via_agent','appointment_booked_via_agent','appointment_no_show')),
+    check (event_type in ('retell_call_initiated','lead_created','appointment_upserted','lead_dnc_skipped','speed_to_lead_scheduled','appointment_booked','appointment_cancelled','lead_dnc_opt_out','retell_double_dial_scheduled','retell_reminder_redial_scheduled','call_outcome_processed','appointment_rescheduled_via_agent','appointment_booked_via_agent','appointment_no_show')),
   payload         jsonb default '{}',
   created_at      timestamptz not null default now()
 );
