@@ -308,4 +308,18 @@ Read-only audit comparing Speed-to-Lead and Reminder line-for-line (agent settin
 
 ---
 
+## Webhook reconciliation — call outcomes no longer depend on Retell's push (2026-06-25)
+
+**Problem (the root blocker behind the reschedule audit).** Retell post-call webhooks (`call_ended`/`call_analyzed`) stopped being processed on **2026-06-19 ~17:16Z**. `call_logs` rows are seeded at `call_status='initiated'` by `triggerRetellCall` and only ever advanced by the `/webhook/retell` handler, so with the webhook gone **75 of 86 calls stranded at `initiated`** (`outcome=NULL`), follow-up cadence never advanced, and post-call status/outcome tracking stopped. (Same missing-outcome condition fed the infinite-redial loop that `11710be`'s guard now caps.)
+
+**Diagnosis — a delivery/processing gap, not Retell.** `GET /v2/get-call/{id}` for a stuck 2026-06-23 call returns it fully `ended` + analyzed (`disconnection_reason: voicemail_reached`, summary, transcript, `metadata.lead_id`). So Retell ran and analyzed every call; the outcome simply never reached the orchestrator. The receiver (`validateRetell`, HMAC per Retell's spec) and the rate limits look correct on inspection; the precise 06-19 delivery trigger isn't recoverable after the fact.
+
+**Fix — pull, don't only push (`dsn-orchestrator/index.js`).** Added `reconcileStuckRetellCalls()` (+ a `retellGetCall` helper), called once per 5-min `runSpeedToLeadCronBody` tick alongside the existing `retryFailed*` reconcilers. It finds `call_logs` still at `initiated`/`ongoing`, pulls the final state from Retell's API, and runs the **same** `extractOutcome` + `handleCallOutcome` the webhook would have — so a missed webhook self-heals within ~5–17 min instead of stranding forever. Outcome correctness no longer depends solely on webhook delivery.
+
+**Safety / scope.** Purely additive (no existing path changed) and wrapped in `.catch` so it can never break the cron. Scoped to calls from the **last 12h** so it never re-touches the 75 ancient dead rows (lead 1, already exhausted). Deliberately does **not** fire the 45s double-dial / 1h reminder-redial (time-sensitive — the normal cadence re-contacts via the `next_followup_at` that `handleCallOutcome` sets). Idempotent in practice: a healthy webhook lands in seconds and makes the row terminal before the poller's 5-min min-age, so this only ever fires on genuinely-missed calls. Validated against live `get-call` data; `node --check` clean.
+
+**Still open (needs the deferred live test).** This guarantees outcomes get *processed*; it does not by itself prove Retell webhook *delivery* is restored (instant push vs ~5-min poll) — confirm with one orchestrator-initiated call to a real lead while watching Railway logs for `[webhook/retell] event:`. Booking/reschedule end-to-end persistence (`appointments` still 0 rows ever) likewise needs that real booking to occur. The 75 historical `initiated` rows are intentionally left as-is (dead data for an exhausted lead).
+
+---
+
 *Generated with [Claude Code](https://claude.com/claude-code)*

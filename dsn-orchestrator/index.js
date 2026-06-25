@@ -856,6 +856,90 @@ async function retryFailedGhlCancels() {
   }
 }
 
+// Pull a single call's final state straight from Retell (status, disconnect reason,
+// analysis, transcript). Used by the webhook-reconciler below.
+async function retellGetCall(callId) {
+  const res = await fetch(`https://api.retellai.com/v2/get-call/${callId}`, {
+    headers: { Authorization: `Bearer ${RETELL_API_KEY}` },
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`get-call ${callId} → ${res.status} ${body.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+// WEBHOOK SAFETY NET — reconcile calls whose Retell post-call webhook never landed.
+// call_logs rows are seeded at 'initiated' by triggerRetellCall and only ever advanced
+// by the /webhook/retell handler. If Retell fails to deliver call_ended/call_analyzed
+// (delivery stalled for a multi-day stretch in production — 75 calls stranded), the row
+// stays 'initiated' and the lead's outcome + follow-up cadence never advance. This poller
+// pulls any recently-initiated, still-non-terminal call from Retell's API and runs the
+// SAME outcome processing the webhook would have (extractOutcome + handleCallOutcome).
+//
+// Scoped to a recent window so it (a) never re-touches old historical stuck rows and
+// (b) only acts while the outcome is still actionable. It deliberately does NOT fire the
+// 45s double-dial / 1h reminder-redial (time-sensitive; the normal cron cadence re-contacts
+// the lead via the next_followup_at that handleCallOutcome sets). Idempotent: once a row is
+// set terminal it drops out of the query, and the 5-min min-age means a healthy webhook
+// (which lands in seconds) always wins the race, so this only fires on genuinely-missed ones.
+const RECONCILE_WINDOW_MS  = 12 * 60 * 60 * 1000; // only reconcile calls from the last 12h
+const RECONCILE_MIN_AGE_MS = 5 * 60 * 1000;        // give the webhook 5 min to arrive first
+async function reconcileStuckRetellCalls() {
+  if (!supabase || !RETELL_API_KEY) return;
+  const nowMs = Date.now();
+
+  const { data: stuck, error } = await supabase
+    .from('call_logs')
+    .select('id, retell_call_id, call_type, lead_id, appointment_id')
+    .in('call_status', ['initiated', 'ongoing'])
+    .gte('created_at', new Date(nowMs - RECONCILE_WINDOW_MS).toISOString())
+    .lte('created_at', new Date(nowMs - RECONCILE_MIN_AGE_MS).toISOString())
+    .order('created_at', { ascending: true })
+    .limit(20);
+
+  if (error || !stuck?.length) return;
+  console.log(`[reconcile] ${stuck.length} stuck call(s) to check against Retell`);
+
+  for (const row of stuck) {
+    if (!row.retell_call_id) continue;
+    let call;
+    try {
+      call = await retellGetCall(row.retell_call_id);
+    } catch (err) {
+      console.error(`[reconcile] get-call failed for ${row.retell_call_id}:`, err.message);
+      continue;
+    }
+    // Only act once Retell reports the call finished; skip ones still registered/ongoing.
+    if (call.call_status !== 'ended' && call.call_status !== 'error') continue;
+
+    const meta          = call.metadata || {};
+    const leadId        = row.lead_id        ?? meta.lead_id        ?? null;
+    const callType      = row.call_type      ?? meta.call_type      ?? 'unknown';
+    const appointmentId = row.appointment_id ?? meta.appointment_id ?? null;
+    const outcome       = extractOutcome(call.call_analysis, '', call.disconnection_reason);
+
+    await supabase.from('call_logs').upsert({
+      retell_call_id:       row.retell_call_id,
+      lead_id:              leadId,
+      appointment_id:       appointmentId,
+      call_type:            callType,
+      call_status:          call.call_status,
+      disconnection_reason: call.disconnection_reason,
+      transcript:           formatTranscript(call.transcript_object || []),
+      summary:              call.call_analysis?.call_summary || '',
+      outcome,
+      raw_payload:          call,
+      ended_at:             new Date().toISOString(),
+    }, { onConflict: 'retell_call_id' });
+
+    if (leadId) {
+      await handleCallOutcome({ leadId, callId: row.retell_call_id, callType, outcome, appointmentId });
+    }
+    console.log(`[reconcile] recovered ${row.retell_call_id} → ${call.call_status}/${outcome} (webhook never landed)`);
+  }
+}
+
 // Circuit breaker: count Retell calls placed in the last hour, optionally filtered to
 // specific call types. Each cron checks its own call-type budget so a speed-to-lead
 // volume spike can't starve appointment reminders/confirmations, and vice versa.
@@ -1887,6 +1971,9 @@ async function runSpeedToLeadCronBody() {
 
   await retryFailedDncUpserts();
   await retryFailedGhlCancels();
+  // Recover calls whose Retell post-call webhook never landed — pulls final state from
+  // Retell's API and runs the same outcome processing the webhook would have.
+  await reconcileStuckRetellCalls().catch(err => console.error('[reconcile]', err.message));
 
   // Circuit breaker — if call volume looks runaway (e.g. a lead looping without
   // followup_step advancing), pause firing new calls and flag it for review.
