@@ -251,7 +251,60 @@ A prior pass reported a concurrent editor repeatedly reverting these edits (clai
 The agent now promises the link resends ~15 min before. That's backed by **GHL** (SMS + email), confirmed by the client. The orchestrator itself sends no SMS/email (its only outbound hosts are GHL and Retell). **Open item:** confirm the GHL workflow actually fires the resend ~15 min before, to match the "fifteen minutes" the script now says; if the timing differs, retime the workflow or soften the wording.
 
 ### Pending (not done)
-- Reminder agent latency tweak: `responsiveness` 0.5 → 0.7 (queued, not applied).
+- ~~Reminder agent latency tweak: `responsiveness` 0.5 → 0.7 (queued, not applied).~~ **Done 2026-06-23** — applied at **0.6** (not 0.7) on both agents, plus Fast Tier. See "Latency tuning" below.
+
+## Latency tuning — Fast Tier + responsiveness (2026-06-23)
+
+Client reports everything else is dialed in; **latency is the only complaint** and the voice must not change. Measured the **real** per-call latency on the last 30 live DSN calls (Retell get-call stats), median-of-p50:
+
+| Component | Median | Note |
+|---|---|---|
+| e2e (perceived) | 1,386 ms | the pause before Morgan replies |
+| LLM (gpt-4.1) | 872 ms | ~63% of the budget — the bottleneck |
+| ASR / endpointing | 502 ms | already tight (Deepgram, `endpointing_ms` 200) |
+| TTS (voice) | 205 ms | already excellent — left untouched |
+
+LLM-dominated, exactly as Retell's docs predict ("LLM processing time dominates, typically 500–900ms"). So the changes target the LLM and turn-taking, **not** the voice or scripts.
+
+**Applied to BOTH agents (live, draft v3, unpublished — zero behavior/script/voice change):**
+- **Fast Tier** (`model_choice.high_priority: true`) on both flows (`conversation_flow_9ef584e2f263`, `conversation_flow_68c0252a092d`). Same gpt-4.1 model, dedicated low-latency pool; tightens the LLM median and especially the long tail (LLM p50 ranged up to 2,629 ms). Higher per-minute cost. (Retell renamed the former "High Priority" option to "Fast Tier"; API field is still `high_priority`.)
+- **`responsiveness` 0.5 → 0.6** on both agents (`agent_d7bffee08f5962e2a0c5789fcd`, `agent_1cf55115cf9e5477adb445c754`). Cuts agent wait-before-speaking (~0.5s per 0.1 step per Retell). Chose 0.6 not 0.7 to stay conservative against the earlier "talks over the lead" fix; `interruption_sensitivity` stays 0.95 and `enable_dynamic_responsiveness` is already on.
+
+Verified via independent re-GET: both flows `model_choice.high_priority=true` at version 3; both agents `responsiveness=0.6`, `is_published=false`, `response_engine` still pinned to flow v3 (in sync). Orchestrator calls with `override_agent_id` and no version → resolves to latest (v3 draft), so the edits are live.
+
+**Rollback:** flows → `model_choice {"type":"cascading","model":"gpt-4.1","high_priority":false}`; agents → `responsiveness 0.5`.
+
+**Not doing — client opted to keep gpt-4.1 (2026-06-23):** the gpt-4.1 → **gpt-4.1-mini** swap was offered as the bigger latency lever, but the client chose to leave the model as-is. **Both agents stay on gpt-4.1 (Fast Tier).** (If ever revisited: Retell recommends Mini for predictable-pattern, speed-sensitive flows, and per-node LLM overrides could keep STL's complex nodes on gpt-4.1 — but do **not** action without an explicit go-ahead and a live test call.)
+
+## Reminder confirm-call: no-hangup bug fixed (2026-06-23)
+
+**Symptom (live test calls):** after the lead confirmed, Morgan delivered the goodbye ("Cool, see ya tomorrow, take care") and then took ANOTHER turn ("Hey Ayoub, just making sure you caught that...") instead of hanging up. The lead had to hang up (`disconnection_reason: user_hangup`).
+
+**Root cause — structural, not wording.** The `confirmed_attendance` node both *spoke the goodbye* AND had a second edge (`e5b → reschedule_check`). With a goodbye glued onto a multi-edge node, the engine holds the turn open after the goodbye to disambiguate the edges, and the model fills the silence with another turn. The terminal nodes that DO hang up cleanly (`voicemail`, `cancel`, `graceful_close`) are all single-edge → `end`.
+
+**What did NOT fix it:** (1) making edge `e5` decisive + adding an in-instruction "your goodbye is the LAST thing you say" rule — still looped; (2) removing `e5b` to make the node single-edge — hung up clean but dropped the late-reschedule path.
+
+**Fix (confirmed live).** Added a dedicated terminal node **`say_goodbye_end`** (single edge → `end_confirmed`) that says only the goodbye. `confirmed_attendance` now delivers the confirmation only (goodbye removed, rushed-path inline goodbye neutralized) and carries two edges — **`e5 → say_goodbye_end`** (proceed) and **`e5b → reschedule_check`** (late reschedule restored). Flow now 16 nodes, version 3, Fast Tier + responsiveness untouched. Test call `call_d15ed8279b71ad25e5e189af98d` flipped `user_hangup` → **`agent_hangup`**: one clean goodbye line, no loop, no dead air.
+
+**Reschedule coverage:** `reschedule_check` is reachable from `intro` (primary — "you still good?" → "I need to move it"), `confirmed_attendance` (late change-of-mind), and `reschedule_pick_time`. General design rule saved to memory: a node that says a goodbye must be a single-edge terminal node.
+
+---
+
+## Cross-agent audit: 3 drift gaps found and fixed on both Morgans (2026-06-25)
+
+Read-only audit comparing Speed-to-Lead and Reminder line-for-line (agent settings, both `global_prompt`s, every node/edge, graph reachability) to find bugs and confirm prior fixes had been applied to **both** agents, not just one. Everything else checked out clean: pacing/voice/latency settings identical except the intentional `max_call_duration_ms` (STL 15 min / Reminder 4 min), zero em-dashes in either flow, no dead-ends, no unreachable nodes, calendar anti-hallucination guard present in both, greeting/first-name parity confirmed. Three real cross-agent gaps were found and fixed, surgically, on the unpublished v3 drafts (never published):
+
+**A — STL `book` node was missing the booking-retry loop guard.** Reminder's `reschedule_book` already had "if this is the second time booking has failed for this lead in this call, don't loop again... and end the call instead," but STL's `book` just said "go back to pick_time" on failure with no second-failure cap, so repeated `book_appointment` failures could loop `book ↔ pick_time` indefinitely. **Fix:** added the identical second-failure guard sentence to STL `book`'s instruction text. Verified: only that node's instruction changed, the other 9 STL nodes and `global_prompt` stayed byte-identical.
+
+**B — Reminder was missing the hardened "LET THEM FINISH" pacing block.** STL's `global_prompt` has a full section ("do NOT talk over them... THE MOMENT they start talking. STOP. Cut yourself off mid-word...") that Reminder never had — likely lost in an earlier global-prompt incident. **Fix:** inserted the same section into Reminder's `global_prompt`, in the same structural position as STL (between "SOUND HUMAN, NOT AI" and "DEAD AI TELLS"), word-for-word except dropping the STL-specific "...or to push the booking" clause. Verified: diff shows only the new block added, nothing else in the 8.8KB prompt moved.
+
+**C — The no-hangup (Skip-response) fix from 2026-06-24 was never propagated past `say_goodbye_end`.** Per the 2026-06-24 audit note, the same plain-`prompt`-transition-into-`end` bug (a closing line followed by an edge that waits for a user turn, which loops the goodbye / lets the reminder-repeat feature refire it on a silent user) was still live on every other closing node in both flows. **Fix:** changed the exit edge to `{"type":"prompt","prompt":"Skip response"}` (fires the instant the agent finishes speaking, no user turn needed) on:
+- **STL:** `confirmed` → `end_booked`, `not_interested` → `end_not_interested`, `callback` → `end_callback`, `voicemail` → `end_voicemail`.
+- **Reminder:** `reschedule_confirmed` → `end_rescheduled` (highest-value one — every successful reschedule ends here), `voicemail` → `end_voicemail`, `graceful_close` → `end_graceful`.
+
+**Deliberately left unfixed — Reminder `cancel`.** Unlike the others, `cancel` has a branch that asks a real disambiguating question ("would you like us to take you off our list entirely, or just cancel this specific appointment?") and needs the lead's answer before it can close. A blanket Skip-response there would end the call before the lead replies. It keeps its original `prompt` edge; this is a structural difference from the other closers, not an oversight.
+
+**Verification (both flows):** each fix applied via `PATCH /update-conversation-flow/{id}` resending the full flow body; independently re-GET'd after to confirm `version` unchanged, `is_published:false`, `response_engine` still pinned to the same version (agent/flow in sync), the changed node/prompt matched the dry-run body's hash exactly, every untouched node byte-identical to the pre-patch baseline, and zero em-dashes introduced. Rollback snapshots saved before each PATCH. Local snapshot files (`dsn-orchestrator/retell-flow-*.json`) re-synced to match live.
 
 ---
 

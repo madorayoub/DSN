@@ -825,6 +825,37 @@ async function retryFailedDncUpserts() {
   }
 }
 
+// Retry GHL appointment cancels that failed during a reschedule (retell/book-appointment).
+// That cancel is deliberately fire-and-forget — awaiting it would add a full GHL round-trip
+// to a live call's response time — but Supabase still marks the old appointment 'cancelled'
+// immediately regardless of GHL's outcome. Without this retry, a transient GHL error there
+// leaves the old slot live in GHL forever while Supabase already thinks it's gone.
+async function retryFailedGhlCancels() {
+  if (!supabase) return;
+
+  const { data: failed, error } = await supabase
+    .from('failed_webhook_events')
+    .select('id, payload')
+    .eq('source', 'retell/book-appointment/cancel-old')
+    .eq('resolved', false)
+    .limit(20);
+
+  if (error || !failed?.length) return;
+
+  for (const entry of failed) {
+    const ghlAppointmentId = entry.payload?.ghl_appointment_id;
+    if (!ghlAppointmentId) continue;
+
+    try {
+      await ghlCancelAppointment(ghlAppointmentId);
+      await supabase.from('failed_webhook_events').update({ resolved: true }).eq('id', entry.id);
+      console.log(`[ghl-cancel-retry] Resolved cancel for ${ghlAppointmentId}`);
+    } catch (err) {
+      console.error(`[ghl-cancel-retry] Still failing for ${ghlAppointmentId}:`, err.message);
+    }
+  }
+}
+
 // Circuit breaker: count Retell calls placed in the last hour, optionally filtered to
 // specific call types. Each cron checks its own call-type budget so a speed-to-lead
 // volume spike can't starve appointment reminders/confirmations, and vice versa.
@@ -1733,6 +1764,18 @@ app.post('/retell/function/book-appointment', validateRetell, async (req, res) =
         .select('id, ghl_appointment_id').eq('id', oldAppointmentId).maybeSingle();
       oldAppt = data;
     }
+    // Fallback by lead_id: metadata.appointment_id only travels through Retell's call
+    // metadata, which this depends on being echoed back correctly. A lead only ever has
+    // one live ('booked') appointment at a time by design, so if metadata didn't carry
+    // an id (or pointed at a row that's gone), find it by lead_id instead — otherwise a
+    // reschedule with missing metadata creates the new appointment and silently leaves
+    // the old GHL slot live, i.e. a double-booking.
+    if (!oldAppt) {
+      const { data } = await supabase.from('appointments')
+        .select('id, ghl_appointment_id').eq('lead_id', lead.id).eq('status', 'booked')
+        .order('start_at', { ascending: false }).limit(1).maybeSingle();
+      oldAppt = data;
+    }
 
     const bookedTz = timezone || lead.timezone || 'America/New_York';
 
@@ -1843,6 +1886,7 @@ async function runSpeedToLeadCronBody() {
   if (!supabase) return console.warn('[cron/speed-to-lead] Supabase not configured');
 
   await retryFailedDncUpserts();
+  await retryFailedGhlCancels();
 
   // Circuit breaker — if call volume looks runaway (e.g. a lead looping without
   // followup_step advancing), pause firing new calls and flag it for review.
@@ -1876,7 +1920,7 @@ async function runSpeedToLeadCronBody() {
   // which filters next_followup_at <= now() — NULLs never match.
   const { data: stranded, error: strandedErr } = await supabase
     .from('leads')
-    .select('id')
+    .select('id, followup_step')
     .eq('status', 'calling')
     .eq('followup_paused', false)
     .is('next_followup_at', null)
@@ -1887,10 +1931,25 @@ async function runSpeedToLeadCronBody() {
     console.error('[cron/speed-to-lead] Stranded-lead query error:', strandedErr.message);
   } else if (stranded?.length) {
     console.log(`[cron/speed-to-lead] Recovering ${stranded.length} stranded lead(s)`);
+    // INFINITE-REDIAL GUARD (2026-06-23): advance the cadence on recovery instead of just
+    // re-arming at the same step. A lead whose call outcome never came back (e.g. a missed
+    // or rejected Retell webhook) otherwise sits at (status=calling, next_followup_at=null)
+    // and gets re-armed to now() every tick — an endless redial (a real FB lead was called
+    // 75x this way). Advancing followup_step makes it climb the normal cadence and exhaust
+    // after 6 attempts, which is the intended behaviour even when outcomes are missing.
+    const RECOVERY_DELAYS = [0, 0, 45_000, 10 * 60_000, 30 * 60_000, 4 * 60 * 60_000, 24 * 60 * 60_000];
     for (const s of stranded) {
-      await supabase.from('leads').update({
-        next_followup_at: new Date().toISOString(),
-      }).eq('id', s.id);
+      const nextStep = (s.followup_step || 1) + 1;
+      if (nextStep > 6) {
+        await supabase.from('leads').update({
+          status: 'exhausted', followup_paused: true, next_followup_at: null,
+        }).eq('id', s.id);
+      } else {
+        await supabase.from('leads').update({
+          followup_step:    nextStep,
+          next_followup_at: new Date(Date.now() + RECOVERY_DELAYS[nextStep]).toISOString(),
+        }).eq('id', s.id);
+      }
     }
   }
 
@@ -1970,6 +2029,7 @@ async function runAppointmentReminderCronBody() {
   if (!supabase) return console.warn('[cron/appointment-reminders] Supabase not configured');
 
   await retryFailedDncUpserts();
+  await retryFailedGhlCancels();
 
   if (!RETELL_AGENT_ID_REMINDER || !RETELL_FROM_NUMBER) {
     return console.warn('[cron/appointment-reminders] RETELL_AGENT_ID_REMINDER or RETELL_FROM_NUMBER not set — skipping (reminders stay pending)');
@@ -2115,6 +2175,7 @@ async function runNoShowCronBody() {
   if (!supabase) return console.warn('[cron/no-show-check] Supabase not configured');
 
   await retryFailedDncUpserts();
+  await retryFailedGhlCancels();
 
   const cutoff   = new Date(Date.now() - NO_SHOW_GRACE_MS).toISOString();
   // Lower bound avoids resurrecting long-stale 'booked' appointments whose reminder
