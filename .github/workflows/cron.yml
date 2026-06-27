@@ -8,30 +8,61 @@ on:
     - cron: '*/15 * * * *'
   workflow_dispatch: {}
 
+# NOTE: This workflow is a REDUNDANT backstop. The orchestrator runs all three
+# cron jobs itself via an in-process setInterval scheduler (see dsn-orchestrator
+# README "Cron triggers"), so the service is fully functional without this file.
+# Each job therefore POSTs best-effort: it logs the HTTP status as a warning on a
+# non-2xx (e.g. a Railway edge 429) but never fails the job — that avoids spamming
+# failure emails when the primary in-process scheduler is already handling the tick.
+
+env:
+  ORCH_URL: https://dsn-call-orchestrator-production.up.railway.app
+
 jobs:
   speed-to-lead:
     if: github.event.schedule == '*/5 * * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger /cron/speed-to-lead
+      - name: Trigger /cron/speed-to-lead (best-effort backstop)
         run: |
-          curl -sf -X POST https://dsn-call-orchestrator-production.up.railway.app/cron/speed-to-lead \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            --retry 2 --retry-all-errors --connect-timeout 10 --max-time 20 \
+            -X POST "$ORCH_URL/cron/speed-to-lead" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" || true)
+          if [ "${code:-000}" -ge 200 ] && [ "${code:-000}" -lt 300 ]; then
+            echo "OK: HTTP $code"
+          else
+            echo "::warning::speed-to-lead backstop got HTTP $code (in-process scheduler is primary; not failing the job)"
+          fi
 
   appointment-reminders:
     if: github.event.schedule == '*/5 * * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger /cron/appointment-reminders
+      - name: Trigger /cron/appointment-reminders (best-effort backstop)
         run: |
-          curl -sf -X POST https://dsn-call-orchestrator-production.up.railway.app/cron/appointment-reminders \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            --retry 2 --retry-all-errors --connect-timeout 10 --max-time 20 \
+            -X POST "$ORCH_URL/cron/appointment-reminders" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" || true)
+          if [ "${code:-000}" -ge 200 ] && [ "${code:-000}" -lt 300 ]; then
+            echo "OK: HTTP $code"
+          else
+            echo "::warning::appointment-reminders backstop got HTTP $code (in-process scheduler is primary; not failing the job)"
+          fi
 
   no-show-check:
     if: github.event.schedule == '*/15 * * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger /cron/no-show-check
+      - name: Trigger /cron/no-show-check (best-effort backstop)
         run: |
-          curl -sf -X POST https://dsn-call-orchestrator-production.up.railway.app/cron/no-show-check \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            --retry 2 --retry-all-errors --connect-timeout 10 --max-time 20 \
+            -X POST "$ORCH_URL/cron/no-show-check" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" || true)
+          if [ "${code:-000}" -ge 200 ] && [ "${code:-000}" -lt 300 ]; then
+            echo "OK: HTTP $code"
+          else
+            echo "::warning::no-show-check backstop got HTTP $code (in-process scheduler is primary; not failing the job)"
+          fi
