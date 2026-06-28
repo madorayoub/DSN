@@ -660,6 +660,14 @@ async function ghlCancelAppointment(ghlAppointmentId) {
   return ghlRequest('PUT', `/calendars/events/appointments/${ghlAppointmentId}`, { appointmentStatus: 'cancelled' }, GHL_TOOL_CALL_OPTS);
 }
 
+// Read a single appointment's current state from GHL. The no-show cron uses this to read the
+// real appointmentStatus (showed / noshow / confirmed) before deciding whether to re-call —
+// the calendar alone can't tell an attendee from a no-show.
+async function ghlGetAppointment(ghlAppointmentId) {
+  const data = await ghlRequest('GET', `/calendars/events/appointments/${ghlAppointmentId}`, null, GHL_TOOL_CALL_OPTS);
+  return data.appointment || data;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // RETELL API HELPER
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1481,6 +1489,13 @@ app.post('/webhook/retell', validateRetell, async (req, res) => {
       const summary  = call_analysis?.call_summary || '';
       const outcome  = extractOutcome(call_analysis, transcript, disconnection_reason);
 
+      // Idempotency: Retell can deliver call_analyzed more than once, and the reconciliation
+      // poller may have already processed this call. handleCallOutcome advances followup_step,
+      // so running it twice would skip a call attempt. Only process if not already done.
+      const { data: prior } = await supabase?.from('call_logs')
+        .select('outcome').eq('retell_call_id', call_id).maybeSingle() ?? {};
+      const alreadyProcessed = !!prior?.outcome;
+
       await supabase?.from('call_logs').upsert({
         ...callLogIdentity,
         call_status:  call_status,
@@ -1490,7 +1505,11 @@ app.post('/webhook/retell', validateRetell, async (req, res) => {
         raw_payload:  call,
       }, { onConflict: 'retell_call_id' });
 
-      if (lead_id) await handleCallOutcome({ leadId: lead_id, callId: call_id, callType: call_type, outcome, appointmentId: appointment_id });
+      if (lead_id && !alreadyProcessed) {
+        await handleCallOutcome({ leadId: lead_id, callId: call_id, callType: call_type, outcome, appointmentId: appointment_id });
+      } else if (alreadyProcessed) {
+        console.log(`[webhook/retell] call_analyzed for ${call_id} already processed — skipping duplicate handleCallOutcome`);
+      }
       return;
     }
 
@@ -2161,6 +2180,14 @@ async function runAppointmentReminderCronBody() {
       continue;
     }
 
+    // Don't fire a reminder for an appointment that has already started/passed (e.g. one deferred
+    // out of calling hours, or fired after downtime) — telling a lead about a meeting that's
+    // already underway is worse than silence. The no-show cron handles the past appointment.
+    if (new Date(appt.start_at) < new Date()) {
+      await supabase.from('appointment_reminders').update({ status: 'skipped', error: 'appointment already started/passed' }).eq('id', reminder.id);
+      continue;
+    }
+
     // DNC check — lead may have opted out (verbally or via GHL tag) after the appointment was booked
     if (await isOnDNC(lead.phone)) {
       await supabase.from('appointment_reminders').update({ status: 'skipped', error: 'lead on DNC list' }).eq('id', reminder.id);
@@ -2271,7 +2298,7 @@ async function runNoShowCronBody() {
 
   const { data: appts, error } = await supabase
     .from('appointments')
-    .select('id, lead_id, start_at, leads(phone, timezone, status)')
+    .select('id, lead_id, start_at, ghl_appointment_id, leads(phone, timezone, status)')
     .eq('status', 'booked')
     .lt('start_at', cutoff)
     .gt('start_at', lookback)
@@ -2284,40 +2311,72 @@ async function runNoShowCronBody() {
 
   for (const appt of appts) {
     try {
-      // Atomic claim — avoids double-processing if two cron ticks overlap
-      const { data: claimed, error: claimErr } = await supabase.from('appointments')
-        .update({ status: 'no_show', updated_at: new Date().toISOString() })
-        .eq('id', appt.id).eq('status', 'booked').select('id');
-
-      if (claimErr || !claimed?.length) continue;
-
-      await logEvent('appointment_no_show', { lead_id: appt.lead_id, appointment_id: appt.id, start_at: appt.start_at });
-
       const lead = appt.leads;
       if (!appt.lead_id || !lead) continue;
 
-      // DNC check — lead may have opted out (verbally or via GHL tag) since booking
-      if (await isOnDNC(lead.phone)) {
-        await supabase.from('leads').update({ status: 'dnc', followup_paused: true, next_followup_at: null }).eq('id', appt.lead_id);
-        continue;
+      // We cannot tell "attended" from "no-show" from the calendar alone — a lead who joined
+      // the Zoom and one who ghosted both leave the appointment 'booked'. Ask GHL for the real
+      // status before doing anything, and FAIL SAFE: only re-call on a CONFIRMED no-show, never
+      // on an attended/ambiguous appointment (re-calling someone who just met Brian is the bug
+      // this guards against). GHL fetch is outbound (works regardless of inbound edge state).
+      let ghlStatus = '';
+      if (appt.ghl_appointment_id) {
+        try {
+          const g = await ghlGetAppointment(appt.ghl_appointment_id);
+          ghlStatus = (g?.appointmentStatus || '').toString().toLowerCase();
+        } catch (err) {
+          console.warn(`[cron/no-show-check] GHL status fetch failed for appt ${appt.id}: ${err.message} — leaving booked, will retry`);
+          continue; // fail safe: don't act on an uncertain status
+        }
       }
 
-      // TCPA: requeue straight into the next legal calling window rather than `now()`,
-      // so the lead isn't briefly "due" outside calling hours before the next cron tick.
-      const tz     = lead.timezone || phoneToTimezone(lead.phone);
-      const waitMs = msUntilCallable(new Date(), tz);
+      if (/no.?show/.test(ghlStatus)) {
+        // CONFIRMED no-show → mark it and re-enter the lead into the calling rotation to rebook.
+        const { data: claimed } = await supabase.from('appointments')
+          .update({ status: 'no_show', updated_at: new Date().toISOString() })
+          .eq('id', appt.id).eq('status', 'booked').select('id');
+        if (!claimed?.length) continue; // another tick already handled it
 
-      // Re-enter the lead into speed-to-lead with a reduced cadence: skip the double-dial
-      // (followup_step=2, double_dialed=true so the next no-answer goes straight to the
-      // 10-min/30-min/4h/24h schedule rather than restarting from attempt 1).
-      await supabase.from('leads').update({
-        status:            'calling',
-        followup_paused:   false,
-        followup_step:     2,
-        double_dialed:     true,
-        next_followup_at:  new Date(Date.now() + waitMs).toISOString(),
-        last_call_outcome: 'no_show',
-      }).eq('id', appt.lead_id).eq('status', 'booked');
+        await logEvent('appointment_no_show', { lead_id: appt.lead_id, appointment_id: appt.id, start_at: appt.start_at });
+
+        // DNC check — lead may have opted out (verbally or via GHL tag) since booking
+        if (await isOnDNC(lead.phone)) {
+          await supabase.from('leads').update({ status: 'dnc', followup_paused: true, next_followup_at: null }).eq('id', appt.lead_id);
+          continue;
+        }
+
+        // TCPA: requeue into the next legal calling window. Reduced cadence (step=2,
+        // double_dialed=true) so the next no-answer goes straight to the 10/30min/4h/24h
+        // schedule rather than restarting from attempt 1.
+        const tz     = lead.timezone || phoneToTimezone(lead.phone);
+        const waitMs = msUntilCallable(new Date(), tz);
+        await supabase.from('leads').update({
+          status:            'calling',
+          followup_paused:   false,
+          followup_step:     2,
+          double_dialed:     true,
+          next_followup_at:  new Date(Date.now() + waitMs).toISOString(),
+          last_call_outcome: 'no_show',
+        }).eq('id', appt.lead_id).eq('status', 'booked');
+
+      } else if (ghlStatus === 'showed' || ghlStatus === 'attended' || /complete/.test(ghlStatus)) {
+        // Lead ATTENDED → record it and NEVER re-call. They met Brian; leave them out of the cold rotation.
+        await supabase.from('appointments')
+          .update({ status: 'attended', updated_at: new Date().toISOString() })
+          .eq('id', appt.id).eq('status', 'booked');
+        console.log(`[cron/no-show-check] Appt ${appt.id} marked attended (GHL: '${ghlStatus}') — no re-call`);
+
+      } else if (ghlStatus === 'cancelled') {
+        await supabase.from('appointments')
+          .update({ status: 'cancelled', cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+          .eq('id', appt.id).eq('status', 'booked');
+
+      } else {
+        // Ambiguous (confirmed / new / blank / unknown) — nobody has marked the outcome in GHL yet.
+        // Do NOT re-call. Leave it 'booked' so a later GHL marking (showed/noshow) is picked up on a
+        // future tick; it naturally drops out of this query after the 7-day lookback.
+        console.log(`[cron/no-show-check] Appt ${appt.id} unresolved in GHL ('${ghlStatus || 'blank'}') — not re-calling`);
+      }
     } catch (err) {
       console.error(`[cron/no-show-check] Appointment ${appt.id} error:`, err.message);
       await dlq('cron/no-show-check', { appointment_id: appt.id, lead_id: appt.lead_id }, err);
