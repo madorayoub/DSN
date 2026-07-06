@@ -4,6 +4,8 @@
 >
 > Last updated: 2026-06-14. Status: **DEPLOYED & WIRED — orchestrator live on Railway, schema live on Supabase, Retell flows + agents active, Twilio SIP trunk fully configured, phone number +15618340099 live. Pending: publish 4 GHL Automation Workflows in GHL dashboard + end-to-end test.**
 >
+> **Agent/flow behavior changes after 2026-06-14 are logged in `MORGAN_AGENT_CHANGELOG.md`, not here** — that includes the latency tuning (Fast Tier + responsiveness 0.6), the no-hangup/Skip-response fix on closing nodes, and the 2026-06-25 cross-agent parity audit (book-retry loop guard + LET THEM FINISH pacing block + Skip-response propagated to both Morgans). This build doc is the architecture/setup handoff; the changelog is the running record of voice/flow tuning.
+>
 > **Revision 2 (2026-06-11, per Ayoub):** The orchestrator will be a **NEW standalone Railway service** (do NOT build inside the existing DSN server), and **Supabase is the single source of truth** (NOT Railway Postgres). See Sections 2b, 5, 6.
 
 ## 2b. Railway account inventory — two companies, don't mix them
@@ -118,7 +120,7 @@ Server then: checks appointment still exists & not cancelled (GHL API), checks c
 **Call script structure (research-backed best practice):**
 - **24h call** (~30–45s): warm greeting by name → confirm identity → "quick reminder you have your strategy call with Direct Sales Network tomorrow at {time} {tz}" → confirm they'll attend → if conflict, offer reschedule via the `check_availability`/`book_appointment` tools (reschedule = book new + cancel old) → mention they'll get a Zoom link / check email → polite close.
 - **1h call** (~20–30s): "your call is in about an hour at {time}; the Zoom link was sent to your email — {email}. Anything you need before then?" → if can't make it, reschedule on the spot. No voicemail rambling: leave one short voicemail if unanswered, plus the GHL SMS/email reminders continue as-is.
-- Tone: friendly, brief, human; agent must disclose it's an AI assistant calling on behalf of DSN if asked (and ideally up front — safer for compliance).
+- Tone: friendly, brief, human; agent discloses it's an AI **if sincerely asked** (honest-if-asked, retained in live flows). NOTE: the original "and ideally up front" proactive disclosure was deliberately removed later for naturalness — see the ⚠️ AI disclosure note in §11 for current live behavior + the open CA AB 2905 compliance item.
 
 ## 4. Knowledge base from Zoom transcripts
 
@@ -210,7 +212,7 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
 2. Create two agents in Retell (Conversation Flow or single-prompt): "DSN Speed-to-Lead" and "DSN Reminder". Set agent-level `webhook_url` to `https://<railway-app>/webhook/retell/events`, events: `call_started, call_ended, call_analyzed`. Add the two Custom Functions pointing at the Railway tool endpoints. Link the knowledge base once built. Enable voicemail detection (hang up or leave configured voicemail message).
 3. **GHL workflows**: (a) New-lead workflow → webhook to `/webhook/retell/new-lead` (exclude contacts with appointments); (b) Appointment workflow → wait-until-24h-before → webhook, wait-until-1h-before → webhook. Add a "DNC" tag check in both.
 4. **Supabase**: upgrade org to Pro (or create separate DSN org) → create `dsn-orchestrator` project. **Railway**: create new project `dsn-call-orchestrator`, connect the new repo, set env vars.
-5. **Compliance (US outbound AI calls):** only call leads who submitted their number (prior express consent — our forms qualify); disclose AI; honor opt-out ("stop calling" → add to `dnc` table + GHL DNC); respect 8am–9pm local-time window, Mon–Fri (TCPA); record-keeping via call_logs. Double-dial of a fresh inbound lead is standard practice and consent-covered, but do not exceed reasonable attempt caps.
+5. **Compliance (US outbound AI calls):** only call leads who submitted their number (prior express consent — our forms qualify); disclose AI **(honest-if-asked only as of 2026-06-25 — proactive up-front disclosure was removed; see the ⚠️ note in §11 for the open CA AB 2905 question)**; honor opt-out ("stop calling" → add to `dnc` table + GHL DNC); respect 8am–9pm local-time window, Mon–Fri (TCPA); record-keeping via call_logs. Double-dial of a fresh inbound lead is standard practice and consent-covered, but do not exceed reasonable attempt caps.
 
 ## 8. Build order (checklist — update as you go)
 
@@ -294,7 +296,7 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
 
 **STL intro/qualify `previous_outcome` handling**: `no_show` and `callback_requested` now get distinct framing (no cold form-pitch — "we had a call on the books but must've missed each other" / "calling back like you asked"). `not_interested`/`dnc` don't need branches — those lead statuses are excluded from `fireSpeedToLeadCall` entirely, so they never re-enter a live call.
 
-**AI disclosure**: both flows' `intro` opening lines now say "This is Morgan, an AI assistant calling on behalf of Direct Sales Network" up front (CA AB 2905 compliance — effective 2025-01-01, $500/call exposure for undisclosed AI voice calls to CA residents).
+**AI disclosure** (⚠️ SUPERSEDED — this 2026-06-13 approach was deliberately reversed later; live state verified 2026-06-25): the intros NO LONGER proactively disclose AI. Both live flows now instruct "Do NOT announce you're an AI" and lead with "It's Morgan over at Direct Sales Network," as part of the "sound human, not a bot" rewrite (see `MORGAN_AGENT_CHANGELOG.md`). What's RETAINED is the **honest-if-asked** rule: if a lead sincerely asks whether you're an AI, Morgan answers yes and moves on, and can offer a human follow-up. **Open compliance item:** the original line here cited CA AB 2905 (effective 2025-01-01, ~$500/call exposure for undisclosed AI voice calls to CA residents). Removing proactive disclosure trades against that; if DSN calls CA residents, confirm whether honest-if-asked is sufficient or proactive disclosure must be restored for CA numbers.
 
 **`pick_time` week-out fix**: a lead who wants a slot more than ~5 days out (outside `check_availability`'s `days_ahead` window) used to route to `not_interested`, which sets `followup_paused=true` permanently. Now routes to `callback`, which sets `next_followup_at = now + 1h` and keeps the lead in rotation.
 
