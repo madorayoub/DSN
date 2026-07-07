@@ -1491,23 +1491,44 @@ app.post('/webhook/retell', validateRetell, async (req, res) => {
 
       // Idempotency: Retell can deliver call_analyzed more than once, and the reconciliation
       // poller may have already processed this call. handleCallOutcome advances followup_step,
-      // so running it twice would skip a call attempt. Only process if not already done.
-      const { data: prior } = await supabase?.from('call_logs')
-        .select('outcome').eq('retell_call_id', call_id).maybeSingle() ?? {};
-      const alreadyProcessed = !!prior?.outcome;
+      // so running it twice would skip a call attempt. A separate SELECT-then-UPSERT here used
+      // to race: two near-simultaneous deliveries could both read outcome=null before either
+      // write committed, and both would call handleCallOutcome. Guarding the UPDATE itself on
+      // outcome IS NULL makes the claim atomic — only one concurrent delivery can win it.
+      const { data: claimed } = await supabase?.from('call_logs')
+        .update({
+          call_status: call_status,
+          transcript:  formatTranscript(call?.transcript_object || []),
+          summary,
+          outcome,
+          raw_payload: call,
+        })
+        .eq('retell_call_id', call_id)
+        .is('outcome', null)
+        .select('id') ?? {};
 
-      await supabase?.from('call_logs').upsert({
-        ...callLogIdentity,
-        call_status:  call_status,
-        transcript:   formatTranscript(call?.transcript_object || []),
-        summary,
-        outcome,
-        raw_payload:  call,
-      }, { onConflict: 'retell_call_id' });
+      let wonClaim = !!claimed?.length;
 
-      if (lead_id && !alreadyProcessed) {
+      if (!wonClaim) {
+        // Nothing matched outcome IS NULL — either already processed, or the seed row from
+        // call_started/call_ended is missing. ignoreDuplicates makes this a no-op if the row
+        // already exists (already processed), so it can't clobber a prior result.
+        const { data: inserted } = await supabase?.from('call_logs')
+          .upsert({
+            ...callLogIdentity,
+            call_status: call_status,
+            transcript:  formatTranscript(call?.transcript_object || []),
+            summary,
+            outcome,
+            raw_payload: call,
+          }, { onConflict: 'retell_call_id', ignoreDuplicates: true })
+          .select('id') ?? {};
+        wonClaim = !!inserted?.length;
+      }
+
+      if (wonClaim && lead_id) {
         await handleCallOutcome({ leadId: lead_id, callId: call_id, callType: call_type, outcome, appointmentId: appointment_id });
-      } else if (alreadyProcessed) {
+      } else if (!wonClaim) {
         console.log(`[webhook/retell] call_analyzed for ${call_id} already processed — skipping duplicate handleCallOutcome`);
       }
       return;
