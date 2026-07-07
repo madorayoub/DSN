@@ -547,16 +547,24 @@ async function ghlUpdateContactTimezone(contactId, timezone) {
   return ghlRequest('PUT', `/contacts/${contactId}`, { timezone }, GHL_TOOL_CALL_OPTS);
 }
 
-// Tool-call paths (Retell custom functions must respond <3s) use a shorter timeout
-// and no retries so a slow/down GHL doesn't stall a live call.
-// 2,500ms keeps us under Retell's 3s expectation even accounting for network overhead.
-const GHL_TOOL_CALL_OPTS = { timeoutMs: 2_500, retries: 0 };
+// Live tool-call paths (Retell custom functions, spoken filler covers the wait) use a
+// short timeout + ONE retry so a single GHL tail-latency spike doesn't kill a booking.
+// GHL p50 is ~0.7s, so the retry almost never fires; worst case ~6.5s is covered by the
+// tool's speak_during_execution message. (Was 2,500ms/0 retries — a single slow response
+// then aborted check_availability mid-call, dropping the lead to "we'll email you".)
+const GHL_TOOL_CALL_OPTS = { timeoutMs: 3_000, retries: 1 };
+
+// Pre-fetch (buildSlotVars) runs BEFORE the call is placed, so it's off the live-latency
+// path and can afford a generous timeout + retries. Making the pre-fetch reliable means
+// the agent almost always has slots in-context and rarely needs the live tool at all.
+const GHL_PREFETCH_OPTS  = { timeoutMs: 8_000, retries: 2 };
 
 // Fetch available slots for the GHL calendar. Returns array of ISO strings.
-async function ghlGetSlots(startDate, endDate, timezone) {
+// opts lets callers pick the timeout profile: tight (live tool call) vs generous (pre-fetch).
+async function ghlGetSlots(startDate, endDate, timezone, opts = GHL_TOOL_CALL_OPTS) {
   const tz  = encodeURIComponent(timezone || 'America/New_York');
   const url = `/calendars/${GHL_CALENDAR_ID}/free-slots?startDate=${startDate}&endDate=${endDate}&timezone=${tz}`;
-  const data = await ghlRequest('GET', url, null, GHL_TOOL_CALL_OPTS);
+  const data = await ghlRequest('GET', url, null, opts);
   // Response: { _dates_: { "2025-01-20": { slots: [ "2025-01-20T09:00:00-05:00", ... ] } } }
   const grouped = data._dates_ || data.dates || data;
   const slots = [];
@@ -582,13 +590,13 @@ function topOfHourSlots(slots, timezone) {
 // In-memory slot cache for check-availability (key: timezone+date range, TTL: 90s).
 // Prevents double GHL round-trips when pick_time re-fetches slots check_slots already loaded.
 const _slotCache = new Map();
-async function ghlGetSlotsWithCache(startDate, endDate, timezone) {
+async function ghlGetSlotsWithCache(startDate, endDate, timezone, opts = GHL_TOOL_CALL_OPTS) {
   // Bucket epoch-ms timestamps to the hour so the two calls in one booking
   // (check_slots then pick_time, seconds apart) still share the cache entry.
   const key = `${timezone}|${Math.floor(startDate / 3_600_000)}|${Math.floor(endDate / 3_600_000)}`;
   const hit = _slotCache.get(key);
   if (hit && Date.now() - hit.ts < 90_000) return hit.slots;
-  const slots = await ghlGetSlots(startDate, endDate, timezone);
+  const slots = await ghlGetSlots(startDate, endDate, timezone, opts);
   _slotCache.set(key, { slots, ts: Date.now() });
   // Prune stale entries to cap memory usage
   if (_slotCache.size > 200) {
@@ -606,7 +614,7 @@ async function buildSlotVars(timezone) {
   try {
     const startMs = Date.now();
     const endMs   = startMs + 5 * 24 * 60 * 60 * 1000;
-    const slots   = await ghlGetSlotsWithCache(startMs, endMs, timezone);
+    const slots   = await ghlGetSlotsWithCache(startMs, endMs, timezone, GHL_PREFETCH_OPTS);
     if (!slots.length) {
       return { has_availability: 'false', available_slots_formatted: '', available_slots_iso: '' };
     }
