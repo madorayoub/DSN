@@ -9,7 +9,8 @@
 // ║    Railway project : dsn-call-orchestrator                                  ║
 // ║    GHL location    : NgduPjDbvABP3zFIqnt4                                  ║
 // ║    GHL calendar    : DXh5uGCZVjFLPQNeKRZu  (Free Consultation)             ║
-// ║    Supabase project: kygcxlteriyctkzcpzvk                                   ║
+// ║    Supabase project: hrpqlgrdkkleawgbiakd  (dedicated DSN account — the    ║
+// ║      old kygcxlteriyctkzcpzvk on the TFG org was retired 2026-07-25)        ║
 // ║    Retell STL agent: agent_d7bffee08f5962e2a0c5789fcd  (Morgan — STL)     ║
 // ║    Retell reminder : agent_1cf55115cf9e5477adb445c754  (Morgan — Reminder) ║
 // ║    Retell STL flow : conversation_flow_9ef584e2f263                         ║
@@ -38,7 +39,15 @@ function rawBodyMiddleware(req, res, next) {
     if (err) return next(err);
     if (Buffer.isBuffer(req.body)) {
       req.rawBody = req.body;
-      req.body    = JSON.parse(req.body.toString('utf8') || '{}');
+      // JSON.parse runs inside body-parser's async completion callback, outside the
+      // synchronous call stack Express's per-middleware error handling watches — an
+      // uncaught throw here crashes the whole process (no route needs a valid signature
+      // to reach this point). Must be handled locally, not left to bubble up.
+      try {
+        req.body = JSON.parse(req.body.toString('utf8') || '{}');
+      } catch {
+        return res.status(400).json({ error: 'Invalid JSON body' });
+      }
     }
     next();
   });
@@ -95,7 +104,15 @@ if (!supabase) console.warn('[startup] ⚠️  Supabase not configured — all D
 // ── Rate limiting ─────────────────────────────────────────────────────────────
 // Live-call tool routes (/retell/function/*) get a much higher limit — they fire
 // during active calls and a 429 here means Morgan fails to book mid-conversation.
-const webhookLimiter  = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false });
+// skip /retell/function/* on webhookLimiter — it's the same limiter instance mounted
+// below at both /webhook/ and /retell/, so without this, a request to /retell/function/*
+// matches BOTH prefixes and gets throttled by whichever limit is lower, defeating the
+// higher tool-call budget entirely (Express runs every app.use() whose prefix matches,
+// it doesn't stop at the first one).
+const webhookLimiter  = rateLimit({
+  windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false,
+  skip: (req) => req.path.startsWith('/retell/function/'),
+});
 const toolCallLimiter = rateLimit({ windowMs: 60_000, max: 600, standardHeaders: true, legacyHeaders: false });
 // Admin dashboard polls a handful of read endpoints — 30/min is generous for a human
 // or dashboard refresh, but bounds brute-force attempts against the password check.
@@ -769,11 +786,22 @@ async function findOrCreateLead({ ghlContactId, name, phone, email, timezone, so
   // state apply once per person, not once per duplicate contact.
   const e164ForDedupe = toE164(phone);
   if (e164ForDedupe) {
-    const { data: byPhone } = await supabase
+    // Plain select (not .maybeSingle()) — phone has no unique constraint, so two concurrent
+    // webhook deliveries for the same phone under different ghl_contact_ids can both pass
+    // this check before either INSERT commits, leaving 2+ matching rows. .maybeSingle() would
+    // treat that as an error and (since the error used to be discarded here) silently fall
+    // through to creating a THIRD duplicate instead of reusing one of the existing two.
+    const { data: byPhoneRows, error: dedupeErr } = await supabase
       .from('leads').select('*').eq('phone', e164ForDedupe)
       .in('status', ['new', 'calling'])
-      .maybeSingle();
-    if (byPhone) {
+      .order('created_at', { ascending: true });
+    if (dedupeErr) {
+      console.error(`[lead] Phone dedupe lookup failed for ${e164ForDedupe}: ${dedupeErr.message} — proceeding without dedupe`);
+    } else if (byPhoneRows?.length) {
+      if (byPhoneRows.length > 1) {
+        console.warn(`[lead] ${byPhoneRows.length} active leads already exist for phone ${e164ForDedupe} — reusing the oldest`);
+      }
+      const byPhone = byPhoneRows[0];
       console.log(`[lead] Duplicate phone ${e164ForDedupe} — reusing lead ${byPhone.id} (ghl_contact_id ${byPhone.ghl_contact_id}) instead of creating new for ${ghlContactId}`);
       return { lead: byPhone, created: false };
     }
@@ -1027,6 +1055,35 @@ async function upsertAppointment({ ghlAppointmentId, leadId, startAt, endAt, tim
 
   await logEvent('appointment_upserted', { lead_id: leadId, appointment_id: appt.id, start_at: startAt });
   return appt;
+}
+
+// Detect an out-of-band reschedule — a GHL-side move whose webhook never reached us (the
+// Cancelled/Booked trigger workflows have sat unpublished, and inbound delivery itself has
+// failed before: WAF incident) — by comparing GHL's live startTime against our recorded
+// start_at at the moment we're about to act on the appointment. On a move: re-upsert, which
+// updates start_at AND deletes+regenerates reminder rows for the new time. Returns true if
+// a reschedule was applied (caller must stop acting on its stale copy).
+// GHL has been observed to omit startTime from some fetches — a missing/unparseable time
+// means "no information": return false and let the caller proceed on the recorded time
+// rather than blocking all reminders on a response-shape change.
+const APPT_TIME_DRIFT_TOLERANCE_MS = 60_000;
+async function applyGhlRescheduleIfMoved(appt, ghlAppt) {
+  const ghlStartRaw = ghlAppt?.startTime;
+  if (!ghlStartRaw) return false;
+  const ghlStartMs = new Date(ghlStartRaw).getTime();
+  if (isNaN(ghlStartMs)) return false;
+  if (Math.abs(ghlStartMs - new Date(appt.start_at).getTime()) <= APPT_TIME_DRIFT_TOLERANCE_MS) return false;
+
+  console.log(`[reconcile-appt] Appt ${appt.id} moved in GHL: ${appt.start_at} → ${ghlStartRaw} — updating + regenerating reminders`);
+  await upsertAppointment({
+    ghlAppointmentId: appt.ghl_appointment_id,
+    leadId:   appt.lead_id,
+    startAt:  ghlStartRaw,
+    endAt:    ghlAppt.endTime || null,
+    timezone: appt.timezone,
+    zoomLink: appt.zoom_link,
+  });
+  return true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1294,6 +1351,34 @@ app.post('/webhook/appointment-booked', requireWebhookSecret, async (req, res) =
       await supabase?.from('leads').update({ timezone: resolvedTz }).eq('id', lead.id);
     }
 
+    // A lead should only ever have one live ('booked') appointment at a time — the same
+    // invariant /retell/function/book-appointment enforces. This webhook (GHL's "Appointment
+    // Created" trigger) doesn't itself guarantee a paired cancellation of any prior
+    // appointment, so enforce it here too, otherwise a lead can end up with two
+    // simultaneously-'booked' rows each independently getting reminders. Excludes this
+    // appointment_id itself so a duplicate delivery of the same webhook is a no-op, not a
+    // self-cancellation. Not using .maybeSingle() — if the invariant was ever already
+    // violated, cancel all of them, not just error out on 2+ rows.
+    const { data: priorBookedRows } = await supabase.from('appointments')
+      .select('id, ghl_appointment_id').eq('lead_id', lead.id).eq('status', 'booked')
+      .neq('ghl_appointment_id', appointment_id)
+      .order('start_at', { ascending: false });
+    for (const priorBooked of priorBookedRows || []) {
+      if (priorBooked.ghl_appointment_id) {
+        ghlCancelAppointment(priorBooked.ghl_appointment_id).catch(cancelErr => {
+          console.error(`[appointment-booked] Failed to cancel superseded GHL appointment ${priorBooked.ghl_appointment_id}:`, cancelErr.message);
+          dlq('webhook/appointment-booked/cancel-old', { lead_id: lead.id, old_appointment_id: priorBooked.id, ghl_appointment_id: priorBooked.ghl_appointment_id }, cancelErr);
+        });
+      }
+      await supabase.from('appointments').update({
+        status: 'cancelled', cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      }).eq('id', priorBooked.id);
+      await supabase.from('appointment_reminders')
+        .update({ status: 'skipped', error: 'superseded by new appointment' })
+        .eq('appointment_id', priorBooked.id).in('status', ['pending', 'sent']);
+      await logEvent('appointment_cancelled', { lead_id: lead.id, appointment_id: priorBooked.id });
+    }
+
     // Pause speed-to-lead follow-up now that they've booked
     await supabase?.from('leads').update({
       status:          'booked',
@@ -1354,18 +1439,8 @@ app.post('/webhook/appointment-cancelled', requireWebhookSecret, async (req, res
       .eq('appointment_id', appt.id)
       .eq('status', 'pending');
 
-    // Resume follow-up for speed-to-lead if they were booked but now cancelled.
-    // Reset followup_step and double_dialed so the lead restarts the full STL cadence
-    // (attempt 1 → double-dial → 10min → 30min → 4h → 24h) rather than resuming mid-sequence
-    // at whatever step they were at when they first booked, which could exhaust them in one call.
-    await supabase?.from('leads').update({
-      status:           'calling',
-      followup_paused:  false,
-      followup_step:    1,
-      double_dialed:    false,
-      next_followup_at: new Date().toISOString(),
-    }).eq('id', appt.lead_id).eq('status', 'booked');
-
+    // No automatic re-engagement — the lead is left as-is. A cancelled appointment does not
+    // put them back into the speed-to-lead calling cadence; that requires a manual decision.
     await logEvent('appointment_cancelled', { lead_id: appt.lead_id, appointment_id });
   } catch (err) {
     await dlq('webhook/appointment-cancelled', body, err);
@@ -1640,23 +1715,47 @@ async function handleReminderCallEnded({ appointmentId, reminderType, callId, di
 
   setTimeout(() => {
     (async () => {
-      const startLocal = new Date(appt.start_at).toLocaleTimeString('en-US', {
+      // Re-check fresh state at fire time — appt/lead above were captured up to
+      // redialDelay+72h ago (msUntilCallable can push this out that far). If the lead
+      // opted out or the appointment was cancelled/rescheduled in that window, the stale
+      // snapshot would otherwise still fire the call.
+      const { data: freshReminder } = await supabase.from('appointment_reminders')
+        .select('appointments(*, leads(*))').eq('id', reminder.id).maybeSingle();
+      const freshAppt = freshReminder?.appointments;
+      const freshLead = freshAppt?.leads;
+      if (!freshAppt || !freshLead || freshAppt.status === 'cancelled') {
+        console.log(`[reminder-redial] Appt ${appt.id} no longer valid at fire time — skipping redial`);
+        return;
+      }
+      // Deferral can push a redial past the meeting itself (e.g. 1h reminder at 5:59pm →
+      // redial lands outside calling hours → deferred to 8am next day). Same rule as the
+      // reminder cron: a call about a meeting already underway/past is worse than silence.
+      if (new Date(freshAppt.start_at) < new Date()) {
+        console.log(`[reminder-redial] Appt ${appt.id} already started/passed at fire time — skipping redial`);
+        return;
+      }
+      if (await isOnDNC(freshLead.phone)) {
+        console.log(`[reminder-redial] Lead ${freshLead.id} is on DNC at fire time — skipping redial`);
+        return;
+      }
+
+      const startLocal = new Date(freshAppt.start_at).toLocaleTimeString('en-US', {
         hour: 'numeric', minute: '2-digit', timeZone: reminderTz, timeZoneName: 'short',
       });
-      const startDate = new Date(appt.start_at).toLocaleDateString('en-US', {
+      const startDate = new Date(freshAppt.start_at).toLocaleDateString('en-US', {
         weekday: 'long', month: 'long', day: 'numeric', timeZone: reminderTz,
       });
       const callData = await triggerRetellCall({
-        lead,
+        lead: freshLead,
         agentId:       RETELL_AGENT_ID_REMINDER,
         callType:      reminderType,
-        appointmentId: appt.id,
+        appointmentId: freshAppt.id,
         dynamicVars: {
           appointment_time:  startLocal,
           appointment_date:  startDate,
-          appointment_iso:   appt.start_at,
-          timezone:          appt.timezone,
-          zoom_link:         appt.zoom_link || '',
+          appointment_iso:   freshAppt.start_at,
+          timezone:          freshAppt.timezone,
+          zoom_link:         freshAppt.zoom_link || '',
           reminder_type:     reminderType,
           closer_name:       CLOSER_NAME,
         },
@@ -1737,8 +1836,8 @@ async function handleCallOutcome({ leadId, callId, callType, outcome, appointmen
         .eq('status', 'pending');
     }
 
-    leadUpdate.status          = 'calling';
-    leadUpdate.followup_paused = false;
+    // No automatic re-engagement — mirrors /webhook/appointment-cancelled (see above).
+    // leadUpdate intentionally left untouched here; the lead is not put back into calling.
   } else if (callType === 'speed_to_lead') {
     // Advance the follow-up step so cron picks up the next attempt.
     // Covers no_answer/voicemail as well as any unrecognized/completed outcome —
@@ -2209,6 +2308,42 @@ async function runAppointmentReminderCronBody() {
       continue;
     }
 
+    // Out-of-band reschedule/cancel check: ask GHL for the appointment's live state BEFORE
+    // acting — our DB copy can be stale in both directions (time moved, or cancelled without
+    // us hearing) since the GHL→orchestrator webhooks are an unreliable delivery path (see
+    // applyGhlRescheduleIfMoved). One extra GET per reminder fire is negligible at this
+    // volume. Must run before the past-start check below: a reschedule to a LATER time can
+    // leave our recorded time in the past, which would otherwise skip the reminder outright
+    // and the lead would never hear about the new time. Fail OPEN on fetch errors — a brief
+    // GHL blip shouldn't block every reminder; worst case we fire with the recorded time.
+    if (appt.ghl_appointment_id) {
+      let ghlAppt = null;
+      try {
+        ghlAppt = await ghlGetAppointment(appt.ghl_appointment_id);
+      } catch (err) {
+        console.warn(`[cron/appointment-reminders] GHL state fetch failed for appt ${appt.id}: ${err.message} — proceeding with recorded time`);
+      }
+      if (ghlAppt) {
+        const liveGhlStatus = (ghlAppt.appointmentStatus || '').toString().toLowerCase();
+        if (liveGhlStatus === 'cancelled') {
+          // Mirror the cancellation the webhook never delivered. Per product decision
+          // (2026-07-25): NO automatic re-engagement of the lead — just stop the reminders.
+          await supabase.from('appointments').update({
+            status: 'cancelled', cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+          }).eq('id', appt.id).eq('status', 'booked');
+          await supabase.from('appointment_reminders')
+            .update({ status: 'skipped', error: 'appointment cancelled in GHL (reconciled)' })
+            .eq('appointment_id', appt.id).in('status', ['pending', 'sent']);
+          await logEvent('appointment_cancelled', { lead_id: appt.lead_id, appointment_id: appt.id });
+          console.log(`[cron/appointment-reminders] Appt ${appt.id} cancelled in GHL — mirrored, reminders skipped`);
+          continue;
+        }
+        // Reschedule detected → start_at updated + reminders regenerated for the new time
+        // (this reminder row is deleted in the process) — nothing to fire here.
+        if (await applyGhlRescheduleIfMoved(appt, ghlAppt)) continue;
+      }
+    }
+
     // Don't fire a reminder for an appointment that has already started/passed (e.g. one deferred
     // out of calling hours, or fired after downtime) — telling a lead about a meeting that's
     // already underway is worse than silence. The no-show cron handles the past appointment.
@@ -2273,6 +2408,22 @@ async function runAppointmentReminderCronBody() {
         },
       });
 
+      if (!callData) {
+        // triggerRetellCall returns null (doesn't throw) for permanent conditions — missing
+        // RETELL_API_KEY/agentId config, or a phone that doesn't resolve to E.164. This reminder
+        // was already claimed 'sent' above (necessary to avoid a double-fire race), so without
+        // this check a null return here left it stuck 'sent' forever with no call ever placed
+        // and no retry, since the catch block below never ran for a non-throwing failure.
+        // Marked 'failed' (terminal) rather than reset to 'pending' — an invalid phone won't
+        // fix itself, so retrying every 5 minutes forever would just waste cycles.
+        console.error(`[cron/appointment-reminders] Reminder ${reminder.id}: no call placed (triggerRetellCall returned null)`);
+        await supabase.from('appointment_reminders')
+          .update({ status: 'failed', error: 'triggerRetellCall returned null — no call placed' })
+          .eq('id', reminder.id);
+        await dlq('cron/appointment-reminders/no-call', { reminder_id: reminder.id, appointment_id: appt.id }, new Error('triggerRetellCall returned null'));
+        continue;
+      }
+
       if (callData?.call_id) {
         await supabase.from('appointment_reminders').update({ retell_call_id: callData.call_id }).eq('id', reminder.id);
       }
@@ -2327,7 +2478,7 @@ async function runNoShowCronBody() {
 
   const { data: appts, error } = await supabase
     .from('appointments')
-    .select('id, lead_id, start_at, ghl_appointment_id, leads(phone, timezone, status)')
+    .select('id, lead_id, start_at, ghl_appointment_id, timezone, zoom_link, leads(phone, timezone, status)')
     .eq('status', 'booked')
     .lt('start_at', cutoff)
     .gt('start_at', lookback)
@@ -2349,15 +2500,23 @@ async function runNoShowCronBody() {
       // on an attended/ambiguous appointment (re-calling someone who just met Brian is the bug
       // this guards against). GHL fetch is outbound (works regardless of inbound edge state).
       let ghlStatus = '';
+      let ghlAppt   = null;
       if (appt.ghl_appointment_id) {
         try {
-          const g = await ghlGetAppointment(appt.ghl_appointment_id);
-          ghlStatus = (g?.appointmentStatus || '').toString().toLowerCase();
+          ghlAppt   = await ghlGetAppointment(appt.ghl_appointment_id);
+          ghlStatus = (ghlAppt?.appointmentStatus || '').toString().toLowerCase();
         } catch (err) {
           console.warn(`[cron/no-show-check] GHL status fetch failed for appt ${appt.id}: ${err.message} — leaving booked, will retry`);
           continue; // fail safe: don't act on an uncertain status
         }
       }
+
+      // Out-of-band reschedule: if GHL moved this appointment and the webhook never arrived,
+      // our start_at is stale — the meeting may not even be in the past anymore. Update it
+      // (+ regenerate reminders) and stop treating it as a no-show candidate; future ticks
+      // re-evaluate against the REAL time, or it leaves the past-appointment window entirely.
+      // Uses the GHL response already fetched above — no extra API call.
+      if (ghlAppt && await applyGhlRescheduleIfMoved(appt, ghlAppt)) continue;
 
       if (/no.?show/.test(ghlStatus)) {
         // CONFIRMED no-show → mark it and re-enter the lead into the calling rotation to rebook.

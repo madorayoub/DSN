@@ -40,13 +40,31 @@ create table if not exists appointments (
   end_at              timestamptz,
   timezone            text not null default 'America/New_York',
   status              text not null default 'booked'
-    check (status in ('booked','cancelled','no_show')),
+    check (status in ('booked','cancelled','no_show','attended')),
   zoom_link           text,
   cancelled_at        timestamptz,
   created_at          timestamptz not null default now(),
   updated_at          timestamptz not null default now()
 );
 alter table appointments enable row level security;
+
+-- Idempotent migration for pre-existing databases created before 'attended' was added to the
+-- enum above (2026-07-25) — the CREATE TABLE already includes it for fresh databases, so this
+-- is a no-op there. Without this, the no-show cron's "mark attended" write (index.js) was
+-- silently rejected by this constraint on every occurrence — the app logged success but the
+-- row stayed 'booked' forever.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.table_constraints
+    where table_name = 'appointments' and constraint_name = 'appointments_status_check'
+  ) then
+    alter table appointments drop constraint appointments_status_check;
+  end if;
+  alter table appointments add constraint appointments_status_check
+    check (status in ('booked','cancelled','no_show','attended'));
+end;
+$$;
 
 create index if not exists idx_appts_ghl         on appointments(ghl_appointment_id);
 create index if not exists idx_appts_lead        on appointments(lead_id);
@@ -73,26 +91,6 @@ create table if not exists appointment_reminders (
 alter table appointment_reminders enable row level security;
 -- Idempotent migrations for existing databases (create table if not exists won't add new columns/constraints):
 alter table appointment_reminders add column if not exists redialed boolean not null default false;
-
--- Add retell_reminder_redial_scheduled to the lead_events event_type check constraint.
--- PostgreSQL requires dropping and recreating the constraint to add a new allowed value.
-do $$
-begin
-  if exists (
-    select 1 from information_schema.table_constraints
-    where table_name = 'lead_events' and constraint_name = 'lead_events_event_type_check'
-  ) then
-    alter table lead_events drop constraint lead_events_event_type_check;
-  end if;
-  alter table lead_events add constraint lead_events_event_type_check
-    check (event_type in (
-      'retell_call_initiated','lead_created','appointment_upserted','lead_dnc_skipped',
-      'speed_to_lead_scheduled','appointment_booked','appointment_cancelled','lead_dnc_opt_out',
-      'retell_double_dial_scheduled','retell_reminder_redial_scheduled','call_outcome_processed',
-      'appointment_rescheduled_via_agent','appointment_booked_via_agent','appointment_no_show'
-    ));
-end;
-$$;
 
 create index if not exists idx_reminders_trigger on appointment_reminders(trigger_at) where status = 'pending';
 
@@ -140,6 +138,28 @@ create index if not exists idx_lead_events_lead    on lead_events(lead_id);
 create index if not exists idx_lead_events_appt    on lead_events(appointment_id);
 create index if not exists idx_lead_events_created on lead_events(created_at desc);
 create index if not exists idx_lead_events_type    on lead_events(event_type);
+
+-- Idempotent migration for pre-existing databases created before retell_reminder_redial_scheduled
+-- was added to the enum above — the CREATE TABLE already includes it for fresh databases, so this
+-- is a no-op there. Must run after lead_events exists (moved here 2026-07-25; used to run earlier
+-- in this file, which failed with "relation lead_events does not exist" on a from-scratch run).
+do $$
+begin
+  if exists (
+    select 1 from information_schema.table_constraints
+    where table_name = 'lead_events' and constraint_name = 'lead_events_event_type_check'
+  ) then
+    alter table lead_events drop constraint lead_events_event_type_check;
+  end if;
+  alter table lead_events add constraint lead_events_event_type_check
+    check (event_type in (
+      'retell_call_initiated','lead_created','appointment_upserted','lead_dnc_skipped',
+      'speed_to_lead_scheduled','appointment_booked','appointment_cancelled','lead_dnc_opt_out',
+      'retell_double_dial_scheduled','retell_reminder_redial_scheduled','call_outcome_processed',
+      'appointment_rescheduled_via_agent','appointment_booked_via_agent','appointment_no_show'
+    ));
+end;
+$$;
 
 -- ── dnc ───────────────────────────────────────────────────────────────────────
 -- Do-not-call list. Check before every outbound call.
