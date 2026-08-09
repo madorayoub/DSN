@@ -13,6 +13,37 @@ ZOOM_TOKEN_URL = "https://zoom.us/oauth/token"
 ZOOM_BASE = "https://api.zoom.us/v2"
 NO_SHOW_THRESHOLD_MINUTES = 10
 
+# Zoom's recordings and report endpoints only honour one month per request. A
+# wider from/to still returns 200 — it just silently drops the oldest part of the
+# range, so a 45-day backfill quietly covers the last 30 days and no one notices.
+# Every query is therefore split into chunks no wider than this.
+ZOOM_MAX_WINDOW_DAYS = 30
+
+
+def _resolve_range(days_back: int, from_date: str | None, to_date: str | None):
+    """Return (from, to) dates. Explicit YYYY-MM-DD strings win over days_back."""
+    today = datetime.utcnow().date()
+    to_d = datetime.strptime(to_date, "%Y-%m-%d").date() if to_date else today
+    from_d = (
+        datetime.strptime(from_date, "%Y-%m-%d").date()
+        if from_date
+        else to_d - timedelta(days=days_back)
+    )
+    if from_d > to_d:
+        raise ValueError(f"from_date {from_d} is after to_date {to_d}")
+    return from_d, to_d
+
+
+def _date_windows(from_d, to_d) -> list[tuple[str, str]]:
+    """Split [from_d, to_d] into consecutive chunks of at most ZOOM_MAX_WINDOW_DAYS."""
+    windows = []
+    start = from_d
+    while start <= to_d:
+        end = min(start + timedelta(days=ZOOM_MAX_WINDOW_DAYS - 1), to_d)
+        windows.append((start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")))
+        start = end + timedelta(days=1)
+    return windows
+
 
 async def _get_access_token() -> str:
     credentials = base64.b64encode(
@@ -28,42 +59,46 @@ async def _get_access_token() -> str:
         return r.json()["access_token"]
 
 
-async def _get_report_meetings(token: str, user_id: str, days_back: int = 1) -> list:
+async def _get_report_meetings(token: str, user_id: str, from_d, to_d) -> list:
     """Reports API returns ALL past meetings, including no-shows that have no recording.
 
     Requires report:read:user:admin scope. Uses a real user ID because the 'me'
     alias does not resolve for S2S OAuth account credentials tokens.
     """
-    from_date = (datetime.utcnow() - timedelta(days=days_back)).strftime("%Y-%m-%d")
-    to_date = datetime.utcnow().strftime("%Y-%m-%d")
     headers = {"Authorization": f"Bearer {token}"}
+    by_id = {}
 
-    async with httpx.AsyncClient() as client:
-        r = await client.get(
-            f"{ZOOM_BASE}/report/users/{user_id}/meetings",
-            headers=headers,
-            params={"from": from_date, "to": to_date, "page_size": 300},
-        )
-        r.raise_for_status()
-        return r.json().get("meetings", [])
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        for window_from, window_to in _date_windows(from_d, to_d):
+            r = await client.get(
+                f"{ZOOM_BASE}/report/users/{user_id}/meetings",
+                headers=headers,
+                params={"from": window_from, "to": window_to, "page_size": 300},
+            )
+            r.raise_for_status()
+            for m in r.json().get("meetings", []):
+                by_id[str(m.get("uuid", m.get("id", "")))] = m
+
+    return list(by_id.values())
 
 
-async def _get_recordings(token: str, days_back: int = 1) -> dict:
+async def _get_recordings(token: str, from_d, to_d) -> dict:
     """Returns {uuid: meeting_data} for meetings that have cloud recordings."""
-    from_date = (datetime.utcnow() - timedelta(days=days_back)).strftime("%Y-%m-%d")
-    to_date = datetime.utcnow().strftime("%Y-%m-%d")
     headers = {"Authorization": f"Bearer {token}"}
+    by_id = {}
 
-    async with httpx.AsyncClient() as client:
-        r = await client.get(
-            f"{ZOOM_BASE}/users/me/recordings",
-            headers=headers,
-            params={"from": from_date, "to": to_date, "page_size": 100},
-        )
-        r.raise_for_status()
-        meetings = r.json().get("meetings", [])
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        for window_from, window_to in _date_windows(from_d, to_d):
+            r = await client.get(
+                f"{ZOOM_BASE}/users/me/recordings",
+                headers=headers,
+                params={"from": window_from, "to": window_to, "page_size": 300},
+            )
+            r.raise_for_status()
+            for m in r.json().get("meetings", []):
+                by_id[str(m.get("uuid", m.get("id", "")))] = m
 
-    return {str(m.get("uuid", m.get("id", ""))): m for m in meetings}
+    return by_id
 
 
 async def _download_transcript(token: str, download_url: str) -> str:
@@ -77,12 +112,21 @@ async def _download_transcript(token: str, download_url: str) -> str:
         return r.text
 
 
-async def sync_meetings(days_back: int = 1):
-    logger.info(f"Starting Zoom meeting sync — {days_back} day(s) back")
+async def sync_meetings(
+    days_back: int = 1,
+    from_date: str | None = None,
+    to_date: str | None = None,
+):
+    from_d, to_d = _resolve_range(days_back, from_date, to_date)
+    windows = _date_windows(from_d, to_d)
+    logger.info(
+        f"Starting Zoom meeting sync — {from_d} to {to_d} "
+        f"({len(windows)} request window(s))"
+    )
     token = await _get_access_token()
 
     # Recordings API always works — also gives us the host_id needed for the Reports API.
-    recordings = await _get_recordings(token, days_back=days_back)
+    recordings = await _get_recordings(token, from_d, to_d)
 
     # Extract host_id from any recording so the Reports API gets a real user ID.
     # ('me' does not resolve for S2S account-credentials tokens on the report endpoint.)
@@ -95,7 +139,8 @@ async def sync_meetings(days_back: int = 1):
     # widen the search to 30 days just to find a valid host_id for the Reports API.
     if not host_id:
         try:
-            wider = await _get_recordings(token, days_back=30)
+            today = datetime.utcnow().date()
+            wider = await _get_recordings(token, today - timedelta(days=30), today)
             host_id = next(
                 (m.get("host_id") for m in wider.values() if m.get("host_id")),
                 None,
@@ -110,7 +155,7 @@ async def sync_meetings(days_back: int = 1):
     report_meetings = None
     if host_id:
         try:
-            report_meetings = await _get_report_meetings(token, user_id=host_id, days_back=days_back)
+            report_meetings = await _get_report_meetings(token, host_id, from_d, to_d)
         except Exception as e:
             logger.warning(
                 f"Reports API unavailable (add report:read:user:admin scope to Zoom app): {e}"

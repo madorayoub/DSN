@@ -20,6 +20,15 @@ HEADERS = [
     "Score", "Email", "Phone", "Commission Paid (Yes/No — Date)",
 ]
 
+# Statuses that mean "we didn't get an answer yet", not "this meeting is done".
+# They are excluded from the processed set so a later sync retries them once the
+# cause clears — an outage or expired API credit for Error, a transcript Zoom
+# hadn't finished generating for No Transcript. Without this a transient failure
+# is permanent: the row keeps its meeting ID in col A, so every future run skips
+# it forever. Retries are naturally bounded because a sync only ever looks at the
+# last `days_back` days of Zoom meetings.
+RETRYABLE_STATUSES = {"error", "no transcript"}
+
 
 def _get_service():
     sa_json = json.loads(base64.b64decode(settings.GOOGLE_SERVICE_ACCOUNT_JSON).decode())
@@ -66,17 +75,43 @@ def _get_processed_ids_sync() -> set:
     try:
         result = service.spreadsheets().values().get(
             spreadsheetId=settings.GOOGLE_SHEET_ID,
-            range=f"{SHEET_NAME}!A2:A10000",
+            range=f"{SHEET_NAME}!A2:E10000",
         ).execute()
-        values = result.get("values", [])
-        return {row[0] for row in values if row}
+        processed = set()
+        for row in result.get("values", []):
+            if not row or not row[0]:
+                continue
+            status = (row[4] if len(row) > 4 else "").strip().lower()
+            if status in RETRYABLE_STATUSES:
+                continue
+            processed.add(row[0])
+        return processed
     except Exception:
         return set()
 
 
 async def get_processed_meeting_ids() -> set:
-    """Return all meeting IDs already in the sheet. Used to skip re-processing."""
+    """Return meeting IDs that are done with. Used to skip re-processing.
+
+    Rows in a RETRYABLE_STATUSES state are deliberately excluded so a later sync
+    picks them up again — see the note on RETRYABLE_STATUSES.
+    """
     return await asyncio.to_thread(_get_processed_ids_sync)
+
+
+def _find_row_indices_by_ids(service, ids: set) -> list[int]:
+    """0-based sheet row indices whose col A meeting ID is in `ids` (header excluded)."""
+    if not ids:
+        return []
+    result = service.spreadsheets().values().get(
+        spreadsheetId=settings.GOOGLE_SHEET_ID,
+        # From A1 so the list index lines up with the sheet's 0-based row index.
+        range=f"{SHEET_NAME}!A1:A10000",
+    ).execute()
+    return [
+        i for i, row in enumerate(result.get("values", []))
+        if i > 0 and row and row[0] in ids
+    ]
 
 
 def _append_rows_sync(rows: list[dict]):
@@ -128,12 +163,34 @@ def _append_rows_sync(rows: list[dict]):
 
     rows_data = [{"values": [_cell(v) for v in row]} for row in values]
 
-    # Single batchUpdate: insertDimension + updateCells in one atomic request.
-    # Previously these were two separate calls — if the second failed, blank rows
-    # were left in the sheet with no data.
+    # A retried meeting (see RETRYABLE_STATUSES) already has a stale row in the
+    # sheet. Drop it first so the fresh result replaces it rather than sitting
+    # alongside it as a duplicate. Only rows whose col A exactly matches an ID in
+    # this batch are touched.
+    stale_indices = _find_row_indices_by_ids(service, {r["meeting_id"] for r in rows})
+
+    # Deletes run first and in descending row order, so each one cannot shift the
+    # index of a delete still queued behind it.
+    delete_requests = [
+        {
+            "deleteDimension": {
+                "range": {
+                    "sheetId": sheet_id,
+                    "dimension": "ROWS",
+                    "startIndex": i,
+                    "endIndex": i + 1,
+                },
+            },
+        }
+        for i in sorted(stale_indices, reverse=True)
+    ]
+
+    # Single batchUpdate: deletes + insertDimension + updateCells in one atomic
+    # request. Previously insert and update were two separate calls — if the
+    # second failed, blank rows were left in the sheet with no data.
     service.spreadsheets().batchUpdate(
         spreadsheetId=settings.GOOGLE_SHEET_ID,
-        body={"requests": [
+        body={"requests": delete_requests + [
             {
                 "insertDimension": {
                     "range": {
@@ -155,7 +212,10 @@ def _append_rows_sync(rows: list[dict]):
         ]},
     ).execute()
 
-    logger.info(f"Inserted {len(values)} rows at top of {SHEET_NAME}")
+    logger.info(
+        f"Inserted {len(values)} rows at top of {SHEET_NAME} "
+        f"(replaced {len(stale_indices)} stale)"
+    )
 
 
 async def append_rows(rows: list[dict]):
