@@ -258,6 +258,7 @@ async def sync_meetings(
                 "deal_status": analysis["deal_status"],
                 "call_analysis": analysis["call_analysis"],
                 "score": analysis["score"],
+                "evidence": analysis.get("evidence", ""),
             })
         except Exception as e:
             logger.error(f"Failed to analyze meeting {meeting_id}: {e}")

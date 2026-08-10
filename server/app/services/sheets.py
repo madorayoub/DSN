@@ -18,7 +18,15 @@ HEADERS = [
     "Date", "Topic / Contact", "Duration (min)", "Status",
     "Follow-Up Date", "Deal Status", "Summary", "Call Analysis",
     "Score", "Email", "Phone", "Commission Paid (Yes/No — Date)",
+    "Evidence",  # col N — verbatim quote backing Status / Follow-Up Date
 ]
+LAST_COLUMN = "N"
+
+# Columns a human fills in by hand. A retry rewrites the row, so these are read
+# off the old row and carried across instead of being blanked.
+MANUAL_COLUMN_INDICES = (12,)  # M — Commission Paid
+
+DATE_COLUMN_INDEX = 1  # B — the sheet is kept sorted by this, newest first
 
 # Statuses that mean "we didn't get an answer yet", not "this meeting is done".
 # They are excluded from the processed set so a later sync retries them once the
@@ -99,19 +107,20 @@ async def get_processed_meeting_ids() -> set:
     return await asyncio.to_thread(_get_processed_ids_sync)
 
 
-def _find_row_indices_by_ids(service, ids: set) -> list[int]:
-    """0-based sheet row indices whose col A meeting ID is in `ids` (header excluded)."""
+def _find_existing_rows_by_ids(service, ids: set) -> dict:
+    """Map meeting ID -> (0-based sheet row index, row values) for rows already present."""
     if not ids:
-        return []
+        return {}
     result = service.spreadsheets().values().get(
         spreadsheetId=settings.GOOGLE_SHEET_ID,
         # From A1 so the list index lines up with the sheet's 0-based row index.
-        range=f"{SHEET_NAME}!A1:A10000",
+        range=f"{SHEET_NAME}!A1:{LAST_COLUMN}10000",
     ).execute()
-    return [
-        i for i, row in enumerate(result.get("values", []))
-        if i > 0 and row and row[0] in ids
-    ]
+    found = {}
+    for i, row in enumerate(result.get("values", [])):
+        if i > 0 and row and row[0] in ids:
+            found[row[0]] = (i, row + [""] * (len(HEADERS) - len(row)))
+    return found
 
 
 def _append_rows_sync(rows: list[dict]):
@@ -120,12 +129,14 @@ def _append_rows_sync(rows: list[dict]):
 
     _ensure_sheet_exists(service)
 
-    existing = sheet.values().get(
+    existing_header = sheet.values().get(
         spreadsheetId=settings.GOOGLE_SHEET_ID,
-        range=f"{SHEET_NAME}!A1:M1",
-    ).execute()
+        range=f"{SHEET_NAME}!A1:{LAST_COLUMN}1",
+    ).execute().get("values", [[]])
 
-    if not existing.get("values"):
+    # Rewrite the header when it is missing or narrower than HEADERS, so adding a
+    # column does not leave the sheet labelled with the old shape.
+    if not existing_header or existing_header[0] != HEADERS:
         sheet.values().update(
             spreadsheetId=settings.GOOGLE_SHEET_ID,
             range=f"{SHEET_NAME}!A1",
@@ -133,16 +144,25 @@ def _append_rows_sync(rows: list[dict]):
             body={"values": [HEADERS]},
         ).execute()
 
-    values = [
-        [
+    # Pull the rows we are about to replace so hand-entered columns survive the
+    # rewrite, and so the delete step knows which sheet rows to remove.
+    existing_rows = _find_existing_rows_by_ids(service, {r["meeting_id"] for r in rows})
+
+    values = []
+    for r in rows:
+        previous = existing_rows.get(r["meeting_id"], (None, []))[1]
+        row = [
             r["meeting_id"],  # col A — dedup key
             r["date"], r["topic"], r["duration_min"], r["status"],
             r["follow_up_date"], r["deal_status"], r["summary"], r["call_analysis"],
             r["score"], r.get("email", ""), r.get("phone", ""),
-            "",  # Commission Paid (col M) — blank, filled manually
+            "",  # Commission Paid (col M) — filled by hand, carried over below
+            r.get("evidence", ""),
         ]
-        for r in rows
-    ]
+        for idx in MANUAL_COLUMN_INDICES:
+            if previous and idx < len(previous) and str(previous[idx]).strip():
+                row[idx] = previous[idx]
+        values.append(row)
 
     # Get the sheetId for the Meetings tab (needed for insertDimension)
     spreadsheet = service.spreadsheets().get(
@@ -167,7 +187,7 @@ def _append_rows_sync(rows: list[dict]):
     # sheet. Drop it first so the fresh result replaces it rather than sitting
     # alongside it as a duplicate. Only rows whose col A exactly matches an ID in
     # this batch are touched.
-    stale_indices = _find_row_indices_by_ids(service, {r["meeting_id"] for r in rows})
+    stale_indices = [idx for idx, _ in existing_rows.values()]
 
     # Deletes run first and in descending row order, so each one cannot shift the
     # index of a delete still queued behind it.
@@ -185,9 +205,11 @@ def _append_rows_sync(rows: list[dict]):
         for i in sorted(stale_indices, reverse=True)
     ]
 
-    # Single batchUpdate: deletes + insertDimension + updateCells in one atomic
-    # request. Previously insert and update were two separate calls — if the
-    # second failed, blank rows were left in the sheet with no data.
+    # Single batchUpdate: deletes + insertDimension + updateCells + sort in one
+    # atomic request. Previously insert and update were two separate calls — if
+    # the second failed, blank rows were left in the sheet with no data.
+    # New rows go in at the top and the sort then puts them in date order, so the
+    # sheet reads newest-first no matter what order meetings were processed in.
     service.spreadsheets().batchUpdate(
         spreadsheetId=settings.GOOGLE_SHEET_ID,
         body={"requests": delete_requests + [
@@ -209,12 +231,26 @@ def _append_rows_sync(rows: list[dict]):
                     "start": {"sheetId": sheet_id, "rowIndex": 1, "columnIndex": 0},
                 },
             },
+            {
+                "sortRange": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "startRowIndex": 1,   # keep the header pinned
+                        "startColumnIndex": 0,
+                        "endColumnIndex": len(HEADERS),
+                    },
+                    "sortSpecs": [{
+                        "dimensionIndex": DATE_COLUMN_INDEX,
+                        "sortOrder": "DESCENDING",
+                    }],
+                },
+            },
         ]},
     ).execute()
 
     logger.info(
-        f"Inserted {len(values)} rows at top of {SHEET_NAME} "
-        f"(replaced {len(stale_indices)} stale)"
+        f"Wrote {len(values)} rows to {SHEET_NAME} "
+        f"(replaced {len(stale_indices)} stale), sorted newest first"
     )
 
 
