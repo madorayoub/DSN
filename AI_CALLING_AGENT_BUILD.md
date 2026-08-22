@@ -99,21 +99,31 @@ A **Retell AI** (https://docs.retellai.com) voice-agent orchestrator with two fu
 Why: leads called within 5 min are ~21x more likely to qualify vs 30 min ([source](https://www.calldrip.com/speed-to-lead)); calling ≥2x raises contact rates from ~48% to ~93% ([source](https://www.jvmlending.com/blog/lead-conversions-speed-double-dials-fascinating-info/)).
 
 Flow:
-1. New lead enters GHL (form fill / opt-in that did NOT already book). Trigger: **GHL Workflow → Custom Webhook action** POSTing to our server: `POST /webhook/retell/new-lead` with `{contact_id, first_name, phone, email, source}`. (Configure in GHL UI: Automation → Workflow → trigger "Contact Created" or "Form Submitted", filter out leads who already have an appointment.)
+1. New lead enters GHL (form fill / opt-in that did NOT already book). Trigger: **GHL Workflow → Custom Webhook action** POSTing to our server: `POST /webhook/new-lead` with `{contact_id, first_name, last_name, phone, email, source}` and header `x-webhook-secret: <WEBHOOK_SECRET>`. (Configure in GHL UI: Automation → Workflow → trigger "Contact Created" or "Form Submitted", filter out leads who already have an appointment.)
+
+   > ⚠️ **Corrected 2026-08-22 (verified against live).** This line previously read `/webhook/retell/new-lead`, which has never existed — a POST there returns **404**. The live route is `/webhook/new-lead` (`dsn-orchestrator/index.js:1098`). The `x-webhook-secret` header is also mandatory: `requireWebhookSecret` fails closed with a bare **403** and no log line, so a missing or wrong secret looks exactly like "nothing happened." See §11 for the full route table.
 2. Server validates (has phone, not DNC, not already booked, within calling hours 8am–9pm lead-local time, Mon–Fri — derive timezone from area code or GHL contact field; if outside hours, queue for next available window).
 3. Call Retell: `POST https://api.retellai.com/v2/create-phone-call` (Bearer `RETELL_API_KEY`) with `from_number`, `to_number`, `override_agent_id` = speed-to-lead agent, `retell_llm_dynamic_variables` ({first_name, source, company info}), `metadata` ({contact_id, attempt: 1, function: "speed_to_lead"}).
 4. **Double-dial:** on Retell webhook `call_ended` with no answer/voicemail → wait ~60s → dial again (attempt 2). Recommended cadence if still no answer: attempt 3 at +10 min, attempt 4 at +30 min, then next-day attempt; cap at ~6 attempts over 48h, leave voicemail on final attempt only. Track attempts in DB.
 5. **Goal of the call: book the strategy call.** Give the Retell agent two **Custom Functions** (tools) that hit our server:
-   - `check_availability(date_range, timezone)` → `GET /retell/tools/availability` → proxies GHL free-slots API (same logic as `booking.js` GET).
-   - `book_appointment(slot_iso, timezone)` → `POST /retell/tools/book` → creates GHL appointment for the contact in `metadata` (same logic as `booking.js` POST). Returns confirmation the agent speaks back.
+   - `check_availability(date_range, timezone)` → `POST /retell/function/check-availability` → proxies GHL free-slots API (same logic as `booking.js` GET).
+   - `book_appointment(slot_iso, timezone)` → `POST /retell/function/book-appointment` → creates GHL appointment for the contact in `metadata` (same logic as `booking.js` POST). Returns confirmation the agent speaks back.
+
+   > ⚠️ **Corrected 2026-08-22:** live paths are `/retell/function/check-availability` and `/retell/function/book-appointment` (both **POST**), not `/retell/tools/*`. Both are HMAC-gated by `x-retell-signature`, not the webhook secret.
 6. On `call_analyzed` webhook: log outcome to DB + Google Sheet, update GHL contact with note/tag (`ai-call-booked`, `ai-call-no-answer`, etc.). Verify `x-retell-signature` header on all webhooks.
 
 ### Function B — Appointment reminder calls (T-24h and T-1h)
 Why: reminders ~24h out plus a same-day touch can roughly double show rates ([source](https://martal.ca/lead-generation-and-appointment-setting-lb/)).
 
-Trigger options (pick **Option 1**; it's simpler and uses GHL as source of truth):
+Trigger options as originally planned (pick **Option 1**; it's simpler and uses GHL as source of truth):
 - **Option 1 (recommended): GHL Workflow** with trigger "Appointment Booked" → "Wait until 24 hours before appointment" → Custom Webhook `POST /webhook/retell/reminder` `{contact_id, appointment_id, start_time, type: "24h"}` → another wait until 1 hour before → same webhook with `type: "1h"`. GHL handles rescheduling/cancellation automatically (workflow re-evaluates).
 - Option 2 (fallback): APScheduler in FastAPI polls GHL calendar events every 10 min and schedules calls itself. More code, needed only if GHL workflow waits prove unreliable.
+
+> ⚠️ **Corrected 2026-08-22 (verified against live). What actually shipped is neither option as written — it's Option 2's shape.** There is no `/webhook/retell/reminder` endpoint; do not point a GHL workflow at it. The live design is:
+> 1. GHL workflow `Appointment Booked → Retell AI` POSTs **once**, immediately on booking, to `POST /webhook/appointment-booked` (`index.js:1301`) with the `x-webhook-secret` header — **no GHL wait steps**.
+> 2. The orchestrator persists the appointment and an **in-process cron** (`appointment_reminders`, every 5 min, inside the Node service — not a Railway cron job) fires the T-24h and T-1h calls itself, re-checking GHL for cancellation first.
+>
+> Consequence for the go-live: the reminder workflow needs only a single immediate webhook action. If you build the wait-until steps from Option 1, you get **duplicate reminder calls** — GHL's waits firing on top of the orchestrator's own cron.
 
 Server then: checks appointment still exists & not cancelled (GHL API), checks calling hours, fires Retell `create-phone-call` with reminder agent + dynamic variables `{first_name, appointment_time_local, timezone, zoom_link_sent: true, type}`.
 
@@ -177,6 +187,24 @@ create table dnc (phone text primary key, reason text, created_at timestamptz de
 
 New repo (suggested: `dsn-call-orchestrator`), new Railway project of the same name. FastAPI, same conventions as the existing DSN server. **First step: read TFG's `fb-lead-orchestrator` source and mirror it.**
 
+> ⚠️ **§6 is the ORIGINAL PLAN and no longer describes the build (noted 2026-08-22).** The layout below was never implemented as written — treat it as history, not as a map. What actually shipped:
+> - **Node/Express, not FastAPI**, and it lives **in this repo** at `dsn-orchestrator/` (single file `index.js`, ~2700 lines), not a standalone repo. The Railway *project* `dsn-call-orchestrator` is real; the separate GitHub repo is not.
+> - The service's Railway root dir is `dsn-orchestrator/`, so **`railway up` must be run from inside that folder** — from the repo root the build fails with "No start command detected" while the old deploy keeps serving.
+> - Env var names differ from the list below: `RETELL_AGENT_ID_SPEED_TO_LEAD` / `RETELL_AGENT_ID_REMINDER` (not `RETELL_AGENT_*`), and `RETELL_WEBHOOK_KEY` (not `RETELL_WEBHOOK_SECRET`). `WEBHOOK_SECRET` and `CRON_SECRET` are additional and required — the app fails closed at boot without them.
+> - Scheduling is **in-process cron inside the Node service** (speed-to-lead + reminders every 5 min, no-show check every 15 min), not a `call_jobs` queue polled every 30s.
+>
+> The live route table (verified against the running service 2026-08-22 — all four GHL-facing routes return 403 on a wrong secret, and the `/webhook/retell/*` forms below return 404):
+>
+> | Purpose | Live route | Auth |
+> |---|---|---|
+> | New lead from GHL | `POST /webhook/new-lead` | `x-webhook-secret` |
+> | Appointment booked from GHL | `POST /webhook/appointment-booked` | `x-webhook-secret` |
+> | Appointment cancelled from GHL | `POST /webhook/appointment-cancelled` | `x-webhook-secret` |
+> | Opt-out / DND from GHL | `POST /webhook/opt-out` | `x-webhook-secret` |
+> | Retell call events | `POST /webhook/retell` | `x-retell-signature` (HMAC) |
+> | Retell tool: availability | `POST /retell/function/check-availability` | `x-retell-signature` |
+> | Retell tool: booking | `POST /retell/function/book-appointment` | `x-retell-signature` |
+
 ```
 app/main.py                  # FastAPI app, health check, router registration
 app/config.py                # env settings
@@ -209,8 +237,20 @@ ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
 ## 7. Manual setup steps (user / dashboard work — code can't do these)
 
 1. **Retell account** (https://dashboard.retellai.com): buy/import a phone number (consider importing a Twilio number with DSN's caller ID; a local-presence number improves answer rates). Pricing ~ $0.07–0.12/min all-in.
-2. Create two agents in Retell (Conversation Flow or single-prompt): "DSN Speed-to-Lead" and "DSN Reminder". Set agent-level `webhook_url` to `https://<railway-app>/webhook/retell/events`, events: `call_started, call_ended, call_analyzed`. Add the two Custom Functions pointing at the Railway tool endpoints. Link the knowledge base once built. Enable voicemail detection (hang up or leave configured voicemail message).
-3. **GHL workflows**: (a) New-lead workflow → webhook to `/webhook/retell/new-lead` (exclude contacts with appointments); (b) Appointment workflow → wait-until-24h-before → webhook, wait-until-1h-before → webhook. Add a "DNC" tag check in both.
+2. Create two agents in Retell (Conversation Flow or single-prompt): "DSN Speed-to-Lead" and "DSN Reminder". Set agent-level `webhook_url` to `https://<railway-app>/webhook/retell`, events: `call_started, call_ended, call_analyzed`. Add the two Custom Functions pointing at the Railway tool endpoints. Link the knowledge base once built. Enable voicemail detection (hang up or leave configured voicemail message).
+
+   > ⚠️ **Corrected 2026-08-22:** the route is `/webhook/retell`, not `/webhook/retell/events`. **This step is already DONE** — both agents exist and are wired (`agent_d7bffee08f5962e2a0c5789fcd` speed-to-lead, `agent_1cf55115cf9e5477adb445c754` reminder). Do not re-create them. They run **unpublished on purpose**: the v3 draft is what serves live calls, and publishing makes a flow permanently uneditable. Never publish. See `MORGAN_AGENT_CHANGELOG.md` before touching either flow.
+
+3. **GHL workflows** — the four `→ Retell AI` workflows already exist in location `NgduPjDbvABP3zFIqnt4` but are **all still `draft` as of 2026-08-22** (created 2026-06-13, never published). Publishing them is what actually turns this system on. Before publishing, open each one and verify its Custom Webhook action:
+
+   | Workflow | Trigger | Must POST to | Must send |
+   |---|---|---|---|
+   | `New Lead → Retell AI` | Contact Created / Form Submitted (exclude contacts who already have an appointment; check the DNC tag) | `/webhook/new-lead` | `x-webhook-secret` |
+   | `Appointment Booked → Retell AI` | Appointment Booked — **immediate, no wait steps** | `/webhook/appointment-booked` | `x-webhook-secret` |
+   | `Appointment Cancelled → Retell AI` | Appointment Cancelled | `/webhook/appointment-cancelled` | `x-webhook-secret` |
+   | `Opt-out (DND) → Retell AI` | DND set / "stop" reply | `/webhook/opt-out` | `x-webhook-secret` |
+
+   Base URL is `https://dsn-call-orchestrator-production.up.railway.app`. The secret must match the orchestrator's `WEBHOOK_SECRET` Railway variable exactly — a wrong or missing value returns a bare 403 with **no log line and no dead-letter row**, which is indistinguishable from the workflow never firing. Test each one with GHL's "Test Workflow" against a contact you control and confirm a `[webhook/...] received:` line appears in `railway logs` before going live.
 4. **Supabase**: upgrade org to Pro (or create separate DSN org) → create `dsn-orchestrator` project. **Railway**: create new project `dsn-call-orchestrator`, connect the new repo, set env vars.
 5. **Compliance (US outbound AI calls):** only call leads who submitted their number (prior express consent — our forms qualify); disclose AI **(honest-if-asked only as of 2026-06-25 — proactive up-front disclosure was removed; see the ⚠️ note in §11 for the open CA AB 2905 question)**; honor opt-out ("stop calling" → add to `dnc` table + GHL DNC); respect 8am–9pm local-time window, Mon–Fri (TCPA); record-keeping via call_logs. Double-dial of a fresh inbound lead is standard practice and consent-covered, but do not exceed reasonable attempt caps.
 
