@@ -564,6 +564,48 @@ async function ghlUpdateContactTimezone(contactId, timezone) {
   return ghlRequest('PUT', `/contacts/${contactId}`, { timezone }, GHL_TOOL_CALL_OPTS);
 }
 
+// Tag applied to any contact Morgan told "the team will follow up". Env-overridable so it can
+// be pointed at whatever tag a GHL workflow watches.
+const HUMAN_FOLLOWUP_TAG = process.env.GHL_HUMAN_FOLLOWUP_TAG || 'ai-needs-human-followup';
+
+// Morgan promises a human follow-up on nearly every graceful exit — booking failure, no
+// availability, indecision, an explicit request for a person, a language mismatch. Nothing
+// used to act on that: no email, no task, no tag, and logEvent only writes a row nobody reads.
+// This puts it where a human actually looks: a note on the GHL contact plus a tag a workflow
+// can trigger on. Best-effort and fully non-fatal — a CRM write must never break call handling.
+async function flagForHumanFollowup(leadOrId, reason, detail = '') {
+  let lead = leadOrId;
+  if (lead && typeof lead !== 'object') {
+    const { data } = await supabase?.from('leads').select('id, name, phone, ghl_contact_id').eq('id', lead).maybeSingle() ?? {};
+    lead = data;
+  }
+  if (!lead?.ghl_contact_id) {
+    console.warn(`[followup-flag] No ghl_contact_id for lead ${lead?.id ?? leadOrId} — cannot flag "${reason}"`);
+    return;
+  }
+
+  const note = `[Morgan / AI call] Needs a human: ${reason}`
+    + (detail ? `\n${detail}` : '')
+    + `\nFlagged ${new Date().toISOString()} by the AI orchestrator because the agent told this lead the team would follow up.`;
+
+  try {
+    await ghlRequest('POST', `/contacts/${lead.ghl_contact_id}/notes`, { body: note });
+  } catch (err) {
+    console.error(`[followup-flag] Note failed for contact ${lead.ghl_contact_id}: ${err.message}`);
+    await dlq('flagForHumanFollowup/note', { lead_id: lead.id, reason }, err);
+  }
+
+  try {
+    await ghlRequest('POST', `/contacts/${lead.ghl_contact_id}/tags`, { tags: [HUMAN_FOLLOWUP_TAG] });
+  } catch (err) {
+    console.error(`[followup-flag] Tag failed for contact ${lead.ghl_contact_id}: ${err.message}`);
+    await dlq('flagForHumanFollowup/tag', { lead_id: lead.id, reason }, err);
+  }
+
+  console.log(`[followup-flag] Lead ${lead.id} flagged for human follow-up: ${reason}`);
+  await logEvent('human_followup_flagged', { lead_id: lead.id, reason, detail });
+}
+
 // Live tool-call paths (Retell custom functions, spoken filler covers the wait) use a
 // short timeout + ONE retry so a single GHL tail-latency spike doesn't kill a booking.
 // GHL p50 is ~0.7s, so the retry almost never fires; worst case ~6.5s is covered by the
@@ -1010,7 +1052,7 @@ async function reconcileStuckRetellCalls() {
       disconnection_reason: call.disconnection_reason,
       transcript:           reconciledTranscript,
       summary:              call.call_analysis?.call_summary || '',
-      outcome,
+      outcome:              dbSafeOutcome(outcome),
       raw_payload:          call,
       ended_at:             new Date().toISOString(),
     }, { onConflict: 'retell_call_id' });
@@ -1649,7 +1691,7 @@ app.post('/webhook/retell', validateRetell, async (req, res) => {
           call_status: call_status,
           transcript:  formatTranscript(call?.transcript_object || []),
           summary,
-          outcome,
+          outcome:     dbSafeOutcome(outcome),
           raw_payload: call,
         })
         .eq('retell_call_id', call_id)
@@ -1856,11 +1898,38 @@ async function handleCallOutcome({ leadId, callId, callType, outcome, appointmen
         await dlq('handleCallOutcome/dnc', { lead_id: leadId, phone: dncLead.phone }, dncErr);
       }
     }
+  } else if (outcome === 'language_barrier') {
+    // The lead could not hold the call in English. Morgan tells them someone who speaks their
+    // language will follow up — so stop the cadence (another English redial is exactly what
+    // the promise ruled out) and put it in front of a human instead.
+    // 'exhausted' rather than a new status value: leads.status carries a CHECK constraint
+    // (new|calling|booked|not_interested|exhausted|dnc|invalid_phone) and a value outside it is
+    // rejected outright. 'exhausted' is already the "AI is done with this lead" state and is
+    // already in the /webhook/new-lead skip list, so a resubmission won't re-dial them in
+    // English either. The precise reason lives in last_call_outcome and the GHL note.
+    leadUpdate.status           = 'exhausted';
+    leadUpdate.followup_paused  = true;
+    leadUpdate.next_followup_at = null;
+    await flagForHumanFollowup(
+      leadId,
+      'Lead does not speak English',
+      'Morgan told them a team member who speaks their language would follow up. Needs a bilingual callback; the AI will not dial this lead again.',
+    );
   } else if (outcome === 'callback_requested') {
     // Lead asked to be called back — reschedule 1 hour out, keep in calling rotation.
     // Advance followup_step so repeated callbacks count toward the exhaustion cap (step > 6).
     const { data: cbLead } = await supabase.from('leads').select('followup_step').eq('id', leadId).single();
     const cbStep = (cbLead?.followup_step || 1) + 1;
+    // Every route into this outcome had Morgan say some version of "the team will follow up"
+    // (booking failure, no open slots, wants to think it over, asked for a person). Put a note
+    // and a tag on the contact so that promise reaches an actual human, not just a log line.
+    await flagForHumanFollowup(
+      leadId,
+      cbStep > 6 ? 'Callback requested, AI attempts now exhausted' : 'Callback requested',
+      cbStep > 6
+        ? 'Morgan told this lead the team would follow up, and the AI has used all 6 attempts. Nothing further is automated for this lead.'
+        : 'Morgan told this lead the team would follow up. The AI will also retry, but a human touch was promised.',
+    );
     if (cbStep > 6) {
       leadUpdate.status          = 'exhausted';
       leadUpdate.followup_paused = true;
@@ -1980,6 +2049,30 @@ const OPT_OUT_PATTERNS = [
   /\bunsubscribe\b/,
   /\bopt(ed)?\s*-?\s*out\b/,
   /\bdo\s*not\s*call\s+list\b/,
+  // Passive/reported forms. Retell writes summaries in the third person, so a real opt-out
+  // often reads "the lead asked to be removed from the list" — which none of the
+  // subject-anchored patterns above match. Still phrase-anchored, so the known false
+  // positive ("Morgan OFFERED TO REMOVE THEM from the list if not interested") stays clear:
+  // that is "offered to remove them", not "asked to be removed".
+  /\basked\s+to\s+be\s+(removed|taken\s+off)\b/,
+  /\brequested\s+(removal|to\s+be\s+removed)\b/,
+  /\b(removed|taken)\s+off\s+(the|our|your)\s+(list|call\s+list)\b/,
+  /\bremoved\s+from\s+(the|our|your)\s+(list|database|call\s+list)\b/,
+];
+
+// A lead who can't hold the conversation in English needs a human who speaks their language,
+// NOT another pass from an English-speaking bot. The flows route this to `callback`, whose
+// outcome (callback_requested) re-dials in an hour and can repeat to the 6-attempt cap — so
+// Morgan promised a bilingual human and then called back in English, up to six times.
+// Detected as its own outcome so follow-up pauses and a human is flagged instead.
+const LANGUAGE_BARRIER_PATTERNS = [
+  /\blanguage\s+barrier\b/,
+  /\b(does|did|do|could|would)\s*n[o']?t\s+speak\s+english\b/,
+  /\bnon[-\s]english[-\s]speaking\b/,
+  /\blimited\s+english\b/,
+  /\b(spanish|french|portuguese|mandarin|cantonese|chinese|vietnamese|korean|russian|arabic|creole|polish|tagalog)[-\s]speaking\b/,
+  /\bspeaks?\s+(only\s+|primarily\s+)?(spanish|french|portuguese|mandarin|cantonese|chinese|vietnamese|korean|russian|arabic|creole|polish|tagalog)\b/,
+  /\brespond(ed|ing)?\s+in\s+(spanish|french|portuguese|mandarin|cantonese|chinese|vietnamese|korean|russian|arabic|creole|polish|tagalog)\b/,
 ];
 
 // Disinterest has the same attribution problem as opt-out. A bare `includes('not interested')`
@@ -2011,6 +2104,23 @@ function userTurnsOnly(transcript = '') {
     .toLowerCase();
 }
 
+// call_logs.outcome carries a CHECK constraint listing the outcomes that existed when the schema
+// was written. A value outside it doesn't merely mislabel the row, it REJECTS THE WHOLE WRITE —
+// and in the call_analyzed path that write is also the idempotency claim, so a rejected insert
+// would stop handleCallOutcome from running at all. Normalise anything the DB doesn't know about;
+// the precise label still reaches leads.last_call_outcome (plain text, unconstrained), the GHL
+// note, and the lead_events payload. Once the migration at the bottom of supabase-setup.sql has
+// been applied, 'language_barrier' joins the set and this becomes a no-op for it.
+const DB_ALLOWED_CALL_OUTCOMES = new Set([
+  'voicemail', 'no_answer', 'dnc', 'cancelled', 'booked', 'rescheduled',
+  'confirmed', 'callback_requested', 'not_interested', 'completed',
+]);
+function dbSafeOutcome(outcome) {
+  if (DB_ALLOWED_CALL_OUTCOMES.has(outcome)) return outcome;
+  console.warn(`[call-logs] outcome '${outcome}' not in the DB CHECK constraint — storing as 'completed' (run the lead_events/call_logs migration to record it properly)`);
+  return 'completed';
+}
+
 function extractOutcome(callAnalysis = {}, transcript = '', disconnectionReason = '', callType = '') {
   // Priority 1: Retell disconnect reason — objective, not LLM-interpreted
   if (disconnectionReason === 'voicemail_reached') return 'voicemail';
@@ -2029,6 +2139,10 @@ function extractOutcome(callAnalysis = {}, transcript = '', disconnectionReason 
   // Checked against the summary AND the lead's own transcript turns, so a real opt-out still
   // lands even when the summary doesn't mention it.
   if (OPT_OUT_PATTERNS.some(re => re.test(summary) || re.test(leadWords))) return 'dnc';
+  // Checked before the booking/callback patterns: the flows route a language mismatch to the
+  // `callback` node, so its summary tends to mention a follow-up and would otherwise be read
+  // as callback_requested and re-dialled.
+  if (LANGUAGE_BARRIER_PATTERNS.some(re => re.test(summary))) return 'language_barrier';
   if (isReminder) {
     // Rescheduled before cancel — reschedule summaries often contain "cancelled the previous appointment"
     if (summary.includes('rescheduled') || summary.includes('reschedule')) return 'rescheduled';
