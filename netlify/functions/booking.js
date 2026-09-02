@@ -162,10 +162,15 @@ exports.handler = async (event) => {
     const end = endDate || startDate;
     try {
       const dates = await getSlots(startDate, end, timezone);
+      // calendarId is echoed back purely so the calendar actually in use is verifiable
+      // from outside. GHL_CALENDAR_ID in the Netlify env silently wins over the default
+      // above, so a deploy that looks fine can still be booking the old calendar — and
+      // slot data alone doesn't reveal which one answered. The frontend ignores this
+      // field, and the id is already public in the widget embeds, so it leaks nothing.
       return {
         statusCode: 200,
         headers: { ...corsHeaders(origin), 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Connection': 'close' },
-        body: JSON.stringify({ dates }),
+        body: JSON.stringify({ dates, calendarId: CALENDAR_ID }),
       };
     } catch (err) {
       const timedOut = err.name === 'AbortError';
