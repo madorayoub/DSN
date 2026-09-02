@@ -227,12 +227,38 @@ curl -s "https://directsales.network/.netlify/functions/booking?startDate=2026-0
 - [ ] Confirm reminders fire for a booking on the new calendar (section 3 check,
       but end-to-end).
 
-Then, on the day Dan connects his Zoom and goes back on the calendar:
+---
 
-- [ ] Re-run the section 1 verify — both members should read `zoom_conference`
-- [ ] Book **two** test appointments and confirm they go to *different* closers.
-      One booking only proves the calendar works; two is the only thing that
-      proves the split is actually rotating.
+## 6. The day Dan lands — do it in this order
+
+**The deploy does not need to wait for Dan.** With him off the calendar it is
+Brian-only, which is functionally identical to today, so shipping section 5 first
+proves the whole migration while only one closer is exposed. Then adding Dan is UI
+clicks with no code involved and nothing to redeploy.
+
+Order matters here, and step 2 is the one that gets missed:
+
+1. - [ ] **Add Dan back** to "DSN - Strategy Zoom Call" team members
+2. - [ ] **Set his meeting location to Zoom on this calendar.** Dan connecting Zoom
+        to his GHL account is *not* enough — the Zoom link comes from the per-member
+        location config on this specific calendar. Skipping this is exactly the state
+        the calendar was in on 2026-09-02: Dan present, `kind: "custom"`, empty link.
+3. - [ ] **Verify both members** read `zoom_conference` before any traffic hits it —
+        this is the whole gate, so don't take it on trust:
+
+```bash
+cd server && TOK=$(grep '^GHL_API_KEY=' .env | cut -d= -f2-) && curl -s "https://services.leadconnectorhq.com/calendars/WZwIrG0g3gk7AzOJcYXX" -H "Authorization: Bearer ${TOK}" -H "Version: 2021-04-15" -A "Mozilla/5.0" | python3 -c "import json,sys; [print(t.get('userId'), (t.get('locationConfigurations') or [{}])[0].get('kind')) for t in json.load(sys.stdin)['calendar']['teamMembers']]"
+```
+
+4. - [ ] **Only then** raise `appointmentPerSlot` to 2 (section 4). At 2, a bad Zoom
+        config hits two leads in the same hour instead of one — so it goes after the
+        verify, never before.
+5. - [ ] **Book two test appointments.** Confirm they land on *different* closers and
+        that **both** come back with a real Zoom link. One booking only proves the
+        calendar works; two is the only thing that proves the split rotates.
+6. - [ ] Re-check availability — Dan should visibly add slots. Brian alone at the
+        7-day window gives about 5 dates / 20 slots; if adding Dan doesn't move that,
+        his availability isn't actually configured.
 
 ---
 
