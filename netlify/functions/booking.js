@@ -5,7 +5,7 @@
 const GHL_BASE    = 'https://services.leadconnectorhq.com';
 const TOKEN       = process.env.GHL_PRIVATE_TOKEN;   // set in Netlify env vars
 const LOCATION_ID = process.env.GHL_LOCATION_ID  || 'NgduPjDbvABP3zFIqnt4';
-const CALENDAR_ID = process.env.GHL_CALENDAR_ID  || 'DXh5uGCZVjFLPQNeKRZu';
+const CALENDAR_ID = process.env.GHL_CALENDAR_ID  || 'WZwIrG0g3gk7AzOJcYXX';
 
 const ALLOWED_ORIGIN = 'https://directsales.network';
 
