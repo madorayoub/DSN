@@ -7,9 +7,8 @@ Brian's personal calendar.
 **Moving from:** `DXh5uGCZVjFLPQNeKRZu` — "Free Consultation", Brian only
 **Moving to:** `WZwIrG0g3gk7AzOJcYXX` — "DSN - Strategy Zoom Call", round robin, Brian B + Dan A
 
-Everything below needs an account I can't reach from here. Sections 2 and 3 are
-the ones to do now — neither depends on Dan. Section 4 is decisions. Section 5 is
-the deploy.
+Section 2 is now confirmed resolved. **Section 3 (workflows) is the only real work
+left**, and it doesn't depend on Dan. Section 4 is decisions. Section 5 is the deploy.
 
 ---
 
@@ -49,19 +48,20 @@ cd server && TOK=$(grep '^GHL_API_KEY=' .env | cut -d= -f2-) && curl -s "https:/
 
 ---
 
-## 2. Netlify env var
+## 2. Netlify env var — ✅ RESOLVED, nothing to do
 
-`GHL_CALENDAR_ID` in the Netlify dashboard **silently overrides** the calendar in
-the code. If it's set to the old calendar, the deploy will look completely fine
-and still book Brian only.
+`GHL_CALENDAR_ID` in the Netlify dashboard would have **silently overridden** the
+calendar in the code — a deploy that looks completely fine while still booking
+Brian only.
 
-directsales.network is on Netlify, but the CLI on this machine is logged into the
-Task Force Garage account, which doesn't contain that site — so I can't read or
-change it.
+Checked on the `dsn1` project (directsales.network) 2026-09-02: the only
+environment variables set are `GHL_PRIVATE_TOKEN` and `META_PIXEL_ACCESS_TOKEN`.
+**`GHL_CALENDAR_ID` is not set**, so the value in `netlify/functions/booking.js`
+applies directly and the deploy will take effect as written.
 
-- [ ] Log into the Netlify account that owns **directsales.network**
-- [ ] Site settings → Environment variables → find `GHL_CALENDAR_ID`
-- [ ] Either set it to `WZwIrG0g3gk7AzOJcYXX`, or delete it and let the code default win
+Same for `GHL_LOCATION_ID` — also unset, also falling through to the code default.
+
+No action needed. The post-deploy check in section 5 still confirms it outright.
 
 ---
 
@@ -113,8 +113,10 @@ config and open hours.
 
 ## 5. Deploy and verify
 
-Deploy is a push to `main` (Netlify builds from the repo — there's no GitHub
-Actions workflow). Do this **after** sections 1–3.
+Deploy is a push to `main` — the `dsn1` project deploys from GitHub, and there's no
+GitHub Actions workflow in the repo. Note the site's last deploy was **Jul 30**:
+everything since has landed on branches rather than `main`, so merging this is what
+triggers the build. Do this **after** section 3.
 
 - [ ] Merge `feat/round-robin-calendar-migration` into `main` and push
 - [ ] Confirm prod is actually on the new calendar. Look for `calendarId` in the
