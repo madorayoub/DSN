@@ -100,10 +100,11 @@ No action needed. The post-deploy check in section 5 still confirms it outright.
 
 ---
 
-## 3. Workflows — check what they're pinned to
+## 3. Workflows — check what they're pinned to  *(you're taking this one)*
 
-GHL's API only returns workflow names and status, never their trigger config, so
-there's no way for me to check this programmatically. It needs eyes in the UI.
+GHL's API only returns workflow names and status, never their trigger config — the
+detail endpoints 404 — so there's no way for me to check this programmatically. It
+needs eyes in the UI, and you said you'd handle it.
 
 If a workflow's appointment trigger is filtered to "Free Consultation", then
 bookings on the new calendar get **no reminders and no no-show handling** — they'd
@@ -121,6 +122,55 @@ If it is, add or switch to "DSN - Strategy Zoom Call":
 While you're in there — `Assign to M` was updated 2026-08-26 and I don't know what
 it does. Worth confirming it doesn't fight the round-robin assignment.
 
+Two things to watch for while you're in these, both from section 3b below:
+
+- [ ] Confirm the confirmation email/SMS actually sends
+      **`{{appointment.reschedule_link}}`**. That merge field only resolves inside a
+      workflow with an appointment trigger — on any other trigger it renders blank
+      and the lead gets a dead link.
+- [ ] Know that a real GHL reschedule **deletes the original appointment and creates
+      a new one, re-firing "Appointment Booked" without ever firing "Appointment
+      Cancelled."** So reminder/no-show workflows will re-trigger on reschedules.
+
+---
+
+## 3b. The reschedule page doesn't reschedule anything
+
+**This one undercuts the "keep the original closer" decision, so it's worth reading.**
+
+`/commercial/reschedule` (and the trial one) embeds a plain GHL booking widget. Every
+link pointing at it — from `thankyou`, `pre-call` and `callconfirmed` — is a bare
+`href="reschedule"` with no appointment id, and the page reads no query parameters.
+
+So it cannot move an existing appointment. It books a **brand new one** and leaves the
+original sitting on the calendar, still blocking that slot.
+
+The live data shows the pattern. Appointment titles identify the source: the funnel
+overlay writes `Strategy Call — Name`, the widget writes just `Name`. Of 83
+appointments across 72 contacts, 9 contacts hold more than one, and one — Teje Pierre
+— held **two simultaneously confirmed** appointments (Jul 30 and Jul 31, both from the
+widget) on top of an earlier no-show. Most of the rest were cleaned up by hand, which
+is the real ongoing cost.
+
+**Round robin makes this materially worse.** Today Brian sees both the original and the
+duplicate and tidies up. With two closers, the duplicate is a fresh booking that the
+round robin can hand to Dan, while Brian still holds the original — and neither of them
+knows the other exists. That is also exactly why "keep the original closer" can't help
+here: through this page nothing is a reschedule, it's just a new booking.
+
+There is no URL I can hardcode to fix it. GHL issues a **unique tokenised link per
+appointment** via `{{appointment.reschedule_link}}`; a calendar id is not enough to
+build one.
+
+- [ ] Send leads to `{{appointment.reschedule_link}}` from an appointment-triggered
+      workflow (confirmation email/SMS) instead of to this page
+- [ ] Then decide what `/commercial/reschedule` should be: removed, redirected, or
+      rewritten to say "your reschedule link is in your confirmation email"
+
+I've left the page alone for now — if the confirmation emails don't already carry that
+link, replacing the widget today would leave leads with no way to move a call at all.
+Confirm the link goes out first, then it's safe to change.
+
 ---
 
 ## 4. Decisions — not broken, but you should choose
@@ -134,14 +184,22 @@ it does. Worth confirming it doesn't fight the round-robin assignment.
       but it didn't matter with one closer. Now Dan can run the call while the
       contact record ownership doesn't follow him, which affects follow-up and
       pipeline ownership.
-- [ ] **Reschedule behaviour.** GHL has a per-calendar setting for whether a
-      reschedule reassigns through the round robin or keeps the original owner.
-      It's UI-only, I can't read it. If a lead already spoke to Brian, you probably
-      want it staying with Brian.
+**Decided 2026-09-02 — both still need doing in the GHL UI:**
 
-I deliberately left all four alone rather than "fixing" them — they're config
-choices, and GHL's calendar update endpoint can clobber adjacent fields like team
-config and open hours.
+- [ ] **Allow 2 bookings per time slot.** Set `appointmentPerSlot` to 2 on
+      "DSN - Strategy Zoom Call" so Brian and Dan can each take a lead at the same
+      hour. At 1, a second closer only widens *which* times exist — it never doubles
+      capacity at any given time. No code change needed; the funnel already handles a
+      slot filling up (it re-checks and shows "that slot was just taken" on a 409).
+      **Do this after Dan's Zoom is connected** — at 2 per slot, a bad Zoom config
+      hits two leads in the same hour instead of one.
+- [ ] **Reschedules keep the original closer**, not re-rotated. Set this in the
+      calendar's reschedule/advanced settings. Note this only takes effect for *real*
+      reschedules — see section 3b, the current reschedule page doesn't produce any.
+
+I've deliberately not made these over the API: GHL's calendar update endpoint can
+clobber adjacent fields like team config and open hours, and each is a single field
+in the UI.
 
 ---
 
