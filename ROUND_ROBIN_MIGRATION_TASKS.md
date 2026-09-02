@@ -232,7 +232,23 @@ GitHub Actions workflow in the repo. Note the site's last deploy was **Jul 30**:
 everything since has landed on branches rather than `main`, so merging this is what
 triggers the build. Do this **after** section 3.
 
+**Use the preflight rather than doing this by hand.** It re-checks every closer's
+meeting link, availability, the funnel's own booking path, that no embed is left on
+an old calendar, and that the repo is shippable — then refuses to deploy if any of
+it fails. Safe to run any time:
+
+```bash
+node scripts/preflight-round-robin.js
+```
+
+When it reports READY, ship with the same script:
+
+```bash
+node scripts/preflight-round-robin.js --deploy
+```
+
 - [ ] Merge `feat/round-robin-calendar-migration` into `main` and push
+      (`--deploy` does exactly this, after passing every check)
 - [ ] Confirm prod is actually on the new calendar. Look for `calendarId` in the
       response: it should read `WZwIrG0g3gk7AzOJcYXX`. If it reads the old ID,
       section 2 wasn't done. If the field is **missing entirely**, the deploy
