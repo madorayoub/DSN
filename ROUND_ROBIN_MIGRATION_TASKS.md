@@ -7,9 +7,31 @@ Brian's personal calendar.
 **Moving from:** `DXh5uGCZVjFLPQNeKRZu` — "Free Consultation", Brian only
 **Moving to:** `WZwIrG0g3gk7AzOJcYXX` — "DSN - Strategy Zoom Call", round robin, Brian B + Dan A
 
-Section 2 is confirmed resolved. **Section 0 is the one that would cost you money
-if it shipped as-is**, then section 3. Neither depends on Dan. Section 4 is
-decisions, section 5 is the deploy.
+Section 2 is confirmed resolved, section 0 is done (window now 7 days). Section 3
+(workflows) is yours. Sections 4-6 are the remaining sequence.
+
+### Live status — checked 2026-09-02
+
+| | state |
+|---|---|
+| Ads | **off** |
+| Dan on the calendar | **yes**, 50/50 with Brian |
+| Dan's Zoom | **not connected** — `kind: custom`, no meeting link. Doing it tonight |
+| Brian's Zoom | connected, `zoom_conference` |
+| Booking window | 7 days |
+| `appointmentPerSlot` | 1 |
+| Availability | **5 dates / 38 slots** — Dan nearly doubled it from Brian's 20 |
+| Production | still on the **old** calendar; branch not merged |
+
+**Do not deploy until Dan's Zoom is connected.** That advice changed when he was
+added back: with Dan off the calendar, deploying was safe because it was Brian-only.
+Now that he's on and has no meeting link, merging would move production onto a
+calendar where roughly half of bookings go out with a blank Zoom link. Ads being off
+limits the exposure but doesn't remove it — the offer pages and `/book-a-call` are
+still publicly reachable, and production today still books Brian's old calendar,
+which does have a working link. There is nothing to gain by going early.
+
+Ads being off does make this the ideal window for the test bookings in section 6.
 
 ---
 
@@ -231,18 +253,15 @@ curl -s "https://directsales.network/.netlify/functions/booking?startDate=2026-0
 
 ## 6. The day Dan lands — do it in this order
 
-**The deploy does not need to wait for Dan.** With him off the calendar it is
-Brian-only, which is functionally identical to today, so shipping section 5 first
-proves the whole migration while only one closer is exposed. Then adding Dan is UI
-clicks with no code involved and nothing to redeploy.
+Order matters here, and step 2 is the one that gets missed — the calendar is sitting
+in exactly that half-done state right now.
 
-Order matters here, and step 2 is the one that gets missed:
-
-1. - [ ] **Add Dan back** to "DSN - Strategy Zoom Call" team members
+1. - [x] **Add Dan back** to "DSN - Strategy Zoom Call" team members — done 2026-09-02
 2. - [ ] **Set his meeting location to Zoom on this calendar.** Dan connecting Zoom
-        to his GHL account is *not* enough — the Zoom link comes from the per-member
-        location config on this specific calendar. Skipping this is exactly the state
-        the calendar was in on 2026-09-02: Dan present, `kind: "custom"`, empty link.
+        to his GHL account is *not* enough — the meeting link comes from the
+        per-member location config on this specific calendar. He is currently on the
+        calendar at `kind: "custom"` with an empty link, which is the failure mode:
+        present, rotating, and handing out bookings with nothing to join.
 3. - [ ] **Verify both members** read `zoom_conference` before any traffic hits it —
         this is the whole gate, so don't take it on trust:
 
