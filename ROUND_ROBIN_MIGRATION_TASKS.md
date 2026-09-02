@@ -7,8 +7,43 @@ Brian's personal calendar.
 **Moving from:** `DXh5uGCZVjFLPQNeKRZu` — "Free Consultation", Brian only
 **Moving to:** `WZwIrG0g3gk7AzOJcYXX` — "DSN - Strategy Zoom Call", round robin, Brian B + Dan A
 
-Section 2 is now confirmed resolved. **Section 3 (workflows) is the only real work
-left**, and it doesn't depend on Dan. Section 4 is decisions. Section 5 is the deploy.
+Section 2 is confirmed resolved. **Section 0 is the one that would cost you money
+if it shipped as-is**, then section 3. Neither depends on Dan. Section 4 is
+decisions, section 5 is the deploy.
+
+---
+
+## 0. Raise the booking window from 5 days to 10 — do this before deploying
+
+**As configured, this migration cuts bookable inventory on the ad funnel by about
+two thirds.** Measured against the exact 14-day range the commercial funnel's
+booking overlay requests:
+
+| | old calendar | new round robin |
+|---|---|---|
+| clickable dates (of 14) | **9** | **4** |
+| total bookable slots | **35** | **11** |
+| furthest bookable date | Sep 11 | Sep 5 |
+
+The cause is `allowBookingFor`, which is **5 days on the new calendar and 10 on the
+old one**. It's the cap doing this, not the closers' availability — asking for 21
+days out still hard-stops the new calendar at Sep 5.
+
+This has nothing to do with Dan being off the rotation, and adding him back does
+not fix it: his availability only helps within those same 5 days.
+
+- [ ] Set **`allowBookingFor` to 10 days** (or more) on "DSN - Strategy Zoom Call"
+      so it at least matches what the old calendar offered
+
+I left this for you rather than doing it over the API — it's one field in the UI,
+and GHL's calendar update endpoint can clobber adjacent fields like team config and
+open hours, which isn't a risk worth taking on the live booking calendar.
+
+**Verify** — should return 9-ish live dates rather than 4:
+
+```bash
+cd server && TOK=$(grep '^GHL_API_KEY=' .env | cut -d= -f2-) && S=$(python3 -c "import time;print(int(time.time()*1000))") && E=$(python3 -c "import time;print(int((time.time()+13*86400)*1000))") && curl -s "https://services.leadconnectorhq.com/calendars/WZwIrG0g3gk7AzOJcYXX/free-slots?startDate=${S}&endDate=${E}&timezone=America%2FChicago" -H "Authorization: Bearer ${TOK}" -H "Version: 2021-04-15" -A "Mozilla/5.0" | python3 -c "import json,sys,re; d=json.load(sys.stdin); days={k:len(v.get('slots') or []) for k,v in d.items() if re.match(r'^\d{4}-\d{2}-\d{2}$',k)}; print('live dates:',sum(1 for n in days.values() if n),'| slots:',sum(days.values()))"
+```
 
 ---
 
@@ -90,9 +125,8 @@ it does. Worth confirming it doesn't fight the round-robin assignment.
 
 ## 4. Decisions — not broken, but you should choose
 
-- [ ] **Booking window is 5 days, was 10.** Halves how far ahead ad traffic can
-      book. Fine if deliberate (tighter windows usually show up better), but it's
-      a real change to how the funnel behaves.
+- [x] ~~Booking window is 5 days, was 10.~~ Promoted to **section 0** — measured,
+      it's a two-thirds cut in bookable slots, not a stylistic choice.
 - [ ] **`googleInvitationEmails` is now ON** (it was off). Leads may get a Google
       calendar invite *and* GHL's own confirmation. Decide if you want both.
 - [ ] **Contacts aren't assigned to whoever takes the call**
