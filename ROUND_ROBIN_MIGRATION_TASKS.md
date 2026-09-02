@@ -7,28 +7,41 @@ Brian's personal calendar.
 **Moving from:** `DXh5uGCZVjFLPQNeKRZu` — "Free Consultation", Brian only
 **Moving to:** `WZwIrG0g3gk7AzOJcYXX` — "DSN - Strategy Zoom Call", round robin, Brian B + Dan A
 
-Everything below needs an account I can't reach from here. Sections 1–3 block
-go-live. Section 4 is decisions. Section 5 is the deploy itself.
+Everything below needs an account I can't reach from here. Sections 2 and 3 are
+the ones to do now — neither depends on Dan. Section 4 is decisions. Section 5 is
+the deploy.
 
 ---
 
-## 1. Dan connects Zoom — the actual blocker
+## 1. Dan's Zoom — keep him out of the rotation until he does it
 
-Right now Brian is wired to Zoom on the round-robin calendar and **Dan is not**.
-GHL alternates between them, so roughly half of all bookings would go out with an
-empty meeting link. The product is the Zoom call, so this has to land first.
+Brian is wired to Zoom on the round-robin calendar; Dan is not. GHL alternates
+between them, so with Dan live, roughly half of all bookings go out with an empty
+meeting link. I checked every calendar in the account — Dan has no Zoom connection
+anywhere to copy across, and it OAuths his own account, so only he can do it.
 
-I checked every calendar in the account — Dan has no Zoom connection anywhere,
-so there's nothing to copy across. It OAuths his own Zoom account, which means
-only Dan can do it.
+Since that's on his schedule, don't let it hold the migration. **Take Dan out of
+the calendar's team members for now** and the round robin runs Brian-only — same
+as today, but on the new calendar. Then everything else here gets done, tested and
+deployed without waiting, and the day Dan connects his Zoom you add him back: one
+toggle in the UI, no code change, no deploy.
 
-- [ ] **Dan connects his Zoom** to the "DSN - Strategy Zoom Call" calendar
-      (GHL → Calendars → that calendar → team members → his meeting location → Zoom)
-- [ ] If Dan is slow: paste his **Zoom personal room URL** as a custom location
-      instead. Unblocks immediately, but every call lands in the same room, so
-      back-to-back meetings can collide. Treat as temporary.
+- [ ] **Remove Dan from the "DSN - Strategy Zoom Call" team members** for now
+      (GHL → Calendars → that calendar → team members)
+- [ ] Later, when Dan connects Zoom: add him back and re-check the split
 
-**Verify** — both members must come back `zoom_conference`, not `custom`:
+Two things to know about this: while Dan is out, availability is Brian's 14 slots
+rather than the combined 21, so you don't get the extra-slot benefit until he's on.
+And adding or removing a team member resets GHL's meeting counts — harmless here,
+since this calendar optimises for availability rather than equal distribution.
+
+If you'd rather have Dan taking calls before he sorts Zoom out, the other option
+is pasting his **Zoom personal room URL** as a custom location. Works immediately,
+but every call lands in the same room, so back-to-back meetings collide. Temporary
+only.
+
+**Verify** — every member listed must come back `zoom_conference`, not `custom`.
+While Dan is removed, expect one line (Brian). When he's back, expect two:
 
 ```bash
 cd server && TOK=$(grep '^GHL_API_KEY=' .env | cut -d= -f2-) && curl -s "https://services.leadconnectorhq.com/calendars/WZwIrG0g3gk7AzOJcYXX" -H "Authorization: Bearer ${TOK}" -H "Version: 2021-04-15" -A "Mozilla/5.0" | python3 -c "import json,sys; [print(t.get('userId'), (t.get('locationConfigurations') or [{}])[0].get('kind')) for t in json.load(sys.stdin)['calendar']['teamMembers']]"
@@ -116,11 +129,16 @@ curl -s "https://directsales.network/.netlify/functions/booking?startDate=2026-0
 - [ ] **Book one real test appointment** through the commercial funnel. Confirm it
       lands on the round-robin calendar, gets assigned to a closer, and comes back
       with a working Zoom link. I held off on this because it fires live
-      notifications to Brian and Dan.
-- [ ] Book a **second** one and check it goes to the *other* closer — that's the
-      only way to prove the split is actually working.
+      notifications to the closers.
 - [ ] Confirm reminders fire for a booking on the new calendar (section 3 check,
       but end-to-end).
+
+Then, on the day Dan connects his Zoom and goes back on the calendar:
+
+- [ ] Re-run the section 1 verify — both members should read `zoom_conference`
+- [ ] Book **two** test appointments and confirm they go to *different* closers.
+      One booking only proves the calendar works; two is the only thing that
+      proves the split is actually rotating.
 
 ---
 
