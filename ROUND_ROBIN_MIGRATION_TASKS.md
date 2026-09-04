@@ -297,10 +297,10 @@ cd server && TOK=$(grep '^GHL_API_KEY=' .env | cut -d= -f2-) && curl -s "https:/
 
 ---
 
-## 7. Morgan will tell Dan's bookings they're meeting Brian
+## 7. Closer name — reminder agent DONE, speed-to-lead still open
 
-Found 2026-09-04 reading the live Retell flow. Not live yet, but it lands the moment
-this migration deploys, and it's the kind of thing that only shows up on a recorded call.
+Found 2026-09-04 reading the live Retell flow, and fixed the same day for the reminder
+agent. Recorded here because the speed-to-lead half is still outstanding.
 
 The reminder agent's conversation flow **hardcodes the name "Brian" 15 times** — in the
 global prompt, in both intro variants, in `confirmed_attendance`, and in **both voicemail
@@ -316,12 +316,22 @@ This is not a blocker for turning reminders on *today*, because the live site st
 `DXh5uGCZVjFLPQNeKRZu` (verified 2026-09-04) so every booking is genuinely Brian's. It
 becomes wrong the moment section 5 deploys.
 
-- [ ] Replace the hardcoded "Brian" with `{{closer_name}}` throughout the reminder flow
-      (`conversation_flow_68c0252a092d`) — and the speed-to-lead flow before that agent
-      launches.
-- [ ] Make the orchestrator derive the real closer per appointment rather than sending a
-      static env default — GHL's appointment carries the assigned user. Sending
-      `closer_name: 'Brian'` for a Dan booking just moves the bug behind a variable.
+- [x] **Reminder flow fixed 2026-09-04** — all 14 prose occurrences of "Brian" in
+      `conversation_flow_68c0252a092d` replaced with `{{closer_name}}`, verified against
+      live (still v3, unpublished, all four `skip_response_edge` farewells intact, no
+      dangling edges). `default_dynamic_variables.closer_name` kept as "Brian" as the
+      fallback.
+- [x] **Orchestrator derives the real closer 2026-09-04** — `resolveCloserName()` reads
+      `assignedUserId` off the GHL appointment (confirmed present on a real booking) and
+      resolves the first name via a cached user lookup, falling back to `CLOSER_NAME` only
+      when GHL can't say. The reminder cron already fetches that appointment for state
+      reconciliation, so naming the right closer costs no extra API call.
+- [x] **Booking title de-named** — was `DSN Zoom Call with Brian — {name}`, now
+      `DSN Strategy Zoom Call — {name}`. GHL assigns the closer at creation time, so any
+      name baked into the title is a coin flip.
+- [ ] **Speed-to-lead flow `conversation_flow_9ef584e2f263` still hardcodes the name.**
+      Not urgent — that agent is disabled (`RETELL_AGENT_ID_SPEED_TO_LEAD` cleared) — but
+      it must be fixed before it launches.
 
 Edit the draft flow via the Retell API and never publish it — see
 `MORGAN_AGENT_CHANGELOG.md`.
@@ -337,4 +347,6 @@ Edit the draft flow via the Retell API and never publish it — see
   `assignedUserId`, which is exactly what lets GHL distribute
 - Trial funnel pages were pointing at a deleted calendar; repointed for tidiness,
   but you've confirmed that funnel is retired so it doesn't matter
-- Voice orchestrator left on Brian's calendar, per your call
+- Voice orchestrator moved onto the round-robin calendar 2026-09-04, per your call —
+  `GHL_CALENDAR_ID` is now `WZwIrG0g3gk7AzOJcYXX` and the code default matches. This
+  reverses the earlier "leave it on Brian's" decision

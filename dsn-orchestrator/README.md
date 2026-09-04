@@ -38,9 +38,9 @@ scheduler        /cron/appointment-reminders ──► picks up reminders where 
 | Resource | ID |
 |---|---|
 | Railway project | `b15f53c2-10e3-48b1-a006-0557020f5499` |
-| Supabase project | `kygcxlteriyctkzcpzvk` |
+| Supabase project | `hrpqlgrdkkleawgbiakd` |
 | GHL location | `NgduPjDbvABP3zFIqnt4` |
-| GHL calendar | `DXh5uGCZVjFLPQNeKRZu` |
+| GHL calendar | `WZwIrG0g3gk7AzOJcYXX` (DSN - Strategy Zoom Call, round robin) |
 | Retell speed-to-lead agent | `agent_d7bffee08f5962e2a0c5789fcd` |
 | Retell reminder agent | `agent_1cf55115cf9e5477adb445c754` |
 | Retell speed-to-lead flow | `conversation_flow_9ef584e2f263` |
@@ -64,7 +64,7 @@ SUPABASE_SECRET_KEY=             # service_role key from Supabase dashboard
 # GHL
 GHL_API_KEY=
 GHL_LOCATION_ID=NgduPjDbvABP3zFIqnt4
-GHL_CALENDAR_ID=DXh5uGCZVjFLPQNeKRZu
+GHL_CALENDAR_ID=WZwIrG0g3gk7AzOJcYXX
 
 # Security
 WEBHOOK_SECRET=                  # generate a random 32-char string — see secrets manager
