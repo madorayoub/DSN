@@ -329,9 +329,31 @@ becomes wrong the moment section 5 deploys.
 - [x] **Booking title de-named** — was `DSN Zoom Call with Brian — {name}`, now
       `DSN Strategy Zoom Call — {name}`. GHL assigns the closer at creation time, so any
       name baked into the title is a coin flip.
-- [ ] **Speed-to-lead flow `conversation_flow_9ef584e2f263` still hardcodes the name.**
-      Not urgent — that agent is disabled (`RETELL_AGENT_ID_SPEED_TO_LEAD` cleared) — but
-      it must be fixed before it launches.
+### Speed-to-lead is a different problem — `{{closer_name}}` is the WRONG fix there
+
+`conversation_flow_9ef584e2f263` names Brian **36 times** (global prompt plus `intro`,
+`qualify`, `confirmed`). Swapping those for `{{closer_name}}` would not fix anything,
+because speed-to-lead *pitches* the call before booking it — and round robin doesn't assign
+a closer until GHL creates the appointment. At the moment Morgan is talking, there is no
+closer yet, so the variable would just resolve to the `CLOSER_NAME` default and say "Brian"
+anyway. That's the bug wearing a disguise.
+
+The shape that actually works, in two parts:
+
+- [x] **Enabling piece done 2026-09-04** — `/retell/function/book-appointment` now returns
+      `closer_name` (resolved from the newly created appointment's `assignedUserId`) and
+      logs it on `appointment_booked_via_agent`. Nothing consumes it yet.
+- [ ] **Rewrite the script in two registers.** Before booking, name nobody — "one of our
+      guys", "the guy on our team who runs these". After booking, the `confirmed` node maps
+      the tool's new `closer_name` into a response variable and names the real person.
+      That's roughly 30 edits to live sales copy, so it's a wording call, not a mechanical
+      find-and-replace — **needs Ayoub, not a unilateral rewrite.**
+- [ ] While in there: the same script asserts "100-400+ qualified appointments a year" and
+      specific guarantee terms, which Ayoub explicitly deferred once already. Don't touch
+      that without him either.
+
+Not urgent — that agent is disabled (`RETELL_AGENT_ID_SPEED_TO_LEAD` is cleared) — but it
+must be settled before it launches.
 
 Edit the draft flow via the Retell API and never publish it — see
 `MORGAN_AGENT_CHANGELOG.md`.
