@@ -97,7 +97,7 @@ The lead is **shown, booked, confirmed, and reminded** in their own local timezo
 - **Repo:** `github.com/madorayoub/DSN`, branch `main`.
 - **Orchestrator commits this session:** `46bd965` (epoch-ms), `3ec30b8` (pre-fetch), `1f333f2` (timezone map).
 - **Prompt/flow edits** are made directly against the Retell conversation flows via the API (not stored in the repo).
-- **GHL:** location `NgduPjDbvABP3zFIqnt4`, calendar `DXh5uGCZVjFLPQNeKRZu` (Free Consultation / Zoom with Brian).
+- **GHL:** location `NgduPjDbvABP3zFIqnt4`, calendar `WZwIrG0g3gk7AzOJcYXX` (DSN - Strategy Zoom Call, round robin: Brian B + Dan A 50/50). Replaced `DXh5uGCZVjFLPQNeKRZu` (Free Consultation, Brian only) on 2026-09-04.
 
 ---
 

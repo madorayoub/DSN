@@ -82,7 +82,7 @@ No ZIP codes required. All TCPA calling-hours checks (`msUntilCallable`) use the
 
 | Piece | File | What it does |
 |---|---|---|
-| Booking | `netlify/functions/booking.js` | GET availability / POST booking against GHL calendar `DXh5uGCZVjFLPQNeKRZu`. Upserts contact by phone (E.164), creates 30-min appointment. Fields captured: name, email, phone, timezone, slot. |
+| Booking | `netlify/functions/booking.js` | GET availability / POST booking against GHL calendar `WZwIrG0g3gk7AzOJcYXX` ("DSN - Strategy Zoom Call", round robin). Upserts contact by phone (E.164), creates 30-min appointment. Fields captured: name, email, phone, timezone, slot. Sends no `assignedUserId`, which is what lets the round robin pick the closer. As of 2026-09-04 the orchestrator books this same calendar — the funnels and the voice agents are no longer split. |
 | GHL service | `server/app/services/ghl.py` | Contacts, opportunities, stage moves. Location `NgduPjDbvABP3zFIqnt4`, pipeline `deeFJVq1U9SYR8WIvEkl`. |
 | Zoom sync | `server/app/services/zoom.py` + `server/app/routes/zoom.py` | Railway cron (13:00 & 21:00 UTC) hits `POST /cron/zoom/run` → pulls past meetings + cloud recordings, downloads VTT transcripts, sends to Claude Haiku (`server/app/services/claude.py`) for status/summary/score, logs to Google Sheet (`server/app/services/sheets.py`), dedup by meeting ID. |
 | Invoicing | `server/app/routes/ghl.py`, `zoho.py` | GHL stage "Invoice Sent" webhook → Zoho invoice; Zoho paid webhook → move to "Paid/Deal Closed". |
@@ -229,7 +229,7 @@ RETELL_AGENT_REMINDER=         # agent_id
 RETELL_WEBHOOK_SECRET=         # for signature verification
 SUPABASE_URL=                  # new dsn-orchestrator Supabase project
 SUPABASE_SECRET_KEY=
-GHL_API_KEY= / GHL_LOCATION_ID=NgduPjDbvABP3zFIqnt4 / GHL_CALENDAR_ID=DXh5uGCZVjFLPQNeKRZu
+GHL_API_KEY= / GHL_LOCATION_ID=NgduPjDbvABP3zFIqnt4 / GHL_CALENDAR_ID=WZwIrG0g3gk7AzOJcYXX
 ANTHROPIC_API_KEY=             # for KB distillation
 ZOOM_ACCOUNT_ID= / ZOOM_CLIENT_ID= / ZOOM_CLIENT_SECRET=   # transcript export
 ```

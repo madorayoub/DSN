@@ -107,13 +107,12 @@ those three actually send. This one needs your eyes in the UI.
 
 ## 2. The trap that would make publishing do nothing
 
-The funnels now book on the round-robin calendar `WZwIrG0g3gk7AzOJcYXX`
-("DSN - Strategy Zoom Call"). The orchestrator still books on Brian's
-`DXh5uGCZVjFLPQNeKRZu` — deliberately, per your call.
+Everything is now on the round-robin calendar `WZwIrG0g3gk7AzOJcYXX`
+("DSN - Strategy Zoom Call") — funnels, the widget embed, and as of 2026-09-04 the
+orchestrator too. The old `DXh5uGCZVjFLPQNeKRZu` is retired.
 
-So if `Appointment Booked → Retell AI` is filtered to the old "Free Consultation" calendar,
-publishing it covers Morgan's own bookings and **misses every funnel booking** — which is
-where the real volume is.
+So if `Appointment Booked → Retell AI` is still filtered to the old "Free Consultation"
+calendar, publishing it catches **nothing at all** — every booking now lands on the new one.
 
 - [ ] Open the workflow's trigger and confirm it is either unfiltered, or scoped to include
       **"DSN - Strategy Zoom Call"**.

@@ -8,7 +8,9 @@
 // ║  DSN identifiers (this file):                                               ║
 // ║    Railway project : dsn-call-orchestrator                                  ║
 // ║    GHL location    : NgduPjDbvABP3zFIqnt4                                  ║
-// ║    GHL calendar    : DXh5uGCZVjFLPQNeKRZu  (Free Consultation)             ║
+// ║    GHL calendar    : WZwIrG0g3gk7AzOJcYXX  (DSN - Strategy Zoom Call,      ║
+// ║      round robin, Brian B + Dan A 50/50 — replaced Brian's personal        ║
+// ║      DXh5uGCZVjFLPQNeKRZu "Free Consultation" on 2026-09-04)               ║
 // ║    Supabase project: hrpqlgrdkkleawgbiakd  (dedicated DSN account — the    ║
 // ║      old kygcxlteriyctkzcpzvk on the TFG org was retired 2026-07-25)        ║
 // ║    Retell STL agent: agent_d7bffee08f5962e2a0c5789fcd  (Morgan — STL)     ║
@@ -68,7 +70,7 @@ const {
   SUPABASE_SECRET_KEY,
   GHL_API_KEY,
   GHL_LOCATION_ID              = 'NgduPjDbvABP3zFIqnt4',
-  GHL_CALENDAR_ID              = 'DXh5uGCZVjFLPQNeKRZu',
+  GHL_CALENDAR_ID              = 'WZwIrG0g3gk7AzOJcYXX',
   RETELL_API_KEY,
   RETELL_FROM_NUMBER,
   RETELL_AGENT_ID_SPEED_TO_LEAD,
@@ -711,9 +713,11 @@ async function buildSlotVars(timezone) {
   }
 }
 
-// Book a Zoom call with Brian in GHL calendar.
+// Book a Zoom call on the GHL calendar.
 // INTENTIONAL: book a 30-min slot even though the agent tells the lead "15 minutes" —
-// the extra buffer is for Brian. Do NOT "fix" this to 15 to match the script.
+// the extra buffer is for the closer. Do NOT "fix" this to 15 to match the script.
+// The title deliberately names no closer: the calendar is round robin, and GHL assigns
+// the closer when it creates the appointment, so any name we put here is a coin flip.
 async function ghlBookAppointment({ contactId, name, email, phone, slotIso, timezone }) {
   const start = new Date(slotIso);
   const end   = new Date(start.getTime() + 30 * 60 * 1000);
@@ -723,7 +727,7 @@ async function ghlBookAppointment({ contactId, name, email, phone, slotIso, time
     contactId,
     startTime:   start.toISOString(),
     endTime:     end.toISOString(),
-    title:       `DSN Zoom Call with Brian — ${name || 'Lead'}`,
+    title:       `DSN Strategy Zoom Call — ${name || 'Lead'}`,
     appointmentStatus: 'confirmed',
     address:     'Zoom',
     ignoreDateRange:   false,
@@ -744,6 +748,45 @@ async function ghlCancelAppointment(ghlAppointmentId) {
 async function ghlGetAppointment(ghlAppointmentId) {
   const data = await ghlRequest('GET', `/calendars/events/appointments/${ghlAppointmentId}`, null, GHL_TOOL_CALL_OPTS);
   return data.appointment || data;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WHICH CLOSER IS THIS APPOINTMENT ACTUALLY WITH?
+// The calendar is round robin (Brian B + Dan A, 50/50), so the static CLOSER_NAME
+// would name the wrong person on roughly half of all reminder calls — including in
+// the voicemail script, where nobody is there to correct it. GHL's appointment
+// carries the assigned user, so resolve their first name from that and fall back to
+// CLOSER_NAME only when GHL can't tell us. Cached because the roster changes rarely;
+// only successes are cached, so a transient GHL failure doesn't poison the process.
+// ─────────────────────────────────────────────────────────────────────────────
+const closerNameCache = new Map();
+
+async function ghlGetUserFirstName(userId) {
+  if (!userId) return null;
+  if (closerNameCache.has(userId)) return closerNameCache.get(userId);
+  try {
+    const data  = await ghlRequest('GET', `/users/${userId}`, null, GHL_TOOL_CALL_OPTS);
+    const user  = data.user || data;
+    const first = (user.firstName || user.name || '').trim().split(/\s+/)[0] || null;
+    if (first) closerNameCache.set(userId, first);
+    return first;
+  } catch (err) {
+    console.warn(`[closer] Could not resolve GHL user ${userId}: ${err.message} — falling back to CLOSER_NAME`);
+    return null;
+  }
+}
+
+async function resolveCloserName(ghlAppt, ghlAppointmentId) {
+  let appointment = ghlAppt;
+  if (!appointment && ghlAppointmentId) {
+    try {
+      appointment = await ghlGetAppointment(ghlAppointmentId);
+    } catch (err) {
+      console.warn(`[closer] Could not fetch appointment ${ghlAppointmentId}: ${err.message} — falling back to CLOSER_NAME`);
+    }
+  }
+  const userId = appointment?.assignedUserId || appointment?.userId || null;
+  return (await ghlGetUserFirstName(userId)) || CLOSER_NAME;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1876,7 +1919,7 @@ async function handleReminderCallEnded({ appointmentId, reminderType, callId, di
           timezone:          freshAppt.timezone,
           zoom_link:         freshAppt.zoom_link || '',
           reminder_type:     reminderType,
-          closer_name:       CLOSER_NAME,
+          closer_name:       await resolveCloserName(null, freshAppt.ghl_appointment_id),
         },
       });
       if (callData?.call_id) {
@@ -2607,8 +2650,10 @@ async function runAppointmentReminderCronBody() {
     // leave our recorded time in the past, which would otherwise skip the reminder outright
     // and the lead would never hear about the new time. Fail OPEN on fetch errors — a brief
     // GHL blip shouldn't block every reminder; worst case we fire with the recorded time.
+    // Declared outside the block so the closer-name resolution below can reuse it — the
+    // assigned user is on this same response, so naming the right closer costs no extra call.
+    let ghlAppt = null;
     if (appt.ghl_appointment_id) {
-      let ghlAppt = null;
       try {
         ghlAppt = await ghlGetAppointment(appt.ghl_appointment_id);
       } catch (err) {
@@ -2695,7 +2740,7 @@ async function runAppointmentReminderCronBody() {
           timezone:          appt.timezone,
           zoom_link:         appt.zoom_link || '',
           reminder_type:     reminder.reminder_type,
-          closer_name:       CLOSER_NAME,
+          closer_name:       await resolveCloserName(ghlAppt, appt.ghl_appointment_id),
         },
       });
 
