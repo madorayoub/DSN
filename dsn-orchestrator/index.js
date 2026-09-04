@@ -226,13 +226,24 @@ function validateRetell(req, res, next) {
 
 // logEvent: immutable audit trail — use this for EVERY state transition.
 // Primary debugging tool: SELECT * FROM lead_events WHERE lead_id=X ORDER BY created_at;
+// lead_id and appointment_id are bigint FK columns holding OUR row ids. A caller that passes
+// a GHL id (an alphanumeric string like "hK3nQp0wRt9vLmXz") fails the whole insert with
+// "invalid input syntax for type bigint" — and because this only console.errors, the event
+// vanishes silently from the table the schema calls the primary debugging tool. Lift only
+// real numeric ids into the columns; the raw value is still preserved in `payload`.
+function eventFkId(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && /^\d+$/.test(value))    return Number(value);
+  return null;
+}
+
 async function logEvent(eventType, payload = {}) {
   if (!supabase) return;
   const { error } = await supabase.from('lead_events').insert({
     event_type: eventType,
     payload,
-    lead_id:        payload.lead_id        || null,
-    appointment_id: payload.appointment_id || null,
+    lead_id:        eventFkId(payload.lead_id),
+    appointment_id: eventFkId(payload.appointment_id),
   });
   if (error) console.error(`[logEvent] Failed to write ${eventType}:`, error.message);
 }
@@ -1270,7 +1281,7 @@ app.post('/webhook/new-lead', requireWebhookSecret, async (req, res) => {
         await supabase?.from('leads').update({
           status: 'booked', followup_paused: true, next_followup_at: null,
         }).eq('id', lead.id);
-        await upsertAppointment({
+        const appt = await upsertAppointment({
           ghlAppointmentId: upcoming.id,
           leadId:   lead.id,
           startAt:  upcoming.startTime,
@@ -1278,7 +1289,7 @@ app.post('/webhook/new-lead', requireWebhookSecret, async (req, res) => {
           timezone: tz,
           zoomLink: upcoming.address,
         });
-        await logEvent('appointment_booked', { lead_id: lead.id, appointment_id: upcoming.id, source: 'pre_existing' });
+        await logEvent('appointment_booked', { lead_id: lead.id, appointment_id: appt.id, ghl_appointment_id: upcoming.id, source: 'pre_existing' });
         return;
       }
     } catch (err) {
@@ -1493,7 +1504,7 @@ app.post('/webhook/appointment-booked', requireWebhookSecret, async (req, res) =
       followup_paused: true,
     }).eq('id', lead.id);
 
-    await upsertAppointment({
+    const appt = await upsertAppointment({
       ghlAppointmentId: appointment_id,
       leadId:   lead.id,
       startAt:  start_time,
@@ -1502,7 +1513,7 @@ app.post('/webhook/appointment-booked', requireWebhookSecret, async (req, res) =
       zoomLink: zoom_link,
     });
 
-    await logEvent('appointment_booked', { lead_id: lead.id, appointment_id, start_time, timezone: resolvedTz });
+    await logEvent('appointment_booked', { lead_id: lead.id, appointment_id: appt.id, ghl_appointment_id: appointment_id, start_time, timezone: resolvedTz });
     console.log(`[appointment-booked] Lead ${lead.id}, appt ${appointment_id} at ${start_time} tz=${resolvedTz} — reminders scheduled`);
   } catch (err) {
     await dlq('webhook/appointment-booked', body, err);
@@ -1549,7 +1560,7 @@ app.post('/webhook/appointment-cancelled', requireWebhookSecret, async (req, res
 
     // No automatic re-engagement — the lead is left as-is. A cancelled appointment does not
     // put them back into the speed-to-lead calling cadence; that requires a manual decision.
-    await logEvent('appointment_cancelled', { lead_id: appt.lead_id, appointment_id });
+    await logEvent('appointment_cancelled', { lead_id: appt.lead_id, appointment_id: appt.id, ghl_appointment_id: appointment_id });
   } catch (err) {
     await dlq('webhook/appointment-cancelled', body, err);
   }
