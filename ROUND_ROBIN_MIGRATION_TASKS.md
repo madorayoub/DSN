@@ -297,6 +297,37 @@ cd server && TOK=$(grep '^GHL_API_KEY=' .env | cut -d= -f2-) && curl -s "https:/
 
 ---
 
+## 7. Morgan will tell Dan's bookings they're meeting Brian
+
+Found 2026-09-04 reading the live Retell flow. Not live yet, but it lands the moment
+this migration deploys, and it's the kind of thing that only shows up on a recorded call.
+
+The reminder agent's conversation flow **hardcodes the name "Brian" 15 times** — in the
+global prompt, in both intro variants, in `confirmed_attendance`, and in **both voicemail
+scripts**. The orchestrator does send a `closer_name` dynamic variable on every reminder
+call (`index.js:2687`, default `'Brian'`), but the flow never references `{{closer_name}}`
+anywhere. It only exists as an unused default value in the flow's variable block.
+
+So once the funnels are on the round-robin calendar, roughly half of all bookings are
+Dan's, and Morgan will call those leads — and leave voicemails — telling them Brian is
+running their meeting.
+
+This is not a blocker for turning reminders on *today*, because the live site still books
+`DXh5uGCZVjFLPQNeKRZu` (verified 2026-09-04) so every booking is genuinely Brian's. It
+becomes wrong the moment section 5 deploys.
+
+- [ ] Replace the hardcoded "Brian" with `{{closer_name}}` throughout the reminder flow
+      (`conversation_flow_68c0252a092d`) — and the speed-to-lead flow before that agent
+      launches.
+- [ ] Make the orchestrator derive the real closer per appointment rather than sending a
+      static env default — GHL's appointment carries the assigned user. Sending
+      `closer_name: 'Brian'` for a Dan booking just moves the bug behind a variable.
+
+Edit the draft flow via the Retell API and never publish it — see
+`MORGAN_AGENT_CHANGELOG.md`.
+
+---
+
 ## Already handled — no action needed
 
 - All funnel and reschedule pages repointed to the round-robin calendar
