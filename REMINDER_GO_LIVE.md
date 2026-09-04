@@ -21,9 +21,47 @@ time — every call Morgan makes is to someone who already booked a meeting with
   farewell nodes carrying `skip_response_edge`. Committed snapshot is byte-identical to live.
 - Schema migration applied — `call_logs.outcome` accepts `language_barrier`, `lead_events`
   accepts all four new event types.
+- **Supabase audited 2026-09-04 and clean.** All 8 tables present with every column the code
+  touches. The unique constraints the reminder upserts depend on all exist —
+  `appointments(ghl_appointment_id)` and `appointment_reminders(appointment_id, reminder_type)`
+  — without which reminders could not be written at all. Partial indexes match the cron
+  queries exactly (`appointment_reminders(trigger_at) WHERE status='pending'`). All three
+  `cron_locks` rows seeded and fresh. RLS is on for all 8 tables with zero policies, so the
+  `anon` role is denied despite holding broad grants (verified: an anon write returns
+  `42501`). The orchestrator uses the service key, which bypasses RLS — unaffected.
 - All four `/webhook/*` routes are live and fail closed with a bare `403` on a bad secret.
 - Reminder cron already handles: GHL cancel/reschedule reconciliation, past-appointment
   skip, DNC recheck at fire time, and TCPA calling-hours deferral.
+
+---
+
+## 0. Reminders alone do NOT keep speed-to-lead off
+
+This is the one thing that breaks the "reminders now, prospecting later" plan, and it isn't
+obvious from the workflow list.
+
+The no-show cron runs every 15 minutes against booked appointments. When GHL reports an
+appointment as a no-show, it **re-enters that lead into the cold-calling rotation**
+(`index.js:2821` — sets `status: 'calling'`, `followup_paused: false`, `next_followup_at`
+= the next legal calling window). The speed-to-lead cron selects on exactly that
+combination, and dials with the **speed-to-lead agent**.
+
+So the sequence is: lead books → doesn't show → someone marks it no-show in GHL → within
+15 minutes the lead is back in the rotation → Morgan cold-calls them. No extra workflow
+needs publishing for that to happen.
+
+**Kill switch:** clear the Railway variable `RETELL_AGENT_ID_SPEED_TO_LEAD`.
+`triggerRetellCall` returns early on a falsy `agentId` (`index.js:743`), so the call is
+never placed — it just logs a warning. Reminders are unaffected; they read
+`RETELL_AGENT_ID_REMINDER`.
+
+- [ ] Clear `RETELL_AGENT_ID_SPEED_TO_LEAD` before publishing the workflow.
+- [ ] Know that `/health` will then show `agents.speed_to_lead: false`. That is expected,
+      not a fault.
+- [ ] **Restore the variable when speed-to-lead launches** —
+      `agent_d7bffee08f5962e2a0c5789fcd`. No-show leads will keep accumulating as `calling`
+      in the meantime and will dial once it's restored, which is the wanted behaviour, just
+      be aware it arrives as a batch.
 
 ---
 
