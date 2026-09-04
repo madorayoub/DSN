@@ -2370,10 +2370,15 @@ app.post('/retell/function/book-appointment', validateRetell, async (req, res) =
       timeZone: timezone || 'America/New_York',
     });
 
-    console.log(`[retell/book-appointment] Lead ${leadId} booked at ${slot_iso}`);
-    await logEvent('appointment_booked_via_agent', { lead_id: lead.id, slot_iso, ghl_appointment_id: appt.id });
+    // Round robin assigns the closer at creation time, so this is the first moment anyone
+    // can know who the lead is actually meeting. Returned so a flow can name the right
+    // person in its confirmation line instead of guessing before the booking exists.
+    const closerName = await resolveCloserName(appt, null);
 
-    return res.json({ success: true, confirmation: confirmTime, appointment_id: appt.id });
+    console.log(`[retell/book-appointment] Lead ${leadId} booked at ${slot_iso} with ${closerName}`);
+    await logEvent('appointment_booked_via_agent', { lead_id: lead.id, slot_iso, ghl_appointment_id: appt.id, closer_name: closerName });
+
+    return res.json({ success: true, confirmation: confirmTime, appointment_id: appt.id, closer_name: closerName });
   } catch (err) {
     console.error('[retell/book-appointment] error:', err.message);
 
