@@ -65,6 +65,29 @@ never placed — it just logs a warning. Reminders are unaffected; they read
 
 ---
 
+## 0b. The path is proven end to end
+
+Verified 2026-09-04 by posting a real `appointment-booked` payload to production (fictional
+555 number, appointment three days out so nothing could dial; all rows deleted afterwards
+and the database returned to zero).
+
+It produced, correctly: the lead row (`status: booked`, `followup_paused: true`), the
+appointment with the right times and timezone, and **both reminder rows at exactly T-24h
+and T-1h**. No dead-letter rows.
+
+Every `{{variable}}` the flow references resolves — `customer_name`, `customer_first_name`,
+`customer_email` and `lead_id` come from `triggerRetellCall`, the appointment and timezone
+vars from the reminder cron, the slot vars from `buildSlotVars`, and `booked_confirmation`
+from the reschedule tool at runtime. Nothing will be spoken as a literal placeholder.
+
+That run also surfaced a real bug, now fixed and deployed (`1f5ba7c`): `logEvent` was being
+handed the GHL appointment id — a string — for a `bigint` FK column, so **every
+`appointment_booked` event was being silently dropped**, along with `appointment_cancelled`
+and the pre-existing-appointment case. Re-verified after the fix: the event now writes with
+the correct row id and keeps the GHL id in the payload.
+
+---
+
 ## 1. Decide this first
 
 **You already have three published reminder workflows** — `DSN Appts Reminders`,
