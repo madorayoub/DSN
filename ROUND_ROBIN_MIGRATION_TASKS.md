@@ -208,13 +208,16 @@ Confirm the link goes out first, then it's safe to change.
       pipeline ownership.
 **Decided 2026-09-02 — both still need doing in the GHL UI:**
 
-- [ ] **Allow 2 bookings per time slot.** Set `appointmentPerSlot` to 2 on
-      "DSN - Strategy Zoom Call" so Brian and Dan can each take a lead at the same
-      hour. At 1, a second closer only widens *which* times exist — it never doubles
-      capacity at any given time. No code change needed; the funnel already handles a
-      slot filling up (it re-checks and shows "that slot was just taken" on a 409).
-      **Do this after Dan's Zoom is connected** — at 2 per slot, a bad Zoom config
-      hits two leads in the same hour instead of one.
+- [x] **`appointmentPerSlot` stays at 1.** ⚠️ **This reverses the 2026-09-02 decision
+      to raise it to 2, which was made on a wrong premise of mine.** On a round robin
+      calendar the setting is capacity **per team member**, not per time slot. A closer
+      is not treated as unavailable until *both* their places are filled, so at 2 GHL
+      books the same person twice in one hour instead of rotating to the next closer —
+      the exact double-booking we want to avoid.
+      At 1 you still get two leads in the same hour, one each: Brian fills up at 2pm,
+      so the next 2pm lead spills over to Michael. My earlier claim that 1 "never
+      doubles capacity at any given time" was wrong — that is precisely what makes the
+      rotation work. The preflight now blocks on anything other than 1.
 - [ ] **Reschedules keep the original closer**, not re-rotated. Set this in the
       calendar's reschedule/advanced settings. Note this only takes effect for *real*
       reschedules — see section 3b, the current reschedule page doesn't produce any.
@@ -285,9 +288,8 @@ in exactly that half-done state right now.
 cd server && TOK=$(grep '^GHL_API_KEY=' .env | cut -d= -f2-) && curl -s "https://services.leadconnectorhq.com/calendars/WZwIrG0g3gk7AzOJcYXX" -H "Authorization: Bearer ${TOK}" -H "Version: 2021-04-15" -A "Mozilla/5.0" | python3 -c "import json,sys; [print(t.get('userId'), (t.get('locationConfigurations') or [{}])[0].get('kind')) for t in json.load(sys.stdin)['calendar']['teamMembers']]"
 ```
 
-4. - [ ] **Only then** raise `appointmentPerSlot` to 2 (section 4). At 2, a bad Zoom
-        config hits two leads in the same hour instead of one — so it goes after the
-        verify, never before.
+4. - [x] **Leave `appointmentPerSlot` at 1** — see section 4. Raising it to 2 does not
+        add a second closer to the hour, it double-books the first one.
 5. - [ ] **Book two test appointments.** Confirm they land on *different* closers and
         that **both** come back with a real Zoom link. One booking only proves the
         calendar works; two is the only thing that proves the split rotates.

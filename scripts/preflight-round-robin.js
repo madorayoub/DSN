@@ -88,10 +88,15 @@ const git = (cmd) => execSync(`git ${cmd}`, { cwd: ROOT, encoding: 'utf8' }).tri
     if (members.length < 2) record('warn', 'closer count', `only ${members.length} on the calendar — the split cannot rotate`);
   }
 
-  record(cal.appointmentPerSlot >= 2 ? 'ok' : 'warn', 'appointmentPerSlot',
-    cal.appointmentPerSlot >= 2
-      ? String(cal.appointmentPerSlot)
-      : `${cal.appointmentPerSlot} — you decided on 2, so both closers can take the same hour`);
+  // On a round robin calendar this is capacity PER TEAM MEMBER, not per slot. At 2, a
+  // closer is not treated as unavailable until both of their places are filled, so GHL
+  // books the same person twice in one hour instead of moving to the next closer. 1 is
+  // what makes the rotation work: one booking fills that closer for the hour and the
+  // next lead spills over to someone else.
+  record(cal.appointmentPerSlot === 1 ? 'ok' : 'block', 'appointmentPerSlot',
+    cal.appointmentPerSlot === 1
+      ? '1 — a closer fills up after one booking, so the next lead rotates on'
+      : `${cal.appointmentPerSlot} — this is per closer, so the same person gets double-booked in one hour. Set it to 1.`);
   record('info', 'booking window', `${cal.allowBookingFor} ${cal.allowBookingForUnit}`);
 
   // ── Availability actually comes back ──
