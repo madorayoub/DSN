@@ -97,6 +97,15 @@ const git = (cmd) => execSync(`git ${cmd}`, { cwd: ROOT, encoding: 'utf8' }).tri
     cal.appointmentPerSlot === 1
       ? '1 — a closer fills up after one booking, so the next lead rotates on'
       : `${cal.appointmentPerSlot} — this is per closer, so the same person gets double-booked in one hour. Set it to 1.`);
+
+  // Without this, round robin moves the APPOINTMENT to a closer but leaves the CONTACT
+  // owned by whoever the lead workflow assigned. With one closer that was invisible —
+  // everything was Brian's either way. With two it means a closer runs calls on leads
+  // that belong to someone else, and the pipeline shows the wrong owner.
+  record(cal.shouldAssignContactToTeamMember ? 'ok' : 'block', 'contact follows the closer',
+    cal.shouldAssignContactToTeamMember
+      ? 'on — the lead is reassigned to whoever gets the appointment'
+      : 'off — the appointment rotates but the lead stays with its original owner');
   record('info', 'booking window', `${cal.allowBookingFor} ${cal.allowBookingForUnit}`);
 
   // ── Availability actually comes back ──
