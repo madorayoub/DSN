@@ -9,8 +9,9 @@
 // ║    Railway project : dsn-call-orchestrator                                  ║
 // ║    GHL location    : NgduPjDbvABP3zFIqnt4                                  ║
 // ║    GHL calendar    : WZwIrG0g3gk7AzOJcYXX  (DSN - Strategy Zoom Call,      ║
-// ║      round robin, Brian B + Dan A 50/50 — replaced Brian's personal        ║
-// ║      DXh5uGCZVjFLPQNeKRZu "Free Consultation" on 2026-09-04)               ║
+// ║      round robin — replaced Brian's personal DXh5uGCZVjFLPQNeKRZu          ║
+// ║      "Free Consultation" on 2026-09-04. Roster changes; read it from GHL   ║
+// ║      rather than trusting any name written down here.)                     ║
 // ║    Supabase project: hrpqlgrdkkleawgbiakd  (dedicated DSN account — the    ║
 // ║      old kygcxlteriyctkzcpzvk on the TFG org was retired 2026-07-25)        ║
 // ║    Retell STL agent: agent_d7bffee08f5962e2a0c5789fcd  (Morgan — STL)     ║
@@ -752,9 +753,11 @@ async function ghlGetAppointment(ghlAppointmentId) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WHICH CLOSER IS THIS APPOINTMENT ACTUALLY WITH?
-// The calendar is round robin (Brian B + Dan A, 50/50), so the static CLOSER_NAME
-// would name the wrong person on roughly half of all reminder calls — including in
-// the voicemail script, where nobody is there to correct it. GHL's appointment
+// The calendar is round robin across whoever is on it that week — Dan A was the
+// second closer on 2026-09-04, Michael A replaced him by 2026-09-14 — so the static
+// CLOSER_NAME would name the wrong person on a large share of reminder calls,
+// including in the voicemail script, where nobody is there to correct it. Resolving
+// per appointment is what makes a roster change a non-event. GHL's appointment
 // carries the assigned user, so resolve their first name from that and fall back to
 // CLOSER_NAME only when GHL can't tell us. Cached because the roster changes rarely;
 // only successes are cached, so a transient GHL failure doesn't poison the process.

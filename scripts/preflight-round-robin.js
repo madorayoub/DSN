@@ -26,7 +26,19 @@ const ROOT        = path.join(__dirname, '..');
 const CALENDAR_ID = 'WZwIrG0g3gk7AzOJcYXX';
 const BRANCH      = 'feat/round-robin-calendar-migration';
 const UA          = 'Mozilla/5.0';
-const NAMES       = { jFV9wGc4UO6eFDkqxQl1: 'Brian B', VPUIoQCazhMi49fpXV2n: 'Dan A' };
+
+// Closer names are resolved from GHL rather than hardcoded. A static map goes stale
+// silently every time the roster changes — it printed Michael as a raw user id when he
+// replaced Dan, which is exactly when you least want the output to be unreadable.
+async function closerName(userId) {
+  try {
+    const d = await ghl(`/users/${userId}`, '2021-07-28');
+    const u = d.user || d;
+    return (u.name || u.firstName || '').trim() || userId;
+  } catch {
+    return userId;
+  }
+}
 
 const deploy = process.argv.includes('--deploy');
 const results = [];
@@ -45,9 +57,9 @@ function env(key) {
   throw new Error(`${key} not found in server/.env`);
 }
 
-async function ghl(pathname) {
+async function ghl(pathname, version = '2021-04-15') {
   const res = await fetch(`https://services.leadconnectorhq.com${pathname}`, {
-    headers: { Authorization: `Bearer ${env('GHL_API_KEY')}`, Version: '2021-04-15', 'User-Agent': UA },
+    headers: { Authorization: `Bearer ${env('GHL_API_KEY')}`, Version: version, 'User-Agent': UA },
   });
   if (!res.ok) throw new Error(`GHL ${pathname} -> HTTP ${res.status}`);
   return res.json();
@@ -68,7 +80,7 @@ const git = (cmd) => execSync(`git ${cmd}`, { cwd: ROOT, encoding: 'utf8' }).tri
   } else {
     for (const m of members) {
       const loc  = (m.locationConfigurations || [{}])[0];
-      const who  = NAMES[m.userId] || m.userId;
+      const who  = await closerName(m.userId);
       const good = loc.kind === 'zoom_conference' && !!loc.zoomOauthId;
       record(good ? 'ok' : 'block', `${who} meeting link`,
         good ? 'zoom_conference' : `kind "${loc.kind}" with no Zoom — bookings to ${who} go out with nothing to join`);
