@@ -730,7 +730,13 @@ async function ghlBookAppointment({ contactId, name, email, phone, slotIso, time
     endTime:     end.toISOString(),
     title:       `DSN Strategy Zoom Call — ${name || 'Lead'}`,
     appointmentStatus: 'confirmed',
-    address:     'Zoom',
+    // Deliberately NO `address`. GHL writes the generated Zoom join URL into that same
+    // field, so sending our own value takes precedence and the lead ends up with a
+    // location that literally reads "Zoom" and no link. This used to send 'Zoom' — safe
+    // back when the calendar had no Zoom integration, wrong since it gained one, and
+    // never caught because this path has not created a single appointment yet. The
+    // funnel (netlify/functions/booking.js) omits it and produced a real Zoom URL on
+    // all 83 bookings of the old calendar; this now matches that.
     ignoreDateRange:   false,
     toNotify:    true,
   };
