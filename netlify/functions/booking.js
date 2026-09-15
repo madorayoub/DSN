@@ -5,7 +5,7 @@
 const GHL_BASE    = 'https://services.leadconnectorhq.com';
 const TOKEN       = process.env.GHL_PRIVATE_TOKEN;   // set in Netlify env vars
 const LOCATION_ID = process.env.GHL_LOCATION_ID  || 'NgduPjDbvABP3zFIqnt4';
-const CALENDAR_ID = process.env.GHL_CALENDAR_ID  || 'DXh5uGCZVjFLPQNeKRZu';
+const CALENDAR_ID = process.env.GHL_CALENDAR_ID  || 'WZwIrG0g3gk7AzOJcYXX';
 
 const ALLOWED_ORIGIN = 'https://directsales.network';
 
@@ -162,10 +162,15 @@ exports.handler = async (event) => {
     const end = endDate || startDate;
     try {
       const dates = await getSlots(startDate, end, timezone);
+      // calendarId is echoed back purely so the calendar actually in use is verifiable
+      // from outside. GHL_CALENDAR_ID in the Netlify env silently wins over the default
+      // above, so a deploy that looks fine can still be booking the old calendar — and
+      // slot data alone doesn't reveal which one answered. The frontend ignores this
+      // field, and the id is already public in the widget embeds, so it leaks nothing.
       return {
         statusCode: 200,
         headers: { ...corsHeaders(origin), 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Connection': 'close' },
-        body: JSON.stringify({ dates }),
+        body: JSON.stringify({ dates, calendarId: CALENDAR_ID }),
       };
     } catch (err) {
       const timedOut = err.name === 'AbortError';

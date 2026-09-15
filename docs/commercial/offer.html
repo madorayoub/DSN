@@ -3951,23 +3951,18 @@
         };
 
         /* Build date strip + prefetch all slots */
+        // How far ahead to ASK for slots. This is deliberately wider than the GHL
+        // calendar's "allow booking for" setting, so that setting is the only thing
+        // deciding how far out leads can book — change it in GHL and this page
+        // follows on its own, nothing here needs editing.
+        // HARD CEILING: GHL rejects any free-slots range over 31 days, and
+        // netlify/functions/booking.js pads a day on each side, so anything above 29
+        // here returns a 400 and the picker goes completely empty. Do not raise it.
+        var REQUEST_DAYS = 28;
+
         function buildDates() {
           var today = new Date();
-          var end   = new Date(today); end.setDate(today.getDate() + 13);
-          var frag  = document.createDocumentFragment();
-          for (var i = 0; i < 14; i++) {
-            var d = new Date(today); d.setDate(today.getDate() + i);
-            var ymd = toYMD(d);
-            var b = document.createElement('button');
-            b.type = 'button'; b.className = 'bk-d'; b.dataset.date = ymd; b.disabled = true;
-            b.innerHTML =
-              '<span class="bk-dw">' + d.toLocaleDateString('en-US',{weekday:'short',timeZone:TZ}) + '</span>' +
-              '<span class="bk-dd">' + d.toLocaleDateString('en-US',{day:'numeric',timeZone:TZ}) + '</span>' +
-              '<span class="bk-dm">' + d.toLocaleDateString('en-US',{month:'short',timeZone:TZ}) + '</span>';
-            b.addEventListener('click', function () { pickDate(this.dataset.date); });
-            frag.appendChild(b);
-          }
-          $dates.appendChild(frag);
+          var end   = new Date(today); end.setDate(today.getDate() + REQUEST_DAYS);
           $times.innerHTML = '<div class="bk-spin"></div>';
 
           // 100ms delay avoids Safari 18 "Load failed" fetch bug on page show
@@ -3976,12 +3971,31 @@
               .then(function (r) { return r.json(); })
               .then(function (data) {
                 cache = data.dates || {};
-                $dates.querySelectorAll('.bk-d').forEach(function (b) {
-                  b.disabled = !(cache[b.dataset.date] || []).length;
+                var days = Object.keys(cache).filter(function (ymd) { return (cache[ymd] || []).length; }).sort();
+                if (!days.length) {
+                  $times.innerHTML = '<p class="bk-empty">No availability right now.<br>Call us at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
+                  return;
+                }
+                // One button per day the calendar actually offers, so the strip sizes itself
+                // instead of showing a fixed run of dead dates.
+                var frag = document.createDocumentFragment();
+                days.forEach(function (ymd) {
+                  // Rendered straight off the YYYY-MM-DD the API already grouped by, anchored
+                  // at noon UTC and formatted in UTC, so the label can't slip a day.
+                  var p = ymd.split('-');
+                  var dt = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2], 12));
+                  var b = document.createElement('button');
+                  b.type = 'button'; b.className = 'bk-d'; b.dataset.date = ymd;
+                  b.innerHTML =
+                    '<span class="bk-dw">' + dt.toLocaleDateString('en-US',{weekday:'short',timeZone:'UTC'}) + '</span>' +
+                    '<span class="bk-dd">' + dt.toLocaleDateString('en-US',{day:'numeric',timeZone:'UTC'}) + '</span>' +
+                    '<span class="bk-dm">' + dt.toLocaleDateString('en-US',{month:'short',timeZone:'UTC'}) + '</span>';
+                  b.addEventListener('click', function () { pickDate(this.dataset.date); });
+                  frag.appendChild(b);
                 });
-                var first = $dates.querySelector('.bk-d:not(:disabled)');
-                if (first) pickDate(first.dataset.date);
-                else $times.innerHTML = '<p class="bk-empty">No availability in the next 14 days.<br>Call us at <a href="tel:+15615567182">(561) 556-7182</a>.</p>';
+                $dates.innerHTML = '';
+                $dates.appendChild(frag);
+                pickDate(days[0]);
               })
               .catch(function () {
                 $times.innerHTML = '<p class="bk-empty">Could not load availability. Please refresh the page.</p>';
