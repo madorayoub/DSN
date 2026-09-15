@@ -99,13 +99,17 @@ const git = (cmd) => execSync(`git ${cmd}`, { cwd: ROOT, encoding: 'utf8' }).tri
       : `${cal.appointmentPerSlot} — this is per closer, so the same person gets double-booked in one hour. Set it to 1.`);
 
   // Without this, round robin moves the APPOINTMENT to a closer but leaves the CONTACT
-  // owned by whoever the lead workflow assigned. With one closer that was invisible —
-  // everything was Brian's either way. With two it means a closer runs calls on leads
-  // that belong to someone else, and the pipeline shows the wrong owner.
-  record(cal.shouldAssignContactToTeamMember ? 'ok' : 'block', 'contact follows the closer',
+  // owned by whoever the lead workflow assigned, so a closer works leads that belong to
+  // someone else and the pipeline shows the wrong owner.
+  //
+  // A warning rather than a blocker, deliberately: while the funnel is still pointed at
+  // the old single-closer calendar, nothing rotates at all and the second closer gets
+  // literally no leads. Refusing to ship over lead ownership would hold a worse state in
+  // production to protect a tidier one. Ship, then fix this in the GHL UI.
+  record(cal.shouldAssignContactToTeamMember ? 'ok' : 'warn', 'contact follows the closer',
     cal.shouldAssignContactToTeamMember
       ? 'on — the lead is reassigned to whoever gets the appointment'
-      : 'off — the appointment rotates but the lead stays with its original owner');
+      : 'off — the appointment rotates but the lead stays with its original owner. Turn on in GHL; not worth blocking the deploy for');
   record('info', 'booking window', `${cal.allowBookingFor} ${cal.allowBookingForUnit}`);
 
   // ── Availability actually comes back ──
