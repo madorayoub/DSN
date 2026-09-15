@@ -98,18 +98,25 @@ const git = (cmd) => execSync(`git ${cmd}`, { cwd: ROOT, encoding: 'utf8' }).tri
       ? '1 — a closer fills up after one booking, so the next lead rotates on'
       : `${cal.appointmentPerSlot} — this is per closer, so the same person gets double-booked in one hour. Set it to 1.`);
 
-  // Without this, round robin moves the APPOINTMENT to a closer but leaves the CONTACT
-  // owned by whoever the lead workflow assigned, so a closer works leads that belong to
-  // someone else and the pipeline shows the wrong owner.
+  // `false` here is the SAFE value for round robin — do not "fix" it to true.
   //
-  // A warning rather than a blocker, deliberately: while the funnel is still pointed at
-  // the old single-closer calendar, nothing rotates at all and the second closer gets
-  // literally no leads. Refusing to ship over lead ownership would hold a worse state in
-  // production to protect a tidier one. Ship, then fix this in the GHL UI.
-  record(cal.shouldAssignContactToTeamMember ? 'ok' : 'warn', 'contact follows the closer',
+  // This field is ambiguous and worth being careful with. Read literally it sounds like
+  // "assign the contact to whoever took the appointment", which is what we want. But the
+  // only matching control in the GHL UI is Advanced settings → New appointment preference
+  // → "Always book with the contact's assigned user", described there as booking with the
+  // contact's existing owner INSTEAD OF round robin. If that is this field, turning it on
+  // routes every lead that already has an owner straight back to that owner — and since
+  // the Facebook lead workflow assigns essentially everything to one closer, it would
+  // quietly switch the rotation off and starve the newest closer. That is the exact
+  // failure we just spent a deploy fixing.
+  //
+  // So: report it, never recommend flipping it, and treat true as the thing to question.
+  // Making the lead follow the closer is a workflow job (Appointment Booked → assign to
+  // the appointment's owner), not this toggle.
+  record(cal.shouldAssignContactToTeamMember ? 'warn' : 'ok', 'contact/booking assignment',
     cal.shouldAssignContactToTeamMember
-      ? 'on — the lead is reassigned to whoever gets the appointment'
-      : 'off — the appointment rotates but the lead stays with its original owner. Turn on in GHL; not worth blocking the deploy for');
+      ? 'shouldAssignContactToTeamMember is ON — verify this is not "always book with the contact\'s assigned user", which bypasses the rotation'
+      : 'off — rotation is free to pick the closer. Lead ownership follows via workflow, not here');
   record('info', 'booking window', `${cal.allowBookingFor} ${cal.allowBookingForUnit}`);
 
   // ── Availability actually comes back ──
