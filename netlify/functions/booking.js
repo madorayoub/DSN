@@ -135,7 +135,24 @@ async function createAppointment({ contactId, slot, timezone, name, email, phone
   }
   const data = await res.json();
   // GHL may return { id } or { appointment: { id } }
-  return { id: data.id ?? data.appointment?.id ?? data.appointmentId };
+  return {
+    id:             data.id ?? data.appointment?.id ?? data.appointmentId,
+    assignedUserId: data.assignedUserId ?? data.appointment?.assignedUserId ?? null,
+  };
+}
+
+// Round robin only assigns the APPOINTMENT. The contact keeps whoever the lead workflow
+// gave it, and a few seconds after the booking (3.6–17s, measured on live bookings) a GHL
+// workflow creates the pipeline card and copies the contact's owner onto it. Contact and
+// card owners are decoupled in this account, so a later fix to the contact never reaches
+// the card. The lead has to follow the closer here, before that card exists — otherwise
+// both land on someone else, and a closer restricted to assigned data never sees them.
+async function assignContact(contactId, userId) {
+  const res = await fetch(`${GHL_BASE}/contacts/${contactId}`, {
+    method: 'PUT', headers: GHL_HEADERS,
+    body: JSON.stringify({ assignedTo: userId }),
+  });
+  if (!res.ok) throw new Error(`Contact assignment failed: ${res.status} — ${await res.text()}`);
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -206,6 +223,12 @@ exports.handler = async (event) => {
       const contact = await upsertContact({ name, email, phone });
       if (!contact?.id) throw new Error('Contact creation returned no ID');
       const appointment = await createAppointment({ contactId: contact.id, slot, timezone, name, email, phone });
+      // The booking has already succeeded at this point. A failed hand-off must not turn
+      // it into an error page — the lead would retry and double-book — so log and move on.
+      if (appointment.assignedUserId && appointment.assignedUserId !== contact.assignedTo) {
+        await assignContact(contact.id, appointment.assignedUserId)
+          .catch((err) => console.error('[booking/assign]', err.message));
+      }
       return json(200, { success: true, appointmentId: appointment.id }, origin);
     } catch (err) {
       console.error('[booking/book]', err.message, err.detail || '');
