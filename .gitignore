@@ -3,3 +3,6 @@ test-results/
 .claude/
 .aider*
 supabase/
+
+# Local Netlify folder
+.netlify
