@@ -98,25 +98,31 @@ const git = (cmd) => execSync(`git ${cmd}`, { cwd: ROOT, encoding: 'utf8' }).tri
       ? '1 — a closer fills up after one booking, so the next lead rotates on'
       : `${cal.appointmentPerSlot} — this is per closer, so the same person gets double-booked in one hour. Set it to 1.`);
 
-  // `false` here is the SAFE value for round robin — do not "fix" it to true.
+  // This is "Assign contacts to their respective calendar team members" (Notifications &
+  // Additional Options tab): on booking, the contact is reassigned to whoever took the
+  // appointment. It is NOT "Always book with assigned user" — that lives under Team
+  // Members → Advanced Settings, and per GHL's docs it falls back to round robin anyway
+  // when the contact's owner isn't on the calendar. An earlier version of this check
+  // confused the two and told you to leave it off; that was wrong.
   //
-  // This field is ambiguous and worth being careful with. Read literally it sounds like
-  // "assign the contact to whoever took the appointment", which is what we want. But the
-  // only matching control in the GHL UI is Advanced settings → New appointment preference
-  // → "Always book with the contact's assigned user", described there as booking with the
-  // contact's existing owner INSTEAD OF round robin. If that is this field, turning it on
-  // routes every lead that already has an owner straight back to that owner — and since
-  // the Facebook lead workflow assigns essentially everything to one closer, it would
-  // quietly switch the rotation off and starve the newest closer. That is the exact
-  // failure we just spent a deploy fixing.
+  // It matters because round robin moves only the appointment. GHL copies the contact's
+  // owner onto the pipeline card when the booking workflow creates it, and closers are
+  // restricted to assigned data — so with this off, a lead the lead workflow gave to
+  // someone else is invisible to the closer running the call. Seen live Sep 2026: Brian
+  // held the meetings, Andrew owned the leads and the cards.
   //
-  // So: report it, never recommend flipping it, and treat true as the thing to question.
-  // Making the lead follow the closer is a workflow job (Appointment Booked → assign to
-  // the appointment's owner), not this toggle.
-  record(cal.shouldAssignContactToTeamMember ? 'warn' : 'ok', 'contact/booking assignment',
-    cal.shouldAssignContactToTeamMember
-      ? 'shouldAssignContactToTeamMember is ON — verify this is not "always book with the contact\'s assigned user", which bypasses the rotation'
-      : 'off — rotation is free to pick the closer. Lead ownership follows via workflow, not here');
+  // The funnel's own booking function hands the lead over itself (booking.js), so this
+  // only covers bookings through GHL's widget — /book-a-call, reschedule, staff bookings.
+  // A warning, not a blocker. And the "skip existing" sub-option (API docs: "Skip assigning
+  // contact if contact already exists") must stay off: every Facebook lead already exists
+  // as a contact by the time it books, so it would skip all of them.
+  const assigns = cal.shouldAssignContactToTeamMember && !cal.shouldSkipAssigningContactForExisting;
+  record(assigns ? 'ok' : 'warn', 'lead follows the closer',
+    assigns
+      ? 'on — widget bookings reassign the lead to whoever takes the call'
+      : cal.shouldAssignContactToTeamMember
+        ? 'on, but skips contacts that already exist — that is every Facebook lead. Turn the skip option off'
+        : 'off — widget bookings leave the lead with whoever the lead workflow picked. Turn on "Assign contacts to their respective calendar team members"');
   record('info', 'booking window', `${cal.allowBookingFor} ${cal.allowBookingForUnit}`);
 
   // ── Availability actually comes back ──
