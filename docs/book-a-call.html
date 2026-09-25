@@ -78,7 +78,10 @@
   s.parentNode.insertBefore(t,s)}(window, document,'script',
   'https://connect.facebook.net/en_US/fbevents.js');
   fbq('init', '1109170245610201');
-  fbq('track', 'PageView');
+  // Tagged so capi-client.js can send a matching server copy; the stub queues DSN.trackEvent calls until it loads.
+  window.DSN = window.DSN || { _q: [], trackEvent: function () { window.DSN._q.push([].slice.call(arguments)); } };
+  window.DSN._pageViewId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'pv_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  fbq('track', 'PageView', {}, { eventID: window.DSN._pageViewId });
   </script>
   <noscript><img height="1" width="1" style="display:none"
   src="https://www.facebook.com/tr?id=1109170245610201&ev=PageView&noscript=1"
@@ -93,7 +96,7 @@
     gtag('config', 'G-MNECF2N8N6');
   </script>
   <!-- End Google tag -->
-  <script src="assets/js/capi-client.js" defer></script>
+  <script src="assets/js/capi-client.js?v=2" defer></script>
   <script src="assets/js/ga-tracker.js" defer></script>
 </head>
 

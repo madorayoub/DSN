@@ -1,6 +1,8 @@
 // /.netlify/functions/booking
 // GET  ?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&timezone=...  → available slots
-// POST { name, email, phone, slot, timezone }                  → create appointment
+// POST { name, email, phone, slot, timezone, event_id?, page_url? } → create appointment
+
+const { hashedUserData, requestContext, sendEvent } = require('../lib/meta-capi');
 
 const GHL_BASE    = 'https://services.leadconnectorhq.com';
 const TOKEN       = process.env.GHL_PRIVATE_TOKEN;   // set in Netlify env vars
@@ -155,9 +157,36 @@ async function assignContact(contactId, userId) {
   if (!res.ok) throw new Error(`Contact assignment failed: ${res.status} — ${await res.text()}`);
 }
 
+// Reports the booking to Meta as Schedule. It goes from here rather than the browser
+// because this only runs for a booking that really happened, an ad blocker can't strip
+// it, and it has the booker's email and phone, which is what lets Meta tie the booking
+// back to the ad click. The page fires the pixel's Schedule with the same event_id, so
+// Meta counts it once. A page cached from before this existed sends no event_id and
+// still tracks the booking itself, so nothing is sent for it here.
+// The wait is capped so it can't push the response past the page's 10s abort.
+async function trackBooking({ event, body, started, contactId, name, email, phone }) {
+  const eventId = typeof body.event_id === 'string' && /^[\w-]{8,100}$/.test(body.event_id) ? body.event_id : null;
+  if (!eventId) return;
+  const pageUrl = [body.page_url, event.headers?.referer]
+    .find((url) => typeof url === 'string' && url.startsWith(ALLOWED_ORIGIN)) || ALLOWED_ORIGIN;
+  const { firstName, lastName } = splitName(name);
+  const sent = await sendEvent({
+    event_name: 'Schedule',
+    event_id: eventId,
+    event_source_url: pageUrl.slice(0, 1000),
+    user_data: {
+      ...requestContext(event.headers, pageUrl),
+      ...hashedUserData({ em: email, ph: phone, fn: firstName, ln: lastName, external_id: contactId }),
+    },
+    custom_data: { currency: 'USD', value: 0 },
+  }, { timeoutMs: Math.min(2500, 8000 - (Date.now() - started)) });
+  console.log(`[booking/capi] Schedule event_id=${eventId}`, sent.ok ? 'sent' : `not sent: ${sent.error || sent.status}`);
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
+  const started = Date.now();
   const origin = event.headers?.origin || event.headers?.Origin || '';
 
   // Block non-allowed origins (allow empty origin for same-site requests)
@@ -229,6 +258,8 @@ exports.handler = async (event) => {
         await assignContact(contact.id, appointment.assignedUserId)
           .catch((err) => console.error('[booking/assign]', err.message));
       }
+      await trackBooking({ event, body, started, contactId: contact.id, name, email, phone })
+        .catch((err) => console.error('[booking/capi]', err.message));
       return json(200, { success: true, appointmentId: appointment.id }, origin);
     } catch (err) {
       console.error('[booking/book]', err.message, err.detail || '');
