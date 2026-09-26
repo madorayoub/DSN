@@ -174,6 +174,12 @@ appointments across 72 contacts, 9 contacts hold more than one, and one — Teje
 widget) on top of an earlier no-show. Most of the rest were cleaned up by hand, which
 is the real ongoing cost.
 
+> **Update 2026-09-26: don't rename the overlay's title** (`Strategy Call — <name>`, set in
+> `netlify/functions/booking.js`). The `meta-crm-sync` job now uses it to recognise website
+> bookings, and sends Meta a Schedule for every other booking. A renamed title would count every
+> website booking twice. There's a note about it in the code. (GHL now titles the bookings it
+> makes, by hand or on the widget, `<name> - Strategy Zoom Call`.)
+
 **Round robin makes this materially worse.** Today Brian sees both the original and the
 duplicate and tidies up. With two closers, the duplicate is a fresh booking that the
 round robin can hand to Dan, while Brian still holds the original — and neither of them

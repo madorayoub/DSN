@@ -8,6 +8,16 @@ The production-ready static site lives in the `docs/` directory so GitHub Pages 
 additional build steps. When updating the marketing page or its assets, make sure any HTML, CSS,
 JavaScript, images, or fonts you add reside under `docs/`.
 
+## Bookings and Meta tracking
+
+> **Don't rename the website booking title** (`Strategy Call — <name>`, set in
+> `netlify/functions/booking.js`). That title is how the `meta-crm-sync` job recognises website
+> bookings. The job sends Meta a Schedule for every booking made any other way (by hand in GHL, or
+> on GHL's own booking page), because `booking.js` has already sent one for website bookings.
+> Rename the title and every website booking reaches Meta twice. There's a note about it in the
+> code. If it ever has to change, change the check in `netlify/functions/meta-crm-sync.js` in the
+> same commit.
+
 ## Assets
 
 The site sources the Inter typeface directly from the official CDN, so typography will render even

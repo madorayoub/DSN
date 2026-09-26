@@ -87,6 +87,13 @@ No ZIP codes required. All TCPA calling-hours checks (`msUntilCallable`) use the
 | Zoom sync | `server/app/services/zoom.py` + `server/app/routes/zoom.py` | Railway cron (13:00 & 21:00 UTC) hits `POST /cron/zoom/run` → pulls past meetings + cloud recordings, downloads VTT transcripts, sends to Claude Haiku (`server/app/services/claude.py`) for status/summary/score, logs to Google Sheet (`server/app/services/sheets.py`), dedup by meeting ID. |
 | Invoicing | `server/app/routes/ghl.py`, `zoho.py` | GHL stage "Invoice Sent" webhook → Zoho invoice; Zoho paid webhook → move to "Paid/Deal Closed". |
 
+> **Don't rename the website booking title** (`Strategy Call — <name>`, set in `booking.js`). That
+> title is how the `meta-crm-sync` job recognises website bookings. It sends Meta a Schedule for
+> every other booking, because `booking.js` already sent one for website bookings, so a renamed
+> title counts every website booking twice. There's a note about it in the code. For the same
+> reason, never give Morgan's bookings a title starting with `Strategy Call — `, or they'd be
+> taken for website bookings and send no Schedule. Morgan uses `DSN Strategy Zoom Call — <name>`.
+
 **Credentials** all in `server/.env` (see `server/.env.example` for key names): `GHL_API_KEY`, `ZOOM_*` (S2S OAuth), `ANTHROPIC_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON`, `ZOHO_*`.
 
 **Key reusable assets for this build:** Zoom transcript download code already exists; GHL contact/appointment code already exists (Python + JS versions). ~~Build inside the same app~~ **SUPERSEDED:** per Ayoub, the orchestrator is a NEW standalone service (see 2b) — but copy/port logic from this repo and from TFG's `fb-lead-orchestrator` rather than rewriting from scratch.
