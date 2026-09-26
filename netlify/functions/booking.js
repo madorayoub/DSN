@@ -83,6 +83,31 @@ function splitName(full) {
   return { firstName: parts[0] || 'Unknown', lastName: parts.slice(1).join(' ') || '' };
 }
 
+// Fill in only what the contact is missing, never overwrite. Most bookers are FB
+// leads whose contact already holds the details they're known by, and the form can
+// carry a typo or a first name only. (This used to send locationId, which GHL's
+// update rejects with a 422, so until 2026-09-26 no booking updated a contact.)
+async function fillMissing(existing, { firstName, lastName, email, phone }) {
+  const updates = {};
+  if (!existing.firstName && firstName !== 'Unknown') updates.firstName = firstName;
+  if (!existing.lastName && lastName) updates.lastName = lastName;
+  if (!existing.email) updates.email = email;
+  if (!existing.phone) updates.phone = phone;
+  if (!Object.keys(updates).length) return existing;
+
+  const patch = await fetch(`${GHL_BASE}/contacts/${existing.id}`, {
+    method: 'PUT', headers: GHL_HEADERS,
+    body: JSON.stringify(updates),
+  });
+  if (!patch.ok) {
+    console.warn(`[booking] Contact update failed: ${patch.status} ${(await patch.text()).slice(0, 200)} — proceeding with existing contact ${existing.id}`);
+    return existing;
+  }
+  const patchData = await patch.json();
+  // GHL PUT may return { contact: {...} } or the contact object directly
+  return patchData.contact ?? (patchData.id ? patchData : existing);
+}
+
 async function upsertContact({ name, email, phone }) {
   const { firstName, lastName } = splitName(name);
 
@@ -101,27 +126,7 @@ async function upsertContact({ name, email, phone }) {
       console.warn(`[booking] Phone search matched contact ${existing.id}, whose phone differs — not updating it`);
       return existing;
     }
-    // Fill in only what the contact is missing, never overwrite. Most bookers are FB
-    // leads whose contact already holds the details they're known by, and the form can
-    // carry a typo or a first name only. (This used to send locationId, which GHL's
-    // update rejects with a 422, so until 2026-09-26 no booking updated a contact.)
-    const updates = {};
-    if (!existing.firstName && firstName !== 'Unknown') updates.firstName = firstName;
-    if (!existing.lastName && lastName) updates.lastName = lastName;
-    if (!existing.email) updates.email = email;
-    if (!Object.keys(updates).length) return existing;
-
-    const patch = await fetch(`${GHL_BASE}/contacts/${existing.id}`, {
-      method: 'PUT', headers: GHL_HEADERS,
-      body: JSON.stringify(updates),
-    });
-    if (!patch.ok) {
-      console.warn(`[booking] Contact update failed: ${patch.status} ${(await patch.text()).slice(0, 200)} — proceeding with existing contact ${existing.id}`);
-      return existing;
-    }
-    const patchData = await patch.json();
-    // GHL PUT may return { contact: {...} } or the contact object directly
-    return patchData.contact ?? (patchData.id ? patchData : existing);
+    return fillMissing(existing, { firstName, lastName, email, phone });
   }
 
   const create = await fetch(`${GHL_BASE}/contacts/`, {
@@ -130,6 +135,21 @@ async function upsertContact({ name, email, phone }) {
   });
   if (!create.ok) {
     const text = await create.text();
+    // The search above only finds a lead by phone. A lead who types a different number
+    // than the one on file, or whose contact is too new to be searchable yet, lands here,
+    // and GHL refuses a second contact with the same email or phone and names the one it
+    // has. Book on that one. Until 2026-09-26 this failed the whole booking: a returning
+    // FB lead got "Something went wrong" three times, then booked through GHL's own page.
+    let duplicate = null;
+    try { duplicate = JSON.parse(text).meta; } catch {}
+    if (create.status === 400 && duplicate?.contactId) {
+      console.warn(`[booking] Contact ${duplicate.contactId} already has this ${duplicate.matchingField || 'email or phone'} — booking on it`);
+      const existing = await fetch(`${GHL_BASE}/contacts/${duplicate.contactId}`, { headers: GHL_HEADERS })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => data?.contact)
+        .catch(() => null);
+      return existing?.id ? fillMissing(existing, { firstName, lastName, email, phone }) : { id: duplicate.contactId };
+    }
     throw new Error(`Contact creation failed: ${create.status} — ${text}`);
   }
   return (await create.json()).contact;
