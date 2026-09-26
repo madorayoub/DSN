@@ -10,8 +10,9 @@
  * user_data is built here from the request (IP, user agent, _fbp/_fbc cookies),
  * never taken from the body, so nobody can post fake identities into the pixel.
  *
- * test_event_code routes the event to Events Manager → Test events, where it
- * shows up without counting, so the live setup can be checked without faking data.
+ * test_event_code also shows the event in Events Manager → Test events. Meta still
+ * processes it like any other event (its docs: test events "are not dropped"), so
+ * only send real events with it, never made-up ones.
  *
  * Bookings don't come through here: booking.js sends Schedule itself, with the
  * booker's hashed contact details.
