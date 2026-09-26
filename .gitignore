@@ -6,3 +6,8 @@ supabase/
 
 # Local Netlify folder
 .netlify
+
+# Local tool logs and Claude handoff notes (the repo is public)
+.playwright-cli/
+HANDOFF.md
+HANDOFF_*.md
