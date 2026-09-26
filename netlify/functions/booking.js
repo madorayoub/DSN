@@ -95,12 +95,28 @@ async function upsertContact({ name, email, phone }) {
 
   if (contacts?.length) {
     const existing = contacts[0];
+    // The search matches phone text in other fields too. Only fill in a contact that
+    // really has this number, so one lead's details never land on someone else.
+    if (String(existing.phone || '').replace(/\D/g, '') !== phone.replace(/\D/g, '')) {
+      console.warn(`[booking] Phone search matched contact ${existing.id}, whose phone differs — not updating it`);
+      return existing;
+    }
+    // Fill in only what the contact is missing, never overwrite. Most bookers are FB
+    // leads whose contact already holds the details they're known by, and the form can
+    // carry a typo or a first name only. (This used to send locationId, which GHL's
+    // update rejects with a 422, so until 2026-09-26 no booking updated a contact.)
+    const updates = {};
+    if (!existing.firstName && firstName !== 'Unknown') updates.firstName = firstName;
+    if (!existing.lastName && lastName) updates.lastName = lastName;
+    if (!existing.email) updates.email = email;
+    if (!Object.keys(updates).length) return existing;
+
     const patch = await fetch(`${GHL_BASE}/contacts/${existing.id}`, {
       method: 'PUT', headers: GHL_HEADERS,
-      body: JSON.stringify({ locationId: LOCATION_ID, firstName, lastName, email, phone }),
+      body: JSON.stringify(updates),
     });
     if (!patch.ok) {
-      console.warn(`[booking] Contact update failed: ${patch.status} — proceeding with existing contact ${existing.id}`);
+      console.warn(`[booking] Contact update failed: ${patch.status} ${(await patch.text()).slice(0, 200)} — proceeding with existing contact ${existing.id}`);
       return existing;
     }
     const patchData = await patch.json();
