@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
 
     <!-- Favicon -->
-    <link rel="icon" href="https://res.cloudinary.com/diptffkzh/image/upload/v1764782206/favicon_j6wusj.png" />
+    <link rel="icon" href="https://res.cloudinary.com/diptffkzh/image/upload/w_64,h_64,c_fill/v1764782206/favicon_j6wusj.png" />
     <meta name="theme-color" content="#2fcc41" />
 
     <style>
@@ -162,14 +162,26 @@
                     display: flex
                 }
             }
+
+            /* Phones: a slimmer bar leaves more of the first screen for the page */
+            @media (max-width: 767px) {
+                .ns-header-8c3a .wrap {
+                    min-height: 56px;
+                    padding: 6px 16px;
+                }
+
+                .ns-header-8c3a .logo {
+                    height: 46px;
+                }
+            }
         </style>
 
         <div class="wrap">
             <span></span>
             <a class="brand" href="/" aria-label="Direct Sales Network Home">
                 <img class="logo"
-                    src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
-                    alt="Direct Sales Network logo">
+                    src="https://res.cloudinary.com/diptffkzh/image/upload/w_720,f_auto,q_auto/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                    alt="Direct Sales Network logo" width="720" height="144">
             </a>
             <div class="actions"></div>
         </div>
@@ -338,9 +350,11 @@
                 text-align: left;
             }
 
-            .ns-thankyou .info-card:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 10px 25px rgba(17, 19, 22, .08);
+            @media (hover: hover) {
+                .ns-thankyou .info-card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 10px 25px rgba(17, 19, 22, .08);
+                }
             }
 
             .ns-thankyou .info-icon {
@@ -393,6 +407,235 @@
                 /* increased to 14px minimum */
             }
 
+            /* Phones: icon beside the title instead of above it, so the four cards take less scrolling */
+            @media (max-width: 767px) {
+                .ns-thankyou .info-card {
+                    display: grid;
+                    grid-template-columns: 36px minmax(0, 1fr);
+                    column-gap: 0.75rem;
+                    padding: 1rem;
+                }
+
+                .ns-thankyou .info-icon {
+                    grid-row: span 2;
+                    margin-bottom: 0;
+                }
+
+                /* A 7-line centred paragraph is hard to read on a phone */
+                .ns-thankyou .next-steps {
+                    text-align: left;
+                }
+            }
+
+            /* === TFG case study banner: same block on thankyou, pre-call, callconfirmed and reschedule === */
+            .tfg-case {
+                --tc-ink: #111316;
+                --tc-muted: #515a67;
+                --tc-hair: #e6ebf0;
+                --tc-accent: #2fcc41;
+                --tc-green-ink: #13843f; /* brand green darkened to pass AA as text on white */
+                container-type: inline-size;
+                position: relative;
+                background: linear-gradient(135deg, #eefaf0 0%, #ffffff 75%);
+                border: 1px solid rgba(47, 204, 65, 0.35);
+                border-radius: 14px;
+                box-shadow: 0 4px 14px rgba(17, 19, 22, 0.06);
+                color: var(--tc-ink);
+                text-align: left;
+                transition: box-shadow 0.15s ease, transform 0.15s ease;
+            }
+
+            /* Hover lift only where there is a real hover; on touch screens it would stick after a tap */
+            @media (hover: hover) {
+                .tfg-case:hover {
+                    box-shadow: 0 10px 24px rgba(17, 19, 22, 0.1);
+                    transform: translateY(-1px);
+                }
+
+                .tfg-case:hover .tfg-case__cta {
+                    background: #eefaf0;
+                }
+            }
+
+            .tfg-case .tfg-case__inner {
+                display: grid;
+                grid-template-columns: auto minmax(0, 1fr);
+                grid-template-areas:
+                    "logo copy"
+                    "stats stats"
+                    "action action";
+                align-items: center;
+                gap: 0.75rem 0.85rem;
+                padding: 0.9rem;
+            }
+
+            .tfg-case .tfg-case__logo {
+                grid-area: logo;
+                display: block;
+                width: 42px;
+                height: 48px;
+            }
+
+            .tfg-case .tfg-case__copy {
+                grid-area: copy;
+            }
+
+            .tfg-case .tfg-case__kicker {
+                margin: 0 0 0.2rem;
+                font-size: 0.75rem;
+                font-weight: 700;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                color: var(--tc-green-ink);
+            }
+
+            .tfg-case .tfg-case__title {
+                margin: 0;
+                font-size: 1.1rem;
+                font-weight: 800;
+                line-height: 1.25;
+                letter-spacing: -0.01em;
+                text-wrap: balance;
+                color: var(--tc-ink);
+            }
+
+            .tfg-case .tfg-case__stats {
+                grid-area: stats;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.5rem;
+                margin: 0;
+                padding: 0;
+                list-style: none;
+            }
+
+            .tfg-case .tfg-case__stat {
+                padding: 0.55rem 0.7rem;
+                background: #fff;
+                border: 1px solid var(--tc-hair);
+                border-radius: 10px;
+                font-size: 0.8125rem;
+                line-height: 1.3;
+                color: var(--tc-muted);
+            }
+
+            .tfg-case .tfg-case__stat b {
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+                font-size: 1.2rem;
+                font-weight: 800;
+                letter-spacing: -0.02em;
+                color: var(--tc-ink);
+            }
+
+            .tfg-case .tfg-case__stat svg {
+                width: 1rem;
+                height: 1rem;
+                flex: none;
+                color: var(--tc-green-ink);
+            }
+
+            .tfg-case .tfg-case__action {
+                grid-area: action;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.3rem;
+            }
+
+            .tfg-case .tfg-case__time {
+                display: none;
+                font-size: 0.75rem;
+                text-align: center;
+                color: var(--tc-muted);
+            }
+
+            .tfg-case .tfg-case__cta {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                min-height: 44px;
+                padding: 0.65rem 1.1rem;
+                background: #fff;
+                border: 1.5px solid var(--tc-accent);
+                border-radius: 8px;
+                color: var(--tc-ink);
+                font-size: 0.9375rem;
+                font-weight: 700;
+                white-space: nowrap;
+                text-decoration: none;
+            }
+
+            .tfg-case .tfg-case__cta svg {
+                width: 1rem;
+                height: 1rem;
+                color: var(--tc-green-ink);
+            }
+
+            /* The whole banner is the link */
+            .tfg-case .tfg-case__cta::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: 14px;
+            }
+
+            .tfg-case .tfg-case__cta:focus-visible {
+                outline: none;
+            }
+
+            .tfg-case .tfg-case__cta:focus-visible::after {
+                outline: 2px solid var(--tc-green-ink);
+                outline-offset: 2px;
+            }
+
+            @container (min-width: 600px) {
+                .tfg-case .tfg-case__inner {
+                    grid-template-columns: auto minmax(0, 1fr) auto;
+                    grid-template-areas:
+                        "logo copy action"
+                        "logo stats action";
+                    gap: 0.6rem 1.25rem;
+                    padding: 1rem 1.25rem;
+                }
+
+                .tfg-case .tfg-case__logo {
+                    align-self: start;
+                }
+
+                .tfg-case .tfg-case__stats {
+                    grid-template-columns: repeat(2, minmax(0, 12rem));
+                }
+
+                .tfg-case .tfg-case__time {
+                    display: block;
+                }
+            }
+
+            /* Wide pages: everything on one row */
+            @container (min-width: 900px) {
+                .tfg-case .tfg-case__inner {
+                    grid-template-columns: auto minmax(0, 1fr) auto auto;
+                    grid-template-areas: "logo copy stats action";
+                    column-gap: 1.5rem;
+                }
+
+                .tfg-case .tfg-case__logo {
+                    align-self: center;
+                }
+
+                .tfg-case .tfg-case__stats {
+                    grid-template-columns: repeat(2, auto);
+                }
+            }
+            /* === end TFG case study banner === */
+
+            .ns-thankyou .tfg-case {
+                margin-bottom: 1.5rem;
+            }
+
             @media (prefers-reduced-motion: reduce) {
                 .ns-thankyou * {
                     transition: none !important;
@@ -410,6 +653,43 @@
 
             <h1 class="thank-you-title">Confirmed — See You on Zoom</h1>
             <p class="thank-you-subtitle">Thanks for confirming.</p>
+
+            <aside class="tfg-case" aria-labelledby="tfg-case-title">
+                <div class="tfg-case__inner">
+                    <img class="tfg-case__logo" src="/assets/case-studies/task-force-garage/tfg-logo.webp" alt=""
+                        width="42" height="48" decoding="async">
+                    <div class="tfg-case__copy">
+                        <p class="tfg-case__kicker">Case study · Task Force Garage</p>
+                        <h2 class="tfg-case__title" id="tfg-case-title">$1.5M in new revenue in 8&nbsp;months</h2>
+                    </div>
+                    <ul class="tfg-case__stats">
+                        <li class="tfg-case__stat"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <path
+                                        d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z" />
+                                    <path d="M6 18h12" />
+                                    <path d="M6 14h12" />
+                                    <rect x="6" y="10" width="12" height="12" />
+                                </svg>$1.1M</b> 21 commercial jobs</li>
+                        <li class="tfg-case__stat"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                    <path d="M9 22V12h6v10" />
+                                </svg>~$400k</b> 88 residential jobs</li>
+                    </ul>
+                    <div class="tfg-case__action">
+                        <a class="tfg-case__cta" href="/case-studies/task-force-garage" target="_blank" rel="noopener"
+                            aria-label="Read the Task Force Garage case study (opens in a new tab)">Read the case study
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg></a>
+                        <span class="tfg-case__time">3-min read</span>
+                    </div>
+                </div>
+            </aside>
 
             <div class="info-grid">
                 <div class="info-card">

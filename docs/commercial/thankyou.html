@@ -15,7 +15,7 @@
     <link rel="dns-prefetch" href="https://go.directsales.network" />
 
     <!-- Favicon -->
-    <link rel="icon" href="https://res.cloudinary.com/diptffkzh/image/upload/v1764782206/favicon_j6wusj.png" />
+    <link rel="icon" href="https://res.cloudinary.com/diptffkzh/image/upload/w_64,h_64,c_fill/v1764782206/favicon_j6wusj.png" />
     <meta name="theme-color" content="#2fcc41" />
 
     <style>
@@ -164,14 +164,26 @@
                     display: flex
                 }
             }
+
+            /* Phones: a slimmer bar leaves more of the first screen for the page */
+            @media (max-width: 767px) {
+                .ns-header-8c3a .wrap {
+                    min-height: 56px;
+                    padding: 6px 16px;
+                }
+
+                .ns-header-8c3a .logo {
+                    height: 46px;
+                }
+            }
         </style>
 
         <div class="wrap">
             <span></span>
             <a class="brand" href="/" aria-label="Direct Sales Network Home">
                 <img class="logo"
-                    src="https://res.cloudinary.com/diptffkzh/image/upload/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
-                    alt="Direct Sales Network logo">
+                    src="https://res.cloudinary.com/diptffkzh/image/upload/w_720,f_auto,q_auto/v1759298117/a6217701-00a9-4fe2-9a1c-ed4e14b1a035_1_ywzdfl.png"
+                    alt="Direct Sales Network logo" width="720" height="144">
             </a>
             <div class="actions"></div>
         </div>
@@ -501,6 +513,221 @@
                 margin-bottom: 0.5rem;
             }
 
+            /* === TFG case study banner: same block on thankyou, pre-call, callconfirmed and reschedule === */
+            .tfg-case {
+                --tc-ink: #111316;
+                --tc-muted: #515a67;
+                --tc-hair: #e6ebf0;
+                --tc-accent: #2fcc41;
+                --tc-green-ink: #13843f; /* brand green darkened to pass AA as text on white */
+                container-type: inline-size;
+                position: relative;
+                background: linear-gradient(135deg, #eefaf0 0%, #ffffff 75%);
+                border: 1px solid rgba(47, 204, 65, 0.35);
+                border-radius: 14px;
+                box-shadow: 0 4px 14px rgba(17, 19, 22, 0.06);
+                color: var(--tc-ink);
+                text-align: left;
+                transition: box-shadow 0.15s ease, transform 0.15s ease;
+            }
+
+            /* Hover lift only where there is a real hover; on touch screens it would stick after a tap */
+            @media (hover: hover) {
+                .tfg-case:hover {
+                    box-shadow: 0 10px 24px rgba(17, 19, 22, 0.1);
+                    transform: translateY(-1px);
+                }
+
+                .tfg-case:hover .tfg-case__cta {
+                    background: #eefaf0;
+                }
+            }
+
+            .tfg-case .tfg-case__inner {
+                display: grid;
+                grid-template-columns: auto minmax(0, 1fr);
+                grid-template-areas:
+                    "logo copy"
+                    "stats stats"
+                    "action action";
+                align-items: center;
+                gap: 0.75rem 0.85rem;
+                padding: 0.9rem;
+            }
+
+            .tfg-case .tfg-case__logo {
+                grid-area: logo;
+                display: block;
+                width: 42px;
+                height: 48px;
+            }
+
+            .tfg-case .tfg-case__copy {
+                grid-area: copy;
+            }
+
+            .tfg-case .tfg-case__kicker {
+                margin: 0 0 0.2rem;
+                font-size: 0.75rem;
+                font-weight: 700;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                color: var(--tc-green-ink);
+            }
+
+            .tfg-case .tfg-case__title {
+                margin: 0;
+                font-size: 1.1rem;
+                font-weight: 800;
+                line-height: 1.25;
+                letter-spacing: -0.01em;
+                text-wrap: balance;
+                color: var(--tc-ink);
+            }
+
+            .tfg-case .tfg-case__stats {
+                grid-area: stats;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.5rem;
+                margin: 0;
+                padding: 0;
+                list-style: none;
+            }
+
+            .tfg-case .tfg-case__stat {
+                padding: 0.55rem 0.7rem;
+                background: #fff;
+                border: 1px solid var(--tc-hair);
+                border-radius: 10px;
+                font-size: 0.8125rem;
+                line-height: 1.3;
+                color: var(--tc-muted);
+            }
+
+            .tfg-case .tfg-case__stat b {
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+                font-size: 1.2rem;
+                font-weight: 800;
+                letter-spacing: -0.02em;
+                color: var(--tc-ink);
+            }
+
+            .tfg-case .tfg-case__stat svg {
+                width: 1rem;
+                height: 1rem;
+                flex: none;
+                color: var(--tc-green-ink);
+            }
+
+            .tfg-case .tfg-case__action {
+                grid-area: action;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.3rem;
+            }
+
+            .tfg-case .tfg-case__time {
+                display: none;
+                font-size: 0.75rem;
+                text-align: center;
+                color: var(--tc-muted);
+            }
+
+            .tfg-case .tfg-case__cta {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                min-height: 44px;
+                padding: 0.65rem 1.1rem;
+                background: #fff;
+                border: 1.5px solid var(--tc-accent);
+                border-radius: 8px;
+                color: var(--tc-ink);
+                font-size: 0.9375rem;
+                font-weight: 700;
+                white-space: nowrap;
+                text-decoration: none;
+            }
+
+            .tfg-case .tfg-case__cta svg {
+                width: 1rem;
+                height: 1rem;
+                color: var(--tc-green-ink);
+            }
+
+            /* The whole banner is the link */
+            .tfg-case .tfg-case__cta::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: 14px;
+            }
+
+            .tfg-case .tfg-case__cta:focus-visible {
+                outline: none;
+            }
+
+            .tfg-case .tfg-case__cta:focus-visible::after {
+                outline: 2px solid var(--tc-green-ink);
+                outline-offset: 2px;
+            }
+
+            @container (min-width: 600px) {
+                .tfg-case .tfg-case__inner {
+                    grid-template-columns: auto minmax(0, 1fr) auto;
+                    grid-template-areas:
+                        "logo copy action"
+                        "logo stats action";
+                    gap: 0.6rem 1.25rem;
+                    padding: 1rem 1.25rem;
+                }
+
+                .tfg-case .tfg-case__logo {
+                    align-self: start;
+                }
+
+                .tfg-case .tfg-case__stats {
+                    grid-template-columns: repeat(2, minmax(0, 12rem));
+                }
+
+                .tfg-case .tfg-case__time {
+                    display: block;
+                }
+            }
+
+            /* Wide pages: everything on one row */
+            @container (min-width: 900px) {
+                .tfg-case .tfg-case__inner {
+                    grid-template-columns: auto minmax(0, 1fr) auto auto;
+                    grid-template-areas: "logo copy stats action";
+                    column-gap: 1.5rem;
+                }
+
+                .tfg-case .tfg-case__logo {
+                    align-self: center;
+                }
+
+                .tfg-case .tfg-case__stats {
+                    grid-template-columns: repeat(2, auto);
+                }
+            }
+            /* === end TFG case study banner === */
+
+            .ns-ty-final .tfg-case {
+                margin-bottom: 1rem;
+            }
+
+            @media (min-width: 900px) {
+                .ns-ty-final .tfg-case {
+                    margin-bottom: 1.5rem;
+                }
+            }
+
             @media (prefers-reduced-motion: reduce) {
                 .ns-ty-final * {
                     transition: none !important;
@@ -521,11 +748,48 @@
                 <p class="sub">Watch this 4-min prep before your call. It keeps things tight.</p>
             </header>
 
+            <aside class="tfg-case" aria-labelledby="tfg-case-title">
+                <div class="tfg-case__inner">
+                    <img class="tfg-case__logo" src="/assets/case-studies/task-force-garage/tfg-logo.webp" alt=""
+                        width="42" height="48" decoding="async">
+                    <div class="tfg-case__copy">
+                        <p class="tfg-case__kicker">Case study · Task Force Garage</p>
+                        <h2 class="tfg-case__title" id="tfg-case-title">$1.5M in new revenue in 8&nbsp;months</h2>
+                    </div>
+                    <ul class="tfg-case__stats">
+                        <li class="tfg-case__stat"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <path
+                                        d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z" />
+                                    <path d="M6 18h12" />
+                                    <path d="M6 14h12" />
+                                    <rect x="6" y="10" width="12" height="12" />
+                                </svg>$1.1M</b> 21 commercial jobs</li>
+                        <li class="tfg-case__stat"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                    <path d="M9 22V12h6v10" />
+                                </svg>~$400k</b> 88 residential jobs</li>
+                    </ul>
+                    <div class="tfg-case__action">
+                        <a class="tfg-case__cta" href="/case-studies/task-force-garage" target="_blank" rel="noopener"
+                            aria-label="Read the Task Force Garage case study (opens in a new tab)">Read the case study
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg></a>
+                        <span class="tfg-case__time">3-min read</span>
+                    </div>
+                </div>
+            </aside>
+
             <div class="grid">
 
                 <div class="vid-card">
                     <iframe id="yt-player"
-                        src="https://www.youtube-nocookie.com/embed/F18f4f8NpEE?controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1"
+                        src="https://www.youtube-nocookie.com/embed/F18f4f8NpEE?controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&autoplay=1&mute=0"
                         title="Prep Video"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen>
@@ -539,15 +803,15 @@
                         <li class="step-item">
                             <div class="step-num">1</div>
                             <div class="step-content">
-                                <strong>Add to calendar</strong>
-                                <span>Keeps it on your radar.</span>
+                                <strong data-cal-step-title>Accept the calendar invite</strong>
+                                <span data-cal-step-text>It's in your email, with your Zoom link.</span>
                             </div>
                         </li>
                         <li class="step-item">
                             <div class="step-num">2</div>
                             <div class="step-content">
-                                <strong>Be by your phone</strong>
-                                <span>We'll call the number you provided.</span>
+                                <strong>Join on Zoom</strong>
+                                <span>We'll text you the link 15 minutes before. A computer works best.</span>
                             </div>
                         </li>
                         <li class="step-item">
@@ -560,8 +824,9 @@
                     </ul>
 
                     <div class="actions">
-                        <div class="cal-wrapper" data-title="Strategy Call" data-start="2025-10-10T15:00"
-                            data-end="2025-10-10T15:30" data-desc="Brief prep call. Bring notes/photos.">
+                        <div class="cal-wrapper" data-title="Strategy Zoom Call with Direct Sales Network"
+                            data-desc="Your Zoom link is in your confirmation email. We'll also text it to you 15 minutes before the call."
+                            hidden>
 
                             <button class="btn btn-primary" id="cal-trigger">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -595,48 +860,54 @@
 
         <script>
             (function () {
-                /* 1. Video Autoplay Logic */
-                const iframe = document.getElementById('yt-player');
-                if (iframe) {
-                    const url = new URL(iframe.src);
-                    url.searchParams.set('autoplay', '1');
-                    url.searchParams.set('mute', '0');
-                    iframe.src = url.toString();
-                }
-
-                /* 2. Calendar Logic */
+                /* Calendar: built from the slot the offer page just booked (it leaves it in sessionStorage).
+                   Without it we'd be guessing a date, so the button stays hidden and step 1 points to the
+                   emailed invite instead. */
                 const trigger = document.getElementById('cal-trigger');
                 const menu = document.getElementById('cal-menu');
                 const wrapper = document.querySelector('.cal-wrapper');
+                let booking = null;
+                try { booking = JSON.parse(sessionStorage.getItem('dsn:booking')); } catch (e) { /* storage blocked */ }
+                const start = booking && booking.slot ? new Date(booking.slot) : null;
 
-                if (trigger && menu && wrapper) {
-                    // Toggle Menu
+                if (trigger && menu && wrapper && start && !isNaN(start)) {
+                    const end = new Date(start.getTime() + 30 * 60 * 1000);
+                    const utc = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); // 20260927T150000Z
+                    const icsText = (t) => t.replace(/[\\;,]/g, (m) => '\\' + m).replace(/\n/g, '\\n');
+                    const title = wrapper.dataset.title;
+                    const desc = wrapper.dataset.desc;
+
+                    let when = '';
+                    try {
+                        const tz = { timeZone: booking.tz || undefined };
+                        when = start.toLocaleDateString('en-US', Object.assign({ weekday: 'short', month: 'short', day: 'numeric' }, tz))
+                            + ' at ' + start.toLocaleTimeString('en-US', Object.assign({ hour: 'numeric', minute: '2-digit' }, tz));
+                    } catch (e) { /* unknown time zone: keep the generic line */ }
+                    document.querySelector('[data-cal-step-title]').textContent = 'Add to calendar';
+                    document.querySelector('[data-cal-step-text]').textContent = when || 'Keeps it on your radar.';
+                    wrapper.hidden = false;
+
                     trigger.addEventListener('click', (e) => {
                         e.stopPropagation();
                         menu.classList.toggle('show');
                     });
-
-                    // Close on click outside
                     document.addEventListener('click', () => menu.classList.remove('show'));
 
-                    // Generate Links
-                    const title = wrapper.dataset.title;
-                    const start = wrapper.dataset.start.replace(/[-:]/g, '');
-                    const end = wrapper.dataset.end.replace(/[-:]/g, '');
-                    const desc = wrapper.dataset.desc;
+                    wrapper.querySelector('[data-type="google"]').href = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+                        + '&text=' + encodeURIComponent(title) + '&dates=' + utc(start) + '/' + utc(end)
+                        + '&details=' + encodeURIComponent(desc);
 
-                    // Google
-                    const gUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(desc)}`;
-                    wrapper.querySelector('[data-type="google"]').href = gUrl;
-
-                    // ICS (Apple/Outlook)
-                    const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDTSTART:${start}\nDTEND:${end}\nDESCRIPTION:${desc}\nEND:VEVENT\nEND:VCALENDAR`;
-                    const blob = new Blob([icsContent], { type: 'text/calendar' });
-                    const icsUrl = URL.createObjectURL(blob);
-
-                    wrapper.querySelectorAll('[data-type="apple"], [data-type="outlook"]').forEach(el => {
+                    const ics = [
+                        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Direct Sales Network//Strategy Call//EN', 'BEGIN:VEVENT',
+                        'UID:' + utc(start) + '-' + Math.random().toString(36).slice(2) + '@directsales.network',
+                        'DTSTAMP:' + utc(new Date()), 'DTSTART:' + utc(start), 'DTEND:' + utc(end),
+                        'SUMMARY:' + icsText(title), 'DESCRIPTION:' + icsText(desc),
+                        'END:VEVENT', 'END:VCALENDAR'
+                    ].join('\r\n');
+                    const icsUrl = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+                    wrapper.querySelectorAll('[data-type="apple"], [data-type="outlook"]').forEach((el) => {
                         el.href = icsUrl;
-                        el.download = 'event.ics';
+                        el.download = 'strategy-call.ics';
                     });
                 }
             })();
