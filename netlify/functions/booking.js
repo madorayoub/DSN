@@ -155,6 +155,9 @@ async function upsertContact({ name, email, phone }) {
   return (await create.json()).contact;
 }
 
+// meta-crm-sync tells site bookings apart by the "Strategy Call — " title, and sends
+// Schedule itself for bookings made any other way. Change the title there too, or site
+// bookings would reach Meta twice.
 async function createAppointment({ contactId, slot, timezone, name, email, phone }) {
   const startTime = new Date(slot).toISOString();
   const endTime   = new Date(new Date(slot).getTime() + 30 * 60 * 1000).toISOString(); // +30 min
