@@ -83,30 +83,43 @@ function splitName(full) {
   return { firstName: parts[0] || 'Unknown', lastName: parts.slice(1).join(' ') || '' };
 }
 
-// Fill in only what the contact is missing, never overwrite. Most bookers are FB
-// leads whose contact already holds the details they're known by, and the form can
-// carry a typo or a first name only. (This used to send locationId, which GHL's
-// update rejects with a 422, so until 2026-09-26 no booking updated a contact.)
-async function fillMissing(existing, { firstName, lastName, email, phone }) {
+// Brings the contact a booking lands on up to date, before the appointment exists. What
+// it's missing is filled in, and the name and phone are never overwritten: most bookers
+// are FB leads whose contact already holds the details they're known by, and the form can
+// carry a typo or a first name only. The email is the exception. The confirmation and Zoom
+// link go to the contact's email, and the lead gets them at the email they typed, so a
+// different one replaces what's on file (the booking note keeps the old one). (This used
+// to send locationId, which GHL's update rejects with a 422, so until 2026-09-26 no
+// booking updated a contact.)
+async function updateContact(existing, { firstName, lastName, email, phone }) {
   const updates = {};
   if (!existing.firstName && firstName !== 'Unknown') updates.firstName = firstName;
   if (!existing.lastName && lastName) updates.lastName = lastName;
-  if (!existing.email && email) updates.email = email;
   if (!existing.phone && phone) updates.phone = phone;
+  if (email && String(existing.email || '').toLowerCase() !== email.toLowerCase()) updates.email = email;
   if (!Object.keys(updates).length) return existing;
 
-  const patch = await fetch(`${GHL_BASE}/contacts/${existing.id}`, {
-    method: 'PUT', headers: GHL_HEADERS,
-    body: JSON.stringify(updates),
-  }).catch(networkFailure);
-  if (!patch.ok) {
-    console.warn(`[booking] Contact update failed: ${patch.status} ${(await patch.text().catch(() => '')).slice(0, 200)} — proceeding with existing contact ${existing.id}`);
-    return existing;
+  // GHL refuses an email another contact already has. The rest still goes through then,
+  // and the typed email ends up in the note instead.
+  const withoutEmail = Object.fromEntries(Object.entries(updates).filter(([key]) => key !== 'email'));
+  const attempts = updates.email && Object.keys(withoutEmail).length ? [updates, withoutEmail] : [updates];
+  for (const fields of attempts) {
+    const patch = await fetch(`${GHL_BASE}/contacts/${existing.id}`, {
+      method: 'PUT', headers: GHL_HEADERS,
+      body: JSON.stringify(fields),
+    }).catch(networkFailure);
+    if (!patch.ok) {
+      console.warn(`[booking] Contact update of ${Object.keys(fields).join(' + ')} failed: ${patch.status} ${(await patch.text().catch(() => '')).slice(0, 200)} — proceeding with contact ${existing.id}`);
+      continue;
+    }
+    const patchData = await patch.json().catch(() => ({}));
+    // GHL PUT may return { contact: {...} } or the contact object directly. Laid over what's
+    // already known, so a partial reply can't hide the contact's owner or details.
+    const contact = { ...existing, ...fields, ...(patchData.contact ?? (patchData.id ? patchData : {})) };
+    if (fields.email && existing.email) contact.replacedEmail = existing.email;   // for the note
+    return contact;
   }
-  const patchData = await patch.json().catch(() => ({}));
-  // GHL PUT may return { contact: {...} } or the contact object directly. Laid over what's
-  // already known, so a partial reply can't hide the contact's owner or details.
-  return { ...existing, ...updates, ...(patchData.contact ?? (patchData.id ? patchData : {})) };
+  return existing;
 }
 
 // Stands in for a GHL reply when the request never got one, so a dropped connection is
@@ -138,7 +151,7 @@ async function upsertContact({ name, email, phone }) {
       console.warn(`[booking] Phone search matched contact ${existing.id}, whose phone differs — not updating it`);
       return existing;
     }
-    return fillMissing(existing, { firstName, lastName, email, phone });
+    return updateContact(existing, { firstName, lastName, email, phone });
   }
 
   // GHL can still refuse an email or phone that looks fine here, so each refusal tries
@@ -168,7 +181,7 @@ async function upsertContact({ name, email, phone }) {
         .then((res) => (res.ok ? res.json() : null))
         .then((body) => body?.contact)
         .catch(() => null);
-      return existing?.id ? fillMissing(existing, { firstName, lastName, email, phone }) : { id: duplicate.contactId };
+      return existing?.id ? updateContact(existing, { firstName, lastName, email, phone }) : { id: duplicate.contactId };
     }
     failure = `${create.status} — ${text.slice(0, 300)}`;
     console.warn(`[booking] Contact creation with ${Object.keys(fields).join(' + ') || 'the name only'} failed: ${failure}`);
@@ -217,11 +230,16 @@ async function assignContact(contactId, userId) {
   if (!res.ok) throw new Error(`Contact assignment failed: ${res.status} — ${await res.text()}`);
 }
 
-// What the lead typed but the contact doesn't hold: an email or phone that wasn't usable,
-// or one that differs from the details already on file. The closer sees it in a note.
-function unsavedDetails(contact, typed) {
+// For the closer, in a note: the email the contact had before the booking form's replaced
+// it, and anything typed that the contact doesn't hold (an email or phone that wasn't
+// usable, or a phone that differs from the one on file).
+function bookingNote(contact, typed) {
+  const shown = (value) => String(value).replace(/[<>]/g, '');   // GHL notes can render HTML
+  const lines = [];
+  if (contact.replacedEmail) {
+    lines.push(`Email changed to the one typed in the website booking form. It was "${shown(contact.replacedEmail)}".`);
+  }
   const missed = [];
-  const shown = (value) => value.replace(/[<>]/g, '');   // GHL notes can render HTML
   if (typed.email && String(contact.email || '').toLowerCase() !== typed.email.toLowerCase()) {
     missed.push(`email "${shown(typed.email)}"`);
   }
@@ -229,7 +247,8 @@ function unsavedDetails(contact, typed) {
   if (typed.phone && (!phone || String(contact.phone || '').replace(/\D/g, '') !== phone.replace(/\D/g, ''))) {
     missed.push(`phone "${shown(typed.phone)}"`);
   }
-  return missed.length ? `Typed in the website booking form but not on this contact: ${missed.join(', ')}.` : null;
+  if (missed.length) lines.push(`Typed in the website booking form but not on this contact: ${missed.join(', ')}.`);
+  return lines.length ? lines.join('\n') : null;
 }
 
 async function addNote(contactId, text) {
@@ -344,7 +363,7 @@ exports.handler = async (event) => {
         await assignContact(contact.id, appointment.assignedUserId)
           .catch((err) => console.error('[booking/assign]', err.message));
       }
-      const note = unsavedDetails(contact, typed);
+      const note = bookingNote(contact, typed);
       if (note) await addNote(contact.id, note).catch((err) => console.error('[booking/note]', err.message));
       await trackBooking({ event, body, started, contactId: contact.id, name, email, phone })
         .catch((err) => console.error('[booking/capi]', err.message));
