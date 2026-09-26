@@ -4,6 +4,10 @@
   publish = "docs"
   functions = "netlify/functions"
 
+# Reports booked / follow-up stage changes to Meta. SLOT_MS in the function must match.
+[functions."meta-crm-sync"]
+  schedule = "*/15 * * * *"
+
 # Enable clean URLs (remove .html extension)
 [[redirects]]
   from = "/*"
