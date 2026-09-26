@@ -91,34 +91,46 @@ async function fillMissing(existing, { firstName, lastName, email, phone }) {
   const updates = {};
   if (!existing.firstName && firstName !== 'Unknown') updates.firstName = firstName;
   if (!existing.lastName && lastName) updates.lastName = lastName;
-  if (!existing.email) updates.email = email;
-  if (!existing.phone) updates.phone = phone;
+  if (!existing.email && email) updates.email = email;
+  if (!existing.phone && phone) updates.phone = phone;
   if (!Object.keys(updates).length) return existing;
 
   const patch = await fetch(`${GHL_BASE}/contacts/${existing.id}`, {
     method: 'PUT', headers: GHL_HEADERS,
     body: JSON.stringify(updates),
-  });
+  }).catch(networkFailure);
   if (!patch.ok) {
-    console.warn(`[booking] Contact update failed: ${patch.status} ${(await patch.text()).slice(0, 200)} — proceeding with existing contact ${existing.id}`);
+    console.warn(`[booking] Contact update failed: ${patch.status} ${(await patch.text().catch(() => '')).slice(0, 200)} — proceeding with existing contact ${existing.id}`);
     return existing;
   }
-  const patchData = await patch.json();
-  // GHL PUT may return { contact: {...} } or the contact object directly
-  return patchData.contact ?? (patchData.id ? patchData : existing);
+  const patchData = await patch.json().catch(() => ({}));
+  // GHL PUT may return { contact: {...} } or the contact object directly. Laid over what's
+  // already known, so a partial reply can't hide the contact's owner or details.
+  return { ...existing, ...updates, ...(patchData.contact ?? (patchData.id ? patchData : {})) };
 }
 
+// Stands in for a GHL reply when the request never got one, so a dropped connection is
+// handled like any other failed call instead of throwing past the fallbacks.
+function networkFailure(err) {
+  return { ok: false, status: 0, text: async () => `network error: ${err.message}`, json: async () => ({}) };
+}
+
+// email and phone arrive only when they look usable (null otherwise). Nothing in here may
+// stop a booking: every path ends with a contact to book on, unless GHL itself is down.
 async function upsertContact({ name, email, phone }) {
   const { firstName, lastName } = splitName(name);
 
-  const search = await fetch(
+  // A failed search is no reason to fail the booking: creating the contact below still
+  // lands on an existing one through GHL's duplicate check.
+  const contacts = !phone ? [] : await fetch(
     `${GHL_BASE}/contacts/?locationId=${LOCATION_ID}&query=${encodeURIComponent(phone)}`,
     { headers: GHL_HEADERS }
-  );
-  if (!search.ok) throw new Error(`Contact search failed: ${search.status}`);
-  const { contacts } = await search.json();
+  )
+    .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`status ${res.status}`))))
+    .then((data) => data.contacts || [])
+    .catch((err) => { console.warn(`[booking] Contact search failed (${err.message}) — creating the contact instead`); return []; });
 
-  if (contacts?.length) {
+  if (contacts.length) {
     const existing = contacts[0];
     // The search matches phone text in other fields too. Only fill in a contact that
     // really has this number, so one lead's details never land on someone else.
@@ -129,30 +141,39 @@ async function upsertContact({ name, email, phone }) {
     return fillMissing(existing, { firstName, lastName, email, phone });
   }
 
-  const create = await fetch(`${GHL_BASE}/contacts/`, {
-    method: 'POST', headers: GHL_HEADERS,
-    body: JSON.stringify({ locationId: LOCATION_ID, firstName, lastName, email, phone, source: 'Landing Page' }),
-  });
-  if (!create.ok) {
-    const text = await create.text();
+  // GHL can still refuse an email or phone that looks fine here, so each refusal tries
+  // again with less, down to the name alone.
+  const attempts = [{ email, phone }, { email }, { phone }, {}]
+    .map((fields) => Object.fromEntries(Object.entries(fields).filter(([, value]) => value)))
+    .filter((fields, i, all) => all.findIndex((f) => Object.keys(f).join() === Object.keys(fields).join()) === i);
+  let failure;
+  for (const fields of attempts) {
+    const create = await fetch(`${GHL_BASE}/contacts/`, {
+      method: 'POST', headers: GHL_HEADERS,
+      body: JSON.stringify({ locationId: LOCATION_ID, firstName, lastName, ...fields, source: 'Landing Page' }),
+    }).catch(networkFailure);
+    const text = await create.text().catch(() => '');
+    let data = null;
+    try { data = JSON.parse(text); } catch {}
+    if (create.ok && data?.contact?.id) return data.contact;
     // The search above only finds a lead by phone. A lead who types a different number
     // than the one on file, or whose contact is too new to be searchable yet, lands here,
     // and GHL refuses a second contact with the same email or phone and names the one it
     // has. Book on that one. Until 2026-09-26 this failed the whole booking: a returning
-    // FB lead got "Something went wrong" three times, then booked through GHL's own page.
-    let duplicate = null;
-    try { duplicate = JSON.parse(text).meta; } catch {}
+    // FB lead got "Something went wrong" three times and had to be booked by hand.
+    const duplicate = data?.meta;
     if (create.status === 400 && duplicate?.contactId) {
       console.warn(`[booking] Contact ${duplicate.contactId} already has this ${duplicate.matchingField || 'email or phone'} — booking on it`);
       const existing = await fetch(`${GHL_BASE}/contacts/${duplicate.contactId}`, { headers: GHL_HEADERS })
         .then((res) => (res.ok ? res.json() : null))
-        .then((data) => data?.contact)
+        .then((body) => body?.contact)
         .catch(() => null);
       return existing?.id ? fillMissing(existing, { firstName, lastName, email, phone }) : { id: duplicate.contactId };
     }
-    throw new Error(`Contact creation failed: ${create.status} — ${text}`);
+    failure = `${create.status} — ${text.slice(0, 300)}`;
+    console.warn(`[booking] Contact creation with ${Object.keys(fields).join(' + ') || 'the name only'} failed: ${failure}`);
   }
-  return (await create.json()).contact;
+  throw new Error(`Contact creation failed: ${failure}`);
 }
 
 // meta-crm-sync tells site bookings apart by the "Strategy Call — " title, and sends
@@ -166,8 +187,8 @@ async function createAppointment({ contactId, slot, timezone, name, email, phone
     body: JSON.stringify({
       calendarId: CALENDAR_ID, locationId: LOCATION_ID,
       contactId,  startTime, endTime,
-      timezone,   title: `Strategy Call — ${name}`,
-      appointmentStatus: 'confirmed', email, phone,
+      timezone,   title: `Strategy Call — ${name || 'Unknown'}`,
+      appointmentStatus: 'confirmed', email: email || undefined, phone: phone || undefined,
     }),
   });
   if (!res.ok) {
@@ -196,6 +217,29 @@ async function assignContact(contactId, userId) {
   if (!res.ok) throw new Error(`Contact assignment failed: ${res.status} — ${await res.text()}`);
 }
 
+// What the lead typed but the contact doesn't hold: an email or phone that wasn't usable,
+// or one that differs from the details already on file. The closer sees it in a note.
+function unsavedDetails(contact, typed) {
+  const missed = [];
+  const shown = (value) => value.replace(/[<>]/g, '');   // GHL notes can render HTML
+  if (typed.email && String(contact.email || '').toLowerCase() !== typed.email.toLowerCase()) {
+    missed.push(`email "${shown(typed.email)}"`);
+  }
+  const phone = normPhone(typed.phone);
+  if (typed.phone && (!phone || String(contact.phone || '').replace(/\D/g, '') !== phone.replace(/\D/g, ''))) {
+    missed.push(`phone "${shown(typed.phone)}"`);
+  }
+  return missed.length ? `Typed in the website booking form but not on this contact: ${missed.join(', ')}.` : null;
+}
+
+async function addNote(contactId, text) {
+  const res = await fetch(`${GHL_BASE}/contacts/${contactId}/notes`, {
+    method: 'POST', headers: GHL_HEADERS,
+    body: JSON.stringify({ body: text }),
+  });
+  if (!res.ok) throw new Error(`Note failed: ${res.status} — ${(await res.text()).slice(0, 200)}`);
+}
+
 // Reports the booking to Meta as Schedule. It goes from here rather than the browser
 // because this only runs for a booking that really happened, an ad blocker can't strip
 // it, and it has the booker's email and phone, which is what lets Meta tie the booking
@@ -215,7 +259,7 @@ async function trackBooking({ event, body, started, contactId, name, email, phon
     event_source_url: pageUrl.slice(0, 1000),
     user_data: {
       ...requestContext(event.headers, pageUrl),
-      ...hashedUserData({ em: email, ph: phone, fn: firstName, ln: lastName, external_id: contactId }),
+      ...hashedUserData({ em: email, ph: phone, fn: name ? firstName : null, ln: lastName, external_id: contactId }),
     },
     custom_data: { currency: 'USD', value: 0 },
   }, { timeoutMs: Math.min(2500, 8000 - (Date.now() - started)) });
@@ -273,23 +317,26 @@ exports.handler = async (event) => {
     let body;
     try { body = JSON.parse(event.body || '{}'); } catch { return json(400, { error: 'Invalid JSON' }, origin); }
 
-    const { name, email, slot, timezone = 'America/Chicago' } = body;
-    const missing = ['name', 'email', 'phone', 'slot'].filter(k => !body[k]);
-    if (missing.length) return json(400, { error: `Missing: ${missing.join(', ')}` }, origin);
-    if (!/^\S+@\S+\.\S+$/.test(email)) return json(400, { error: 'Invalid email' }, origin);
-    if (name.length > 100) return json(400, { error: 'Name too long' }, origin);
-
+    const { slot, timezone = 'America/Chicago' } = body;
     const slotDate = new Date(slot);
     if (isNaN(slotDate.getTime()) || slotDate < new Date()) {
       return json(400, { error: 'invalid_slot', message: 'Invalid or past appointment slot.' }, origin);
     }
 
-    const phone = normPhone(body.phone);
-    if (!phone) return json(400, { error: 'invalid_phone', message: 'Please enter a valid phone number.' }, origin);
+    // Nothing the lead types may stop a booking: a free time is all it takes. An email or
+    // phone that doesn't look usable isn't sent to GHL as one, and anything typed that
+    // doesn't end up on the contact reaches the closer in a note.
+    const typed = {
+      name:  String(body.name  ?? '').trim().slice(0, 100),
+      email: String(body.email ?? '').trim().slice(0, 200),
+      phone: String(body.phone ?? '').trim().slice(0, 50),
+    };
+    const name  = typed.name;
+    const email = /^\S+@\S+\.\S+$/.test(typed.email) ? typed.email : null;
+    const phone = normPhone(typed.phone);
 
     try {
       const contact = await upsertContact({ name, email, phone });
-      if (!contact?.id) throw new Error('Contact creation returned no ID');
       const appointment = await createAppointment({ contactId: contact.id, slot, timezone, name, email, phone });
       // The booking has already succeeded at this point. A failed hand-off must not turn
       // it into an error page — the lead would retry and double-book — so log and move on.
@@ -297,6 +344,8 @@ exports.handler = async (event) => {
         await assignContact(contact.id, appointment.assignedUserId)
           .catch((err) => console.error('[booking/assign]', err.message));
       }
+      const note = unsavedDetails(contact, typed);
+      if (note) await addNote(contact.id, note).catch((err) => console.error('[booking/note]', err.message));
       await trackBooking({ event, body, started, contactId: contact.id, name, email, phone })
         .catch((err) => console.error('[booking/capi]', err.message));
       return json(200, { success: true, appointmentId: appointment.id }, origin);

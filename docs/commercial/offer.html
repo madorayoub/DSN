@@ -4077,11 +4077,8 @@
           var name  = document.getElementById('bk-name').value.trim();
           var email = document.getElementById('bk-email').value.trim();
           var phone = document.getElementById('bk-phone').value.trim();
-          if (!name || !email || !phone) { showErr('Please fill in all fields.'); return; }
-          if (name.length < 2) { showErr('Please enter your full name.'); return; }
-          if (!/^\S+@\S+\.\S+$/.test(email)) { showErr('Please enter a valid email address.'); return; }
-          var digits = phone.replace(/\D/g, '');
-          if (digits.length < 9 || digits.length > 15) { showErr('Please enter a valid phone number.'); return; }
+          // No checks on what's typed: nothing in these fields may stop a booking. booking.js
+          // books with whatever it gets and notes on the contact anything GHL won't store.
 
           submitting = true;
           $sub.disabled = true; $sub.textContent = 'Booking…';
