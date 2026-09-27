@@ -4,7 +4,8 @@
 // from DSN's lead form arrives, then one event for each stage of the `sales` pipeline the
 // lead moves into. Meta's "conversion leads" goal uses them to optimise Lead Ads for leads
 // that book, not just leads that fill in the form, and it asks for every stage of the
-// funnel, starting with the raw lead.
+// funnel, starting with the raw lead. These CRM events are OFF since GHL was connected to
+// Meta directly (see crmEventsOn below).
 //
 // A lead who lands in Booked also counts as a Schedule, the event the site sends when a
 // lead books there. booking.js has already sent it for a site booking, so this covers the
@@ -48,6 +49,13 @@ const NEW_LEAD_DELAY_MS = 30 * 60 * 1000;
 // Runs from here on report new leads. This one also sends the 6.5 days before it, so
 // Meta's funnel starts with the leads whose later stages it already has.
 const NEW_LEAD_LAUNCH   = Date.parse('2026-09-26T16:00:00Z');
+
+// On 2026-09-27 Ayoub connected GHL to Meta directly, and that connection sends the CRM
+// stages itself. Sending ours too would count every lead's stages twice, since Meta can't
+// tell the copies apart. So "New lead" and the stage events go out only if the Netlify env
+// var META_CRM_EVENTS is "on"; set it only if GHL's connection is removed. Schedule isn't a
+// CRM event and GHL doesn't send it, so it goes out either way.
+const crmEventsOn = () => process.env.META_CRM_EVENTS === 'on';
 
 const SLOT_MS       = 15 * 60 * 1000; // must match the schedule in netlify.toml
 const LAG_MS        = 2 * 60 * 1000;  // gives GHL's search time to show a stage change
@@ -237,9 +245,12 @@ exports.handler = async (event) => {
     console.log(`[meta-crm] skipped: ${slot.skip}`);
     return { statusCode: 200, body: '' };
   }
-  const leads = newLeadWindow(slot);
+  const crm = crmEventsOn();
+  const leads = crm ? newLeadWindow(slot) : null;
   const iso = (ms) => new Date(ms).toISOString();
-  const span = `${iso(slot.from)} → ${iso(slot.to)}` + (leads ? ` (new leads ${iso(leads.from)} → ${iso(leads.to)})` : '');
+  const span = `${iso(slot.from)} → ${iso(slot.to)}`
+    + (leads ? ` (new leads ${iso(leads.from)} → ${iso(leads.to)})` : '')
+    + (crm ? '' : ' (CRM stages off: GHL sends them)');
   if (!process.env.GHL_PRIVATE_TOKEN) {
     console.error('[meta-crm] GHL_PRIVATE_TOKEN is not set');
     return { statusCode: 500, body: '' };
@@ -247,7 +258,8 @@ exports.handler = async (event) => {
 
   try {
     const [byStage, newLeads] = await Promise.all([
-      Promise.all(Object.keys(STAGES).map(opportunitiesIn)),
+      // Schedule needs only Booked; the other stages are read only to report them.
+      Promise.all((crm ? Object.keys(STAGES) : [BOOKED]).map(opportunitiesIn)),
       // A failed search loses only this window's new leads, not the stage changes.
       leads ? newLeadsIn(leads).catch((err) => {
         console.error('[meta-crm] new leads lost, contact search failed:', err.message);
@@ -261,8 +273,7 @@ exports.handler = async (event) => {
       return at >= slot.from && at < slot.to;
     });
     const events = [
-      ...newLeads.map(newLeadEvent),
-      ...changes.map(stageEvent),
+      ...(crm ? [...newLeads.map(newLeadEvent), ...changes.map(stageEvent)] : []),
       ...await schedulesFor(changes, slot.from),
     ];
     // In parallel: a launch run can carry dozens of events, and that many of sendEvent's
