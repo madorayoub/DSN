@@ -6,6 +6,8 @@ https://www.directsales.network/*  https://directsales.network/:splat  301!
 # Specific redirects (must come BEFORE catch-all patterns)
 /services.html   /services-and-solutions.html  301
 /solutions.html  /services-and-solutions.html  301
+# The SLA PDF was renamed on 2026-03-05; keep the old link working
+/commercial/sla/DSN_SLA_2026_FINAL.pdf  /commercial/sla/DSN_SLA2026.pdf  301
 
 # Clean URL support - serve .html files when accessing without extension
 /*  /:splat.html  200
