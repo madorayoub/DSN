@@ -3,6 +3,7 @@
 // POST { name, email, phone, slot, timezone, event_id?, page_url? } → create appointment
 
 const { hashedUserData, requestContext, sendEvent } = require('../lib/meta-capi');
+const { ghlTimezone } = require('../lib/ghl-timezone');
 
 const GHL_BASE    = 'https://services.leadconnectorhq.com';
 const TOKEN       = process.env.GHL_PRIVATE_TOKEN;   // set in Netlify env vars
@@ -90,19 +91,23 @@ function splitName(full) {
 // link go to the contact's email, and the lead gets them at the email they typed, so a
 // different one replaces what's on file (the booking note keeps the old one). (This used
 // to send locationId, which GHL's update rejects with a 422, so until 2026-09-26 no
-// booking updated a contact.)
-async function updateContact(existing, { firstName, lastName, email, phone }) {
+// booking updated a contact.) The timezone is replaced too: GHL prints the call's time in
+// the contact's, so it has to be the one the page showed the lead times in.
+async function updateContact(existing, { firstName, lastName, email, phone, timezone }) {
   const updates = {};
   if (!existing.firstName && firstName !== 'Unknown') updates.firstName = firstName;
   if (!existing.lastName && lastName) updates.lastName = lastName;
   if (!existing.phone && phone) updates.phone = phone;
   if (email && String(existing.email || '').toLowerCase() !== email.toLowerCase()) updates.email = email;
+  if (timezone && existing.timezone !== timezone) updates.timezone = timezone;
   if (!Object.keys(updates).length) return existing;
 
   // GHL refuses an email another contact already has. The rest still goes through then,
-  // and the typed email ends up in the note instead.
-  const withoutEmail = Object.fromEntries(Object.entries(updates).filter(([key]) => key !== 'email'));
-  const attempts = updates.email && Object.keys(withoutEmail).length ? [updates, withoutEmail] : [updates];
+  // and the typed email ends up in the note instead. A refused timezone is dropped the
+  // same way.
+  const without = (...keys) => Object.fromEntries(Object.entries(updates).filter(([key]) => !keys.includes(key)));
+  const attempts = [updates, without('email'), without('timezone'), without('email', 'timezone')]
+    .filter((fields, i, all) => Object.keys(fields).length && all.findIndex((f) => Object.keys(f).join() === Object.keys(fields).join()) === i);
   for (const fields of attempts) {
     const patch = await fetch(`${GHL_BASE}/contacts/${existing.id}`, {
       method: 'PUT', headers: GHL_HEADERS,
@@ -128,9 +133,10 @@ function networkFailure(err) {
   return { ok: false, status: 0, text: async () => `network error: ${err.message}`, json: async () => ({}) };
 }
 
-// email and phone arrive only when they look usable (null otherwise). Nothing in here may
-// stop a booking: every path ends with a contact to book on, unless GHL itself is down.
-async function upsertContact({ name, email, phone }) {
+// email and phone arrive only when they look usable (null otherwise), and timezone only
+// when it's one GHL lists. Nothing in here may stop a booking: every path ends with a
+// contact to book on, unless GHL itself is down.
+async function upsertContact({ name, email, phone, timezone }) {
   const { firstName, lastName } = splitName(name);
 
   // A failed search is no reason to fail the booking: creating the contact below still
@@ -151,12 +157,13 @@ async function upsertContact({ name, email, phone }) {
       console.warn(`[booking] Phone search matched contact ${existing.id}, whose phone differs — not updating it`);
       return existing;
     }
-    return updateContact(existing, { firstName, lastName, email, phone });
+    return updateContact(existing, { firstName, lastName, email, phone, timezone });
   }
 
   // GHL can still refuse an email or phone that looks fine here, so each refusal tries
-  // again with less, down to the name alone.
-  const attempts = [{ email, phone }, { email }, { phone }, {}]
+  // again with less, down to the name alone. Only the first try carries the timezone, so
+  // it can't be what stops the contact from being created.
+  const attempts = [{ email, phone, timezone }, { email, phone }, { email }, { phone }, {}]
     .map((fields) => Object.fromEntries(Object.entries(fields).filter(([, value]) => value)))
     .filter((fields, i, all) => all.findIndex((f) => Object.keys(f).join() === Object.keys(fields).join()) === i);
   let failure;
@@ -181,7 +188,7 @@ async function upsertContact({ name, email, phone }) {
         .then((res) => (res.ok ? res.json() : null))
         .then((body) => body?.contact)
         .catch(() => null);
-      return existing?.id ? updateContact(existing, { firstName, lastName, email, phone }) : { id: duplicate.contactId };
+      return existing?.id ? updateContact(existing, { firstName, lastName, email, phone, timezone }) : { id: duplicate.contactId };
     }
     failure = `${create.status} — ${text.slice(0, 300)}`;
     console.warn(`[booking] Contact creation with ${Object.keys(fields).join(' + ') || 'the name only'} failed: ${failure}`);
@@ -353,9 +360,13 @@ exports.handler = async (event) => {
     const name  = typed.name;
     const email = /^\S+@\S+\.\S+$/.test(typed.email) ? typed.email : null;
     const phone = normPhone(typed.phone);
+    // The page shows times in the lead's browser timezone and sends it along. It goes on
+    // the contact, not the appointment (GHL's appointments don't keep one), and before
+    // the appointment exists, because the confirmation text fires on the booking.
+    const contactTimezone = ghlTimezone(body.timezone);
 
     try {
-      const contact = await upsertContact({ name, email, phone });
+      const contact = await upsertContact({ name, email, phone, timezone: contactTimezone });
       const appointment = await createAppointment({ contactId: contact.id, slot, timezone, name, email, phone });
       // The booking has already succeeded at this point. A failed hand-off must not turn
       // it into an error page — the lead would retry and double-book — so log and move on.
